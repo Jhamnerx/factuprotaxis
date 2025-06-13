@@ -55,6 +55,13 @@
             alt="anulado" class="" style="opacity: 0.6;">
     </div>
 @endif
+@if($document->state_type->id == '09')
+    <div style="position: absolute; width: 100%; text-align: center; top:30%; left: 0; right: 0; margin: auto;">
+        <img
+            src="data:{{mime_content_type(public_path("status_images".DIRECTORY_SEPARATOR."rechazado.png"))}};base64, {{base64_encode(file_get_contents(public_path("status_images".DIRECTORY_SEPARATOR."rechazado.png")))}}"
+            alt="rechazado" class="" style="opacity: 0.6; width: 50%;">
+    </div>
+@endif
 <table class="full-width">
     <tr>
         @if($company->logo)
@@ -176,10 +183,24 @@
             </td>
 
             @if ($document->detraction)
-                <td width="120px">MONTO DETRACCIÓN</td>
-                <td width="8px">:</td>
-                <td>S/ {{ $document->detraction->amount}}</td>
+                        <td width="120px">MONTO DETRACCIÓN {{ $document->currency_type->id == 'USD' ? 'SOLES' : ''  }}
+                        </td>
+                        <td width="8px">:</td>
+                        <td> S/ {{ $document->detraction->amount}}</td>
             @endif
+        </tr>
+    @endif
+    @if ($document->detraction && $document->currency_type->id == 'USD')
+        <tr>
+            <td>
+            </td>
+            <td>
+            </td>
+            <td>
+            </td>
+                <td width="120px">MONTO DETRACCIÓN DÓLARES</td>
+                <td width="8px">:</td>
+                <td>{{$document->currency_type->symbol}} {{number_format(($document->detraction->amount/$document->exchange_rate_sale), 2)}}</td>
         </tr>
     @endif
 
@@ -886,15 +907,27 @@
             </td>
         </tr>
         <tr>
-            <td>Base imponible de la retención:
-                S/ {{ round($document->retention->amount_pen / $document->retention->percentage, 2) }}</td>
+            <td>Valor total del comprobante: 
+                    {{$document->currency_type->symbol}}
+                    {{ $document->currency_type->id == 'USD' ? number_format(($document->getRetentionTaxBase()/$document->exchange_rate_sale), 2) : $document->getRetentionTaxBase() }}
+                {{-- S/ {{ round($document->retention->amount_pen / $document->retention->percentage, 2) }} --}}
+            </td>
         </tr>
         <tr>
             <td>Porcentaje de la retención {{ $document->retention->percentage * 100 }}%</td>
         </tr>
         <tr>
-            <td>Monto de la retención S/ {{ $document->retention->amount_pen }}</td>
+            <td>Monto de la retención {{ $document->currency_type->id == 'USD' ? 'soles' : '' }}:
+                S/ {{ $document->retention->amount_pen}}
+            </td>
         </tr>
+        @if ($document->currency_type->id == 'USD')
+        <tr>
+            <td>Monto de la retención dólares:
+                {{$document->currency_type->symbol}} {{ number_format(($document->retention->amount_pen/$document->exchange_rate_sale), 2)}}
+            </td>
+        </tr>
+        @endif
     </table>
 @endif
 

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Tenant;
 
 use App\Models\Tenant\Catalogs\Country;
@@ -36,17 +37,17 @@ class EstablishmentController extends Controller
         $districts = District::whereActive()->orderByDescription()->get();
         $locations = func_get_locations();
 
-        $customers = Person::whereType('customers')->orderBy('name')->take(1)->get()->transform(function($row) {
+        $customers = Person::whereType('customers')->orderBy('name')->take(1)->get()->transform(function ($row) {
             return [
                 'id' => $row->id,
-                'description' => $row->number.' - '.$row->name,
+                'description' => $row->number . ' - ' . $row->name,
                 'name' => $row->name,
                 'number' => $row->number,
                 'identity_document_type_id' => $row->identity_document_type_id,
             ];
         });
 
-        return compact('countries', 'departments', 'provinces', 'districts', 'customers','locations');
+        return compact('countries', 'departments', 'provinces', 'districts', 'customers', 'locations');
     }
 
     public function record($id)
@@ -64,11 +65,10 @@ class EstablishmentController extends Controller
      */
     public function store(EstablishmentRequest $request)
     {
-        try
-        {
+        try {
             $id = $request->input('id');
             $has_igv_31556 = ($request->input('has_igv_31556') === 'true');
-            $addresses = ($request->input('addresses'))??[];
+            $addresses = ($request->input('addresses')) ?? [];
             $establishment = Establishment::firstOrNew(['id' => $id]);
             if ($request->hasFile('file') && $request->file('file')->isValid()) {
                 $request->validate(['file' => 'mimes:jpeg,png,jpg|max:1024']);
@@ -86,11 +86,11 @@ class EstablishmentController extends Controller
             $establishment->has_igv_31556 = $has_igv_31556;
             $establishment->email = $request->email;
             $establishment->save();
-            
-            if(!$id) {
+
+            if (!$id) {
                 $warehouse = new Warehouse();
                 $warehouse->establishment_id = $establishment->id;
-                $warehouse->description = 'Almacén - '.$establishment->description;
+                $warehouse->description = 'Almacén - ' . $establishment->description;
                 $warehouse->save();
 
                 foreach ($addresses as $row) {
@@ -98,7 +98,7 @@ class EstablishmentController extends Controller
                 }
             } else {
                 $warehouse = Warehouse::where('establishment_id', $id)->first();
-                $warehouse->description = 'Almacén - '.$establishment->description;
+                $warehouse->description = 'Almacén - ' . $establishment->description;
                 $warehouse->save();
 
                 $establishment->addresses()->delete();
@@ -109,14 +109,12 @@ class EstablishmentController extends Controller
 
             return [
                 'success' => true,
-                'message' => ($id)?'Establecimiento actualizado':'Establecimiento registrado'
+                'message' => ($id) ? 'Establecimiento actualizado' : 'Establecimiento registrado'
             ];
-        }
-        catch(Exception $e)
-        {
+        } catch (Exception $e) {
             $this->generalWriteErrorLog($e);
 
-            return $this->generalResponse(false, 'Error desconocido: '.$e->getMessage());
+            return $this->generalResponse(false, 'Error desconocido: ' . $e->getMessage());
         }
     }
 
@@ -137,5 +135,20 @@ class EstablishmentController extends Controller
             'success' => true,
             'message' => 'Establecimiento eliminado con éxito'
         ];
+    }
+
+    public function getEstablishmentActive()
+    {
+        $establishment = auth()->user()->establishment;
+        return [
+            'success' => true,
+            'establishment' => $establishment
+        ];
+    }
+
+    public function getCodes()
+    {
+        $establishments = Establishment::select('id', 'code')->get();
+        return response()->json($establishments);
     }
 }

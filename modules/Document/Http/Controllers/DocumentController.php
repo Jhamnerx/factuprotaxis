@@ -113,6 +113,7 @@ class DocumentController extends Controller
         $state_types = StateType::get();
 
         return compact('customers', 'document_types', 'series', 'establishments', 'state_types');
+
     }
 
 
@@ -193,6 +194,7 @@ class DocumentController extends Controller
         }
 
         return compact('detraction_types', 'cat_payment_method_types', 'locations');
+
     }
 
 
@@ -241,6 +243,7 @@ class DocumentController extends Controller
             Storage::put($directory . $file_name, $file_content);
             $set_image_pay_constancy = $file_name;
             $detraction->image_pay_constancy = $set_image_pay_constancy;
+
         }
 
         // dd($detraction, $request->upload_image_pay_constancy['temp_path']);
@@ -276,6 +279,7 @@ class DocumentController extends Controller
             ];
         });
         return $prepayment_documents;
+
     }
 
 
@@ -285,6 +289,7 @@ class DocumentController extends Controller
         $items = SearchItemController::getItemsToDocuments($request);
 
         return compact('items');
+
     }
 
 
@@ -308,6 +313,7 @@ class DocumentController extends Controller
                 ->whereIn('id', collect($lots)->pluck('id')->toArray())
                 ->where('has_sale', true)
                 ->latest();
+
         } else if ($sale_note_item_id) {
             $records = $this->getRecordsForSaleNoteItem($records, $sale_note_item_id, $request);
         } else {
@@ -322,7 +328,7 @@ class DocumentController extends Controller
                 ->latest();
         }
 
-        //        return new ItemLotCollection($records->get());
+//        return new ItemLotCollection($records->get());
         return new ItemLotCollection($records->paginate(config('tenant.items_per_page')));
     }
 
@@ -332,17 +338,19 @@ class DocumentController extends Controller
             ->where('series', 'like', "%{$request->input('input')}%");
         $sale_note_item_id = $request->has('sale_note_item_id') ? $request->input('sale_note_item_id') : null;
         $document_item_id = $request->has('document_item_id') ? $request->input('document_item_id') : null;
+        $document_id = $request->has('document_id') ? $request->input('document_id') : null;
         $warehouse_id = $request->has('warehouse_id') ? $request->input('warehouse_id') : null;
 
-        if ($document_item_id) {
+        if ($document_id) {
             //proccess credit note
             $document_item = DocumentItem::query()
-                ->findOrFail($document_item_id);
+                ->where('document_id',$document_id)->first();
             /** @var array $lots */
             $lots = $document_item->item->lots;
             $query->whereIn('id', collect($lots)->pluck('id')->toArray())
                 ->where('has_sale', true)
                 ->latest();
+
         } else if ($sale_note_item_id) {
             $query = $this->getRecordsForSaleNoteItem($query, $sale_note_item_id, $request);
         } else {
@@ -399,6 +407,8 @@ class DocumentController extends Controller
             ->whereIn('id', collect($document_item->item->lots)->pluck('id')->toArray())
             ->where('has_sale', true)
             ->get();
+
+
     }
 
 
@@ -416,6 +426,7 @@ class DocumentController extends Controller
         $document = Document::find($document_id);
 
         return (new ConsultCdr)->search($document);
+
     }
 
 
@@ -438,4 +449,5 @@ class DocumentController extends Controller
             'message' => 'Se habilitó el comprobante para enviarlo por resumen'
         ];
     }
+
 }

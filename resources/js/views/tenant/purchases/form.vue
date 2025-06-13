@@ -271,7 +271,9 @@
                                 v-if="purchase_order_id === null"
                             >
                                 <div class="form-group">
-                                    <label class="control-label--buys">
+                                    <label
+                                        class="control-label control-label--buys"
+                                    >
                                         Orden de compra
                                     </label>
                                     <el-select
@@ -297,7 +299,7 @@
                                 class="form-group col-sm-12 col-md-6 col-lg-4 "
                                 :class="{ 'has-danger': errors.created_at }"
                             >
-                                <label>
+                                <label class="control-label">
                                     Observaciones
                                 </label>
                                 <el-input
@@ -420,7 +422,6 @@
                                         ></small>
                                     </div>
                                 </div>
-
                                 <div class="col-md-12 col-lg-12 mt-2">
                                     <!-- Contado -->
                                     <template
@@ -743,7 +744,6 @@
                                 </div>
                             </template>
                         </div>
-
                         <div class="row">
                             <div
                                 class="col-lg-12 col-md-6 d-flex align-items-end mt-4"
@@ -773,7 +773,7 @@
                                     <table class="table">
                                         <thead>
                                             <tr>
-                                                <th>#</th>
+                                                <!-- <th>#</th> -->
                                                 <th>Descripción</th>
                                                 <th>Almacén</th>
                                                 <th>Lote</th>
@@ -807,7 +807,7 @@
                                                 index) in form.items"
                                                 :key="index"
                                             >
-                                                <td>{{ index + 1 }}</td>
+                                                <!-- <td>{{ index + 1 }}</td> -->
                                                 <td>
                                                     {{
                                                         setDescriptionOfItem(
@@ -913,6 +913,15 @@
                                             </tr>
                                         </tbody>
                                     </table>
+                                    <div
+                                        v-if="form.items.length > 0"
+                                        class="total-rows"
+                                    >
+                                        <span
+                                            >Total de ítems:
+                                            {{ form.items.length }}</span
+                                        >
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -1303,7 +1312,9 @@ export default {
             .get(`/${this.resource}/tables`)
             .then(response => {
                 let data = response.data;
-                this.document_types = data.document_types_invoice;
+                this.document_types = data.document_types_invoice.filter(
+                    item => item.id !== "14"
+                );
                 this.currency_types = data.currency_types;
                 this.payment_conditions = data.payment_conditions;
                 // this.establishment = data.establishment

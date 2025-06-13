@@ -38,7 +38,7 @@
                         <th class="text-left">
                             Periodo
                         </th>
-                        <th class="text-center">
+                        <th class="text-right">
                             Cant. Veces
                         </th>
                         <th class="text-left">
@@ -64,7 +64,7 @@
                         <td class="text-left">
                             {{ row.period }}
                         </td>
-                        <td class="text-center">
+                        <td class="text-right">
                             {{ row.quantity_period }}
                         </td>
                         <td class="text-left">
@@ -107,7 +107,18 @@
         </div>
     </div>
 </template>
-
+<style>
+@media only screen and (max-width: 485px){
+    .filter-container{
+      margin-top: 0px;
+      & .btn-filter-content, .btn-container-mobile{
+        display: flex;
+        align-items: center;
+        justify-content: start;
+      }
+    }
+  }
+</style>
 <script>
 import {mapActions, mapState} from "vuex/dist/vuex.mjs";
 

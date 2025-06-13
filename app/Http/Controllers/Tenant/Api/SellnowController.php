@@ -20,7 +20,8 @@ use Illuminate\Support\Str;
 class SellnowController extends Controller
 {
 
-    public function items(Request $request){
+    public function items(Request $request)
+    {
 
         $warehouse_id = auth()->user()->establishment->id;
 
@@ -28,7 +29,8 @@ class SellnowController extends Controller
             ->whereHas('warehouses', function ($query) use ($warehouse_id) {
                 $query->where('warehouse_id', $warehouse_id);
             })
-            ->orderBy('favorite','desc')
+            ->orderBy('favorite', 'desc')
+            ->whereIsActive()
             ->get();
 
         $records = new ItemCollection($items);
@@ -39,7 +41,8 @@ class SellnowController extends Controller
         ];
     }
 
-    public function categories(Request $request){
+    public function categories(Request $request)
+    {
         $records = Category::all();
         return [
             'success' => true,
@@ -47,7 +50,8 @@ class SellnowController extends Controller
         ];
     }
 
-    public function setFavoriteItem(Request $request) {
+    public function setFavoriteItem(Request $request)
+    {
         $item = Item::findOrFail($request->id);
 
         $item->favorite = ($item->favorite == 1) ? 0 : 1;
@@ -55,8 +59,7 @@ class SellnowController extends Controller
 
         return [
             'success' => true,
-            'message' => ($item->favorite == 1)? "Producto agregado a favoritos": "Producto quitado de favoritos"
+            'message' => ($item->favorite == 1) ? "Producto agregado a favoritos" : "Producto quitado de favoritos"
         ];
     }
-
 }

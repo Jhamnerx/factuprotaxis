@@ -129,8 +129,8 @@ class InventoryController extends Controller
             'inventory_transactions' => $this->optionsInventoryTransaction($type),
         ];
     }
-    
-    
+
+
     /**
      * 
      * Busqueda de productos en movimientos - ingresos y salidas
@@ -162,8 +162,10 @@ class InventoryController extends Controller
             $warehouse_id = $request->input('warehouse_id');
             $quantity = $request->input('quantity');
 
-            $item_warehouse = ItemWarehouse::firstOrNew(['item_id' => $item_id,
-                'warehouse_id' => $warehouse_id]);
+            $item_warehouse = ItemWarehouse::firstOrNew([
+                'item_id' => $item_id,
+                'warehouse_id' => $warehouse_id
+            ]);
             if ($item_warehouse->id) {
                 return [
                     'success' => false,
@@ -209,8 +211,10 @@ class InventoryController extends Controller
 
             $lots = ($request->has('lots')) ? $request->input('lots') : [];
 
-            $item_warehouse = ItemWarehouse::firstOrNew(['item_id' => $item_id,
-                'warehouse_id' => $warehouse_id]);
+            $item_warehouse = ItemWarehouse::firstOrNew([
+                'item_id' => $item_id,
+                'warehouse_id' => $warehouse_id
+            ]);
 
             $inventory_transaction = InventoryTransaction::findOrFail($inventory_transaction_id);
 
@@ -322,7 +326,6 @@ class InventoryController extends Controller
                         $lot->save();
                     }
                 }
-
             }
             DB::connection('tenant')->commit();
 
@@ -395,120 +398,120 @@ class InventoryController extends Controller
         }
     }
 
-//	public function move(Request $request)
-//	{
-//		$result = DB::connection('tenant')->transaction(function () use ($request) {
-//			$id = $request->input('id');
-//			$item_id = $request->input('item_id');
-//			$warehouse_id = $request->input('warehouse_id');
-//			$warehouse_new_id = $request->input('warehouse_new_id');
-//			$quantity = $request->input('quantity');
-//			$quantity_move = $request->input('quantity_move');
-//			$lots = ($request->has('lots')) ? $request->input('lots') : [];
-//			$detail = $request->input('detail');
-//
-//			if ($quantity_move <= 0) {
-//				return  [
-//					'success' => false,
-//					'message' => 'La cantidad a trasladar debe ser mayor a 0'
-//				];
-//			}
-//
-//			if ($warehouse_id === $warehouse_new_id) {
-//				return  [
-//					'success' => false,
-//					'message' => 'El almacén destino no puede ser igual al de origen'
-//				];
-//			}
-//			if ($quantity < $quantity_move) {
-//				return  [
-//					'success' => false,
-//					'message' => 'La cantidad a trasladar no puede ser mayor al que se tiene en el almacén.'
-//				];
-//			}
-//
-//			$inventory = new Inventory();
-//			$inventory->type = 2;
-//			$inventory->description = 'Traslado';
-//			$inventory->item_id = $item_id;
-//			$inventory->warehouse_id = $warehouse_id;
-//			$inventory->warehouse_destination_id = $warehouse_new_id;
-//			$inventory->quantity = $quantity_move;
-//			$inventory->detail = $detail;
-//
-//			$inventory->save();
-//
-//			foreach ($lots as $lot) {
-//				if ($lot['has_sale']) {
-//					$item_lot = ItemLot::findOrFail($lot['id']);
-//					$item_lot->warehouse_id = $inventory->warehouse_destination_id;
-//					$item_lot->update();
-//				}
-//			}
-//
-//			return  [
-//				'success' => true,
-//				'message' => 'Producto trasladado con éxito'
-//			];
-//		});
-//
-//		return $result;
-//	}
+    //	public function move(Request $request)
+    //	{
+    //		$result = DB::connection('tenant')->transaction(function () use ($request) {
+    //			$id = $request->input('id');
+    //			$item_id = $request->input('item_id');
+    //			$warehouse_id = $request->input('warehouse_id');
+    //			$warehouse_new_id = $request->input('warehouse_new_id');
+    //			$quantity = $request->input('quantity');
+    //			$quantity_move = $request->input('quantity_move');
+    //			$lots = ($request->has('lots')) ? $request->input('lots') : [];
+    //			$detail = $request->input('detail');
+    //
+    //			if ($quantity_move <= 0) {
+    //				return  [
+    //					'success' => false,
+    //					'message' => 'La cantidad a trasladar debe ser mayor a 0'
+    //				];
+    //			}
+    //
+    //			if ($warehouse_id === $warehouse_new_id) {
+    //				return  [
+    //					'success' => false,
+    //					'message' => 'El almacén destino no puede ser igual al de origen'
+    //				];
+    //			}
+    //			if ($quantity < $quantity_move) {
+    //				return  [
+    //					'success' => false,
+    //					'message' => 'La cantidad a trasladar no puede ser mayor al que se tiene en el almacén.'
+    //				];
+    //			}
+    //
+    //			$inventory = new Inventory();
+    //			$inventory->type = 2;
+    //			$inventory->description = 'Traslado';
+    //			$inventory->item_id = $item_id;
+    //			$inventory->warehouse_id = $warehouse_id;
+    //			$inventory->warehouse_destination_id = $warehouse_new_id;
+    //			$inventory->quantity = $quantity_move;
+    //			$inventory->detail = $detail;
+    //
+    //			$inventory->save();
+    //
+    //			foreach ($lots as $lot) {
+    //				if ($lot['has_sale']) {
+    //					$item_lot = ItemLot::findOrFail($lot['id']);
+    //					$item_lot->warehouse_id = $inventory->warehouse_destination_id;
+    //					$item_lot->update();
+    //				}
+    //			}
+    //
+    //			return  [
+    //				'success' => true,
+    //				'message' => 'Producto trasladado con éxito'
+    //			];
+    //		});
+    //
+    //		return $result;
+    //	}
 
-//	public function remove(Request $request)
-//	{
-//		$result = DB::connection('tenant')->transaction(function () use ($request) {
-//			// dd($request->all());
-//			$item_id = $request->input('item_id');
-//			$warehouse_id = $request->input('warehouse_id');
-//			$quantity = $request->input('quantity');
-//			$quantity_remove = $request->input('quantity_remove');
-//			$lots = ($request->has('lots')) ? $request->input('lots') : [];
-//
-//			//Transaction
-//			$item_warehouse = ItemWarehouse::where('item_id', $item_id)
-//										   ->where('warehouse_id', $warehouse_id)
-//										   ->first();
-//			if (!$item_warehouse) {
-//				return [
-//					'success' => false,
-//					'message' => 'El producto no se encuentra en el almacén indicado'
-//				];
-//			}
-//
-//			if ($quantity < $quantity_remove) {
-//				return  [
-//					'success' => false,
-//					'message' => 'La cantidad a retirar no puede ser mayor al que se tiene en el almacén.'
-//				];
-//			}
-//
-//			// $item_warehouse->stock = $quantity - $quantity_remove;
-//			// $item_warehouse->save();
-//
-//			$inventory = new Inventory();
-//			$inventory->type = 3;
-//			$inventory->description = 'Retirar';
-//			$inventory->item_id = $item_id;
-//			$inventory->warehouse_id = $warehouse_id;
-//			$inventory->quantity = $quantity_remove;
-//			$inventory->save();
-//
-//			foreach ($lots as $lot) {
-//				if ($lot['has_sale']) {
-//					$item_lot = ItemLot::findOrFail($lot['id']);
-//					$item_lot->delete();
-//				}
-//			}
-//
-//			return  [
-//				'success' => true,
-//				'message' => 'Producto trasladado con éxito'
-//			];
-//		});
-//
-//		return $result;
-//	}
+    //	public function remove(Request $request)
+    //	{
+    //		$result = DB::connection('tenant')->transaction(function () use ($request) {
+    //			// dd($request->all());
+    //			$item_id = $request->input('item_id');
+    //			$warehouse_id = $request->input('warehouse_id');
+    //			$quantity = $request->input('quantity');
+    //			$quantity_remove = $request->input('quantity_remove');
+    //			$lots = ($request->has('lots')) ? $request->input('lots') : [];
+    //
+    //			//Transaction
+    //			$item_warehouse = ItemWarehouse::where('item_id', $item_id)
+    //										   ->where('warehouse_id', $warehouse_id)
+    //										   ->first();
+    //			if (!$item_warehouse) {
+    //				return [
+    //					'success' => false,
+    //					'message' => 'El producto no se encuentra en el almacén indicado'
+    //				];
+    //			}
+    //
+    //			if ($quantity < $quantity_remove) {
+    //				return  [
+    //					'success' => false,
+    //					'message' => 'La cantidad a retirar no puede ser mayor al que se tiene en el almacén.'
+    //				];
+    //			}
+    //
+    //			// $item_warehouse->stock = $quantity - $quantity_remove;
+    //			// $item_warehouse->save();
+    //
+    //			$inventory = new Inventory();
+    //			$inventory->type = 3;
+    //			$inventory->description = 'Retirar';
+    //			$inventory->item_id = $item_id;
+    //			$inventory->warehouse_id = $warehouse_id;
+    //			$inventory->quantity = $quantity_remove;
+    //			$inventory->save();
+    //
+    //			foreach ($lots as $lot) {
+    //				if ($lot['has_sale']) {
+    //					$item_lot = ItemLot::findOrFail($lot['id']);
+    //					$item_lot->delete();
+    //				}
+    //			}
+    //
+    //			return  [
+    //				'success' => true,
+    //				'message' => 'Producto trasladado con éxito'
+    //			];
+    //		});
+    //
+    //		return $result;
+    //	}
 
 
     public function stock(Request $request)
@@ -537,7 +540,7 @@ class InventoryController extends Controller
 
             $inventory = new Inventory();
             $inventory->type = $type;
-            $inventory->description = 'STock Real';
+            $inventory->description = 'Stock Real';
             $inventory->item_id = $item_id;
             $inventory->warehouse_id = $warehouse_id;
             $inventory->quantity = $quantity_new;
@@ -598,7 +601,6 @@ class InventoryController extends Controller
                 $inventory->system_stock = $item['quantity'];
 
                 $inventory->save();
-
             }
             DB::connection('tenant')->commit();
 
@@ -704,8 +706,8 @@ class InventoryController extends Controller
                     'number' => '#',
                 ]);
 
-            if($request->lots_group) {
-                foreach($request->lots_group as $lot) {
+            if ($request->lots_group) {
+                foreach ($request->lots_group as $lot) {
                     InventoryTransferItem::query()->create([
                         'inventory_transfer_id' => $row->id,
                         'item_lots_group_id' => $lot['id'],
@@ -713,8 +715,8 @@ class InventoryController extends Controller
                 }
             }
 
-            if($request->lots) {
-                foreach($request->lots as $lot) {
+            if ($request->lots) {
+                foreach ($request->lots as $lot) {
                     InventoryTransferItem::query()->create([
                         'inventory_transfer_id' => $row->id,
                         'item_lot_id' => $lot['id'],

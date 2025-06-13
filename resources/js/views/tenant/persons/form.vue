@@ -13,7 +13,6 @@
                 <el-tabs v-model="activeName">
                     <el-tab-pane class name="first">
                         <span slot="label">{{ titleTabDialog }}</span>
-
                         <div class="row">
                             <div class="col-md-6">
                                 <div
@@ -52,7 +51,6 @@
                                     ></small>
                                 </div>
                             </div>
-
                             <div class="col-md-6">
                                 <div
                                     :class="{ 'has-danger': errors.number }"
@@ -126,7 +124,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="row">
                             <div class="col-md-6">
                                 <div
@@ -476,8 +473,10 @@
                                     <label class="control-label">País</label>
                                     <el-select
                                         v-model="form.country_id"
-                                        dusk="country_id"
                                         filterable
+                                        @change="
+                                            handleCountryChange(row, index)
+                                        "
                                     >
                                         <el-option
                                             v-for="option in countries"
@@ -501,18 +500,39 @@
                                     }"
                                     class="form-group"
                                 >
-                                    <label class="control-label">Ubigeo</label>
+                                    <label class="control-label">
+                                        Ubigeo
+                                        <span
+                                            v-if="form.country_id === 'PE'"
+                                            class="text-danger"
+                                            >*</span
+                                        >
+                                    </label>
                                     <el-cascader
                                         v-model="form.location_id"
                                         :clearable="true"
                                         :options="locations"
                                         filterable
+                                        :disabled="form.country_id !== 'PE'"
+                                        :filter-method="customFilterMethod"
                                     ></el-cascader>
                                     <small
                                         v-if="errors.location_id"
                                         class="form-control-feedback"
                                         v-text="errors.location_id[0]"
                                     ></small>
+                                    <small
+                                        v-if="form.country_id === 'PE'"
+                                        class="text-muted"
+                                    >
+                                        Campo obligatorio
+                                    </small>
+                                    <small
+                                        v-if="form.country_id !== 'PE'"
+                                        class="text-muted"
+                                    >
+                                        Ubigeo solo disponible para Perú
+                                    </small>
                                 </div>
                             </div>
                             <!-- Departamento -->
@@ -719,7 +739,6 @@
                             </div>
                             <!-- Correos electronicos alterno -->
                         </div>
-
                         <div class="row m-t-10">
                             <div class="col-md-12 text-center">
                                 <el-button
@@ -762,7 +781,13 @@
                                     <el-select
                                         v-model="row.country_id"
                                         filterable
+                                        @change="
+                                            handleCountryChange(row, index)
+                                        "
                                     >
+                                        filterable
+                                        @change="handleCountryChange(row,
+                                        index)">
                                         <el-option
                                             v-for="option in countries"
                                             :key="option.id"
@@ -784,11 +809,19 @@
                                     }"
                                     class="form-group"
                                 >
-                                    <label class="control-label">Ubigeo</label>
+                                    <label class="control-label">
+                                        Ubigeo
+                                        <span
+                                            v-if="row.country_id === 'PE'"
+                                            class="text-danger"
+                                            >*</span
+                                        >
+                                    </label>
                                     <el-cascader
                                         v-model="row.location_id"
                                         :clearable="true"
                                         :options="locations"
+                                        :disabled="row.country_id !== 'PE'"
                                         filterable
                                     ></el-cascader>
                                     <small
@@ -796,6 +829,15 @@
                                         class="form-control-feedback"
                                         v-text="errors.location_id[0]"
                                     ></small>
+                                    <small
+                                        v-if="row.country_id === 'PE'"
+                                        class="text-muted"
+                                    >
+                                        Campo obligatorio
+                                    </small>
+                                    <small v-else class="text-muted">
+                                        Ubigeo solo disponible para Perú
+                                    </small>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -868,7 +910,6 @@
                             </div>
                         </div>
                     </el-tab-pane>
-
                     <el-tab-pane class name="third">
                         <span slot="label">Otros Datos</span>
                         <div class="row ">
@@ -1148,7 +1189,22 @@ export default {
             }
         }
     },
+    watch: {
+        "form.country_id": function(newValue) {
+            if (
+                newValue !== "PE" &&
+                this.form.location_id &&
+                this.form.location_id.length > 0
+            ) {
+                this.form.location_id = [];
+            }
+        }
+    },
     methods: {
+        customFilterMethod(node, keyword) {
+            return node.label.toLowerCase().includes(keyword.toLowerCase());
+        },
+
         ...mapActions(["loadConfiguration"]),
         initForm() {
             this.errors = {};
@@ -1408,8 +1464,31 @@ export default {
                 }
             }
 
-            if (this.form.address && this.form.location_id.length !== 3) {
-                return this.$message.error("Falta registrar el ubigeo");
+            let hasErrorInAdditionalAddresses = false;
+            let addressWithError = null;
+
+            if (this.form.addresses && this.form.addresses.length > 0) {
+                for (let i = 0; i < this.form.addresses.length; i++) {
+                    const address = this.form.addresses[i];
+                    if (
+                        address.country_id === "PE" &&
+                        (!address.location_id ||
+                            address.location_id.length !== 3)
+                    ) {
+                        hasErrorInAdditionalAddresses = true;
+                        addressWithError = i + 1;
+                        break;
+                    }
+                }
+            }
+
+            if (hasErrorInAdditionalAddresses) {
+                const mensaje =
+                    addressWithError - 1 === 0
+                        ? `Falta registrar el ubigeo en la Dirección principal`
+                        : `Falta registrar el ubigeo en la Dirección secundaria #${addressWithError -
+                              1}`;
+                return this.$message.error(mensaje);
             }
 
             // if(this.form.location_id.length===3 && this.form.identity_document_type_id === '6'){
@@ -1419,6 +1498,7 @@ export default {
             // }
 
             if (
+                this.form.location_id.every(lid => lid !== null) &&
                 this.form.addresses.length == 0 &&
                 this.form.location_id.length === 3 &&
                 this.form.address != null
@@ -1489,7 +1569,7 @@ export default {
         searchNumber(data) {
             //cambios apiperu
             this.form.name = data.name;
-            this.form.trade_name = data.trade_name;
+            if (data.trade_name) this.form.trade_name = data.trade_name;
             this.form.location_id = data.location_id;
             this.form.address = data.address;
             // this.form.department_id = data.department_id;
@@ -1521,6 +1601,15 @@ export default {
                     }
                 })
                 .catch(error => {});
+        },
+        handleCountryChange(row, index) {
+            if (
+                row.country_id !== "PE" &&
+                row.location_id &&
+                row.location_id.length > 0
+            ) {
+                this.$set(this.form.addresses[index], "location_id", []);
+            }
         }
     }
 };

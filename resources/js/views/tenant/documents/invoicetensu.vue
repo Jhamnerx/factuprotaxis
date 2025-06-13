@@ -754,7 +754,6 @@ export default {
                 this.operation_types.length > 0
                     ? this.operation_types[0].id
                     : null;
-            console.log("operation: " + this.form.operation_type_id);
 
             this.changeEstablishment();
             this.changeDateOfIssue();

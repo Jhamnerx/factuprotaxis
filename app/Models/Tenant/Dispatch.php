@@ -97,6 +97,7 @@ class Dispatch extends ModelTenant
         'container_number',
         'origin',
         'delivery',
+        'has_transport_driver_01',
         'dispatcher_id',
         'dispatcher',
         'driver_id',
@@ -143,6 +144,9 @@ class Dispatch extends ModelTenant
         'secondary_transports',
         'secondary_drivers',
         'payer',
+        'is_transport_m1l',
+        'license_plate_m1l',
+        'reference_documents',
     ];
 
     protected $casts = [
@@ -159,6 +163,7 @@ class Dispatch extends ModelTenant
         'secondary_transports' => 'array',
         'secondary_drivers' => 'array',
         'payer' => 'array',
+        'reference_documents' => 'array',
     ];
 
     public function getAdditionalDataAttribute($value)
@@ -623,6 +628,7 @@ class Dispatch extends ModelTenant
             'btn_pdf' => $btn_pdf,
             'btn_options' => $btn_options,
             'btn_edit' => $btn_edit,
+            'has_transport_driver_01'=> $this->has_transport_driver_01,
         ];
     }
 

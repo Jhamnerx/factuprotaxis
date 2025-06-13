@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Tenant\Api;
 
 use App\CoreFacturalo\Facturalo;
@@ -14,13 +15,14 @@ use Modules\Finance\Traits\FinanceTrait;
 
 class CompanyController extends Controller
 {
-   
+
     use FinanceTrait;
 
-    public function record(Request $request) {
+    public function record(Request $request)
+    {
 
         $user = new User();
-        if(\Auth::user()){
+        if (\Auth::user()) {
             $user = \Auth::user();
         }
 
@@ -28,23 +30,22 @@ class CompanyController extends Controller
         $establishments = Establishment::without(['country', 'department', 'province', 'district'])->where('id', $establishment_id)->get();
         $series = collect($user->getSeries())->values()->all();
         $customers = Person::without(['country', 'department', 'province', 'district'])
-                               ->whereType('customers')
-                               ->whereIsEnabled()
-                               ->orderBy('name')
-                               ->take(200)
-                               ->get()->transform(function ($row) {
-                                    return [
-                                        'id'                                     => $row->id,
-                                        'codigo_tipo_documento_identidad'        => $row->identity_document_type_id,
-                                        'numero_documento'                       => $row->number,
-                                        'apellidos_y_nombres_o_razon_social'     => $row->name,
-                                        'codigo_pais'                            => $row->country_id,
-                                        'direccion'                              => $row->address,
-                                        'correo_electronico'                     => $row->email,
-                                        'telefono'                               => $row->telephone,
-                                    ];
-
-                                });
+            ->whereType('customers')
+            ->whereIsEnabled()
+            ->orderBy('name')
+            ->take(2000)
+            ->get()->transform(function ($row) {
+                return [
+                    'id'                                     => $row->id,
+                    'codigo_tipo_documento_identidad'        => $row->identity_document_type_id,
+                    'numero_documento'                       => $row->number,
+                    'apellidos_y_nombres_o_razon_social'     => $row->name,
+                    'codigo_pais'                            => $row->country_id,
+                    'direccion'                              => $row->address,
+                    'correo_electronico'                     => $row->email,
+                    'telefono'                               => $row->telephone,
+                ];
+            });
         $payment_method_types = PaymentMethodType::all();
         $payment_destinations = $this->getPaymentDestinations();
         return [
@@ -55,6 +56,5 @@ class CompanyController extends Controller
             'payment_method_types' => $payment_method_types,
             'payment_destinations' => $payment_destinations
         ];
-
     }
 }

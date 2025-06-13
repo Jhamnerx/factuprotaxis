@@ -7,8 +7,8 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use App\Models\Tenant\Person;
 use Modules\MobileApp\Http\Resources\Api\{
-    PersonCollection,
-    PersonResource,
+	PersonCollection,
+	PersonResource,
 };
 use App\Http\Controllers\Tenant\PersonController as PersonControllerWeb;
 use App\Http\Requests\Tenant\PersonRequest;
@@ -17,7 +17,7 @@ use App\Http\Requests\Tenant\PersonRequest;
 class PersonController extends Controller
 {
 
-
+	
     /**
      * 
      * Obtener registros paginados
@@ -25,14 +25,14 @@ class PersonController extends Controller
      * @param  Request $request
      * @return array
      */
-    public function records($type, Request $request)
-    {
+	public function records($type, Request $request)
+	{
         $records = Person::whereFilterRecordsApi($request->input, $type);
 
-        return new PersonCollection($records->paginate(config('tenant.items_per_page')));
-    }
+		return new PersonCollection($records->paginate(config('tenant.items_per_page')));
+	}
 
-
+	
     /**
      * obtener registro
      *
@@ -44,8 +44,8 @@ class PersonController extends Controller
     {
         return new PersonResource(Person::findOrFail($id));
     }
-
-
+    
+    
     /**
      * 
      * Actualizar registro
@@ -62,8 +62,9 @@ class PersonController extends Controller
 
         return [
             'success' => true,
-            'message' => $record->getTitlePersonDescription() . ' actualizado',
+            'message' => $record->getTitlePersonDescription().' actualizado',
         ];
+
     }
 
 
@@ -81,24 +82,28 @@ class PersonController extends Controller
         $customer = null;
 
         // se retorna clientes varios por defecto para modo pos
-        if (in_array($document_type_id, ['03', '80'], true)) {
+        if(in_array($document_type_id, ['03', '80'], true))
+        {
             $customer = Person::whereFilterVariousClients()->first();
-        } else {
+        }
+        else
+        {
             $establishment = auth()->user()->establishment;
-            if ($establishment->customer_id) $customer = Person::findOrFail($establishment->customer_id);
+            if($establishment->customer_id) $customer = Person::findOrFail($establishment->customer_id);
         }
 
-        if ($customer) {
+        if($customer)
+        {
             return [
                 'success' => true,
-                'data' => $customer->getApiRowResource()
+                'data' => $customer->getApiRowResource() 
             ];
         }
 
-        return [
-            'success' => false,
-            'data' => null
-        ];
+		return [
+			'success' => false,
+			'data' => null     
+		];
     }
 
 
@@ -115,15 +120,15 @@ class PersonController extends Controller
         $record = Person::findOrFail($id);
         $record->enabled = $enabled;
         $record->save();
-        $type = $record->getTitlePersonDescription();
-
+		$type = $record->getTitlePersonDescription();
+        
         return [
             'success' => true,
-            'message' => $enabled ? $type . ' habilitado con éxito' : $type . ' inhabilitado con éxito'
+            'message' => $enabled ? $type.' habilitado con éxito' : $type.' inhabilitado con éxito'
         ];
     }
 
-
+	
     /**
      * 
      * Eliminar registro, usa método del proceso por web
@@ -135,4 +140,5 @@ class PersonController extends Controller
     {
         return app(PersonControllerWeb::class)->destroy($id);
     }
+
 }

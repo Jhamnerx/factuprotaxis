@@ -27,13 +27,8 @@
                 </a>
             </h2>
             <ol class="breadcrumbs">
-                <li class="active"><span>Comprobantes</span></li>
-                <li>
-                    <span class="text-muted"
-                        >Facturas - Notas <small>(crédito y débito)</small> -
-                        Boletas - Anulaciones</span
-                    >
-                </li>
+                <li class="active"><span>Listado de comprobantes</span></li>
+                <!-- <li><span class="text-muted">Facturas - Notas <small>(crédito y débito)</small> - Boletas - Anulaciones</span></li> -->
             </ol>
             <div
                 class="right-wrapper pull-right"
@@ -136,7 +131,7 @@
                 </el-dropdown>
             </div>
             -->
-            <div class="card-body ">
+            <div class="card-body card-body-invoice">
                 <div class="data-table-visible-columns">
                     <el-dropdown :hide-on-click="false" slot="showhide">
                         <el-button type="primary">
@@ -189,7 +184,12 @@
                         <th v-if="columns.send_it.visible">Email Enviado</th>
                         <th>Estado</th>
                         <th v-if="columns.user_name.visible">Usuario</th>
-                        <th v-if="columns.exchange_rate_sale.visible">T.C.</th>
+                        <th
+                            class="text-right"
+                            v-if="columns.exchange_rate_sale.visible"
+                        >
+                            T.C.
+                        </th>
                         <th
                             class="text-center"
                             v-if="columns.currency_type_id.visible"
@@ -242,7 +242,7 @@
                         <th class="text-right" v-if="columns.total.visible">
                             Total
                         </th>
-                        <th class="text-center" v-if="columns.balance.visible">
+                        <th class="text-right" v-if="columns.balance.visible">
                             Saldo
                         </th>
                         <th
@@ -287,7 +287,7 @@
                             class="text-center"
                             v-if="columns.date_payment.visible"
                         >
-                            {{ row.date_of_payment }}
+                            {{ formatDate(row.date_of_payment) }}
                         </td>
                         <td
                             class="text-center"
@@ -489,6 +489,7 @@
                             class="text-right"
                             v-if="columns.total_exportation.visible"
                         >
+                            {{row.currency_type_id === 'PEN' ? 'S/.' : '$'}}
                             {{ row.total_exportation }}
                         </td>
 
@@ -496,6 +497,7 @@
                             class="text-right"
                             v-if="columns.total_free.visible"
                         >
+                            {{row.currency_type_id === 'PEN' ? 'S/.' : '$'}}
                             {{ row.total_free }}
                         </td>
 
@@ -503,25 +505,34 @@
                             class="text-right"
                             v-if="columns.total_unaffected.visible"
                         >
+                            {{row.currency_type_id === 'PEN' ? 'S/.' : '$'}}
                             {{ row.total_unaffected }}
                         </td>
                         <td
                             class="text-right"
                             v-if="columns.total_exonerated.visible"
                         >
+                            {{row.currency_type_id === 'PEN' ? 'S/.' : '$'}}
                             {{ row.total_exonerated }}
                         </td>
                         <td
                             class="text-right"
                             v-if="columns.total_charge.visible"
                         >
+                            {{row.currency_type_id === 'PEN' ? 'S/.' : '$'}}
                             {{ row.total_charge }}
                         </td>
-                        <td class="text-right">{{ row.total_taxed }}</td>
-                        <td class="text-right">{{ row.total_igv }}</td>
+                        <td class="text-right">
+                            {{row.currency_type_id === 'PEN' ? 'S/.' : '$'}}
+                            {{ row.total_taxed }}</td>
+                        <td class="text-right">
+                            {{row.currency_type_id === 'PEN' ? 'S/.' : '$'}}
+                            {{ row.total_igv }}</td>
                         <td class="text-right" v-if="columns.total.visible">
+                            {{row.currency_type_id === 'PEN' ? 'S/.' : '$'}}
                             {{ row.total }}
                         </td>
+                        
                         <td
                             class="text-right"
                             v-if="columns.balance.visible"
@@ -530,6 +541,7 @@
                                 'text-success': row.balance == 0
                             }"
                         >
+                            {{row.currency_type_id === 'PEN' ? 'S/.' : '$'}}
                             {{ row.balance }}
                         </td>
                         <td v-if="columns.purchase_order.visible">
@@ -1043,6 +1055,10 @@ export default {
         this.getColumnsToShow();
     },
     methods: {
+        formatDate(date) {
+            if (!date) return null;
+            return moment(date).format("DD-MM-YYYY");
+        },
         ...mapActions(["loadConfiguration"]),
 
         getColumnsToShow(updated) {

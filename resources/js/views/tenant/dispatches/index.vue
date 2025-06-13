@@ -63,7 +63,9 @@
                         :class="{ 'text-danger': row.state_type_id === '11' }"
                     >
                         <!-- <td>{{ index }}</td> -->
-                        <td class="text-left">{{ row.date_of_issue }}</td>
+                        <td class="text-left">
+                            {{ formatDate(row.date_of_issue) }}
+                        </td>
                         <template v-if="!row.customer_id">
                             <td>
                                 <small>{{
@@ -91,7 +93,9 @@
                                 >{{ row.state_type_description }}</span
                             >
                         </td>
-                        <td class="text-center">{{ row.date_of_shipping }}</td>
+                        <td class="text-center">
+                            {{ formatDate(row.date_of_shipping) }}
+                        </td>
 
                         <td class="text-center">
                             <template v-for="(row, index) in row.documents">
@@ -196,7 +200,16 @@
         <ModalGenerateCPE :show.sync="showModalGenerateCPE"></ModalGenerateCPE>
     </div>
 </template>
-
+<style>
+@media only screen and (max-width: 390px) {
+    .filter-content {
+        margin-top: 0px;
+        display: flex;
+        align-items: start;
+        justify-content: start;
+    }
+}
+</style>
 <script>
 import DataTable from "../../../components/DataTableDispatch.vue";
 // import DataTable from '../../../components/DataTable.vue'
@@ -225,6 +238,13 @@ export default {
         this.$setStorage("configuration", this.configuration);
     },
     methods: {
+        formatDate(date) {
+            if (!date) return null;
+            const parsedDate = moment(date);
+            return parsedDate.isValid()
+                ? parsedDate.format("DD-MM-YYYY")
+                : null;
+        },
         showSentSunat(row) {
             let data = row.soap_shipping_response;
             if (this.configuration.auto_send_dispatchs_to_sunat === true)

@@ -47,6 +47,7 @@ use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Modules\Document\Traits\SearchTrait;
 use Modules\Finance\Traits\FinanceTrait;
 use Modules\Inventory\Models\Warehouse;
@@ -103,19 +104,20 @@ class SaleNoteController extends Controller
      * @param $saleNoteId
      * @return array
      */
-    public function sendDataToOtherSite($saleNoteId ){
+    public function sendDataToOtherSite($saleNoteId)
+    {
         $dataSend = [
-            'sale_note_id'=>$saleNoteId,
+            'sale_note_id' => $saleNoteId,
             'success' => false,
         ];
 
         if (auth()->user()->type !== 'admin') {
-            $dataSend['message'] ='Solo los administradores pueden realizar esta accion';
+            $dataSend['message'] = 'Solo los administradores pueden realizar esta accion';
             return $dataSend;
         }
         $configuration = Configuration::first();
-        if($configuration->isSendDataToOtherServer()!= true){
-            $dataSend['message'] ='La configuracion no esta habilitada para el envio';
+        if ($configuration->isSendDataToOtherServer() != true) {
+            $dataSend['message'] = 'La configuracion no esta habilitada para el envio';
             return $dataSend;
         }
 
@@ -123,7 +125,7 @@ class SaleNoteController extends Controller
         $migrationConfiguration = MigrationConfiguration::first();
 
         if ($migrationConfiguration === null || empty($migrationConfiguration->url) || empty($migrationConfiguration->api_key)) {
-            $dataSend['message'] ='No hay datos configurados para la migracion';
+            $dataSend['message'] = 'No hay datos configurados para la migracion';
             return $dataSend;
         };
         $token = $migrationConfiguration->getApiKey();
@@ -139,19 +141,19 @@ class SaleNoteController extends Controller
             'url' => $web,
         ])->first();
         // ya se envio, no hacer nada
-        if ($alreadySendit!==null) {
-            $dataSend['message'] ="Ya se ha enviado al servidor $web. ".$alreadySendit->getNumber();
+        if ($alreadySendit !== null) {
+            $dataSend['message'] = "Ya se ha enviado al servidor $web. " . $alreadySendit->getNumber();
             return $dataSend;
         };
 
         $sale_note = SaleNote::find($saleNoteId);
 
-        if ($sale_note===null) {
-            $dataSend['message'] ="No se ha encontrado la NV";
+        if ($sale_note === null) {
+            $dataSend['message'] = "No se ha encontrado la NV";
             return $dataSend;
         };
 
-         // Hace ping para validar puertos, Implementado para testing de conexion
+        // Hace ping para validar puertos, Implementado para testing de conexion
         $this->pingSite($web);
         $data_note = $sale_note->getDataToApiExport();
 
@@ -172,7 +174,7 @@ class SaleNoteController extends Controller
             'Accept'        => 'application/json',
         ];
         $client = new  Client([
-            'base_uri'=>$web,
+            'base_uri' => $web,
             'verify'          => false,
             'headers'          => $headers,
 
@@ -184,13 +186,13 @@ class SaleNoteController extends Controller
                 'headers' => $headers,
             ];
             $ype_send = 'POST';
-            self::ExtraLog(__FILE__."::".__LINE__."  \n Enviando por >$ype_send<  a la url $web_Url \n\n".__FUNCTION__." \n". json_encode($send) ."\n\n\n\n");
-            $response = $client->request($ype_send, $web_Url,$send);
-        }catch (RequestException $e){
+            self::ExtraLog(__FILE__ . "::" . __LINE__ . "  \n Enviando por >$ype_send<  a la url $web_Url \n\n" . __FUNCTION__ . " \n" . json_encode($send) . "\n\n\n\n");
+            $response = $client->request($ype_send, $web_Url, $send);
+        } catch (RequestException $e) {
             $code = $e->getCode();
             $responsea = $e->getResponse();
-            if(empty($responsea)){
-                $dataSend['message'] = 'No se ha obtenido respuesta del sitio '.$web;
+            if (empty($responsea)) {
+                $dataSend['message'] = 'No se ha obtenido respuesta del sitio ' . $web;
                 return $dataSend;
             }
             $responseBodyAsString = $responsea->getBody()->getContents();
@@ -220,7 +222,6 @@ class SaleNoteController extends Controller
                                     $err_gen .= "003";
                                     $dataSend['message'] = 'Problemas insertando datos' . $err_gen;
                                 }
-
                             } else {
                                 if (
                                     $this->searchInString("Trying to get property 'description' of non-object", $message) &&
@@ -228,13 +229,12 @@ class SaleNoteController extends Controller
                                 ) {
                                     $err_gen = "NV-FILE-001";
                                     $dataSend['message'] = 'Problemas generando los atributos del item en el pdf ' . $err_gen;
-                                    $err_gen.= '\n\n\nPosiblemente sea el atributo en parte del siguiente codigo   @if($row->attributes)
+                                    $err_gen .= '\n\n\nPosiblemente sea el atributo en parte del siguiente codigo   @if($row->attributes)
                     @foreach($row->attributes as $attr)
                         <br/><span style="font-size: 9px">{!! $attr->description !!} : {{ $attr->value }}</span>
                     @endforeach
                 @endif \n\n\n';
-
-                                }else {
+                                } else {
                                     $err_gen .= "004";
                                     $dataSend['message'] = "Error desconocido. Codigo $err_gen";
                                     $dataSend['extra'] = $response->message;
@@ -243,29 +243,28 @@ class SaleNoteController extends Controller
                             \Log::channel('facturalo')->error(__FILE__ . "::" . __LINE__ . " \n $err_gen: No se ha podido determinar el fallo. La respuesta es \n" .
                                 var_export($response->message, true));
                             return $dataSend;
-
                         }
                     }
                     $alreadySendit->push();
                     $dataSend['message'] = 'Se ha generado correctamente bajo el numero ' . $alreadySendit->getNumber();
                     $dataSend['success'] = true;
                 }
-            }catch (ErrorException $er){
-                \Log::channel('facturalo')->error(__FILE__."::".__LINE__." \n NV-M-501: No se ha podido determinar el fallo. La respuesta es \n".
-                    $responseBodyAsString."\n");
+            } catch (ErrorException $er) {
+                \Log::channel('facturalo')->error(__FILE__ . "::" . __LINE__ . " \n NV-M-501: No se ha podido determinar el fallo. La respuesta es \n" .
+                    $responseBodyAsString . "\n");
             }
 
-            \Log::channel('facturalo')->error(__FILE__."::".__LINE__." \n NV-M-500: No se ha podido determinar el fallo. La respuesta es \n".
-                var_export($response,true));
+            \Log::channel('facturalo')->error(__FILE__ . "::" . __LINE__ . " \n NV-M-500: No se ha podido determinar el fallo. La respuesta es \n" .
+                var_export($response, true));
             $dataSend['message'] = 'Error desconocido. Codigo : NV-M-500';
             return $dataSend;
         }
 
-        self::ExtraLog(__FILE__."::".__LINE__."  \n Datos de RESPUESTA ".__FUNCTION__." \n". var_export($response,true) ."\n\n\n\n");
+        self::ExtraLog(__FILE__ . "::" . __LINE__ . "  \n Datos de RESPUESTA " . __FUNCTION__ . " \n" . var_export($response, true) . "\n\n\n\n");
 
-        if($response == false){
-            \Log::channel('facturalo')->error(__FILE__."::".__LINE__." \n NV-M-404: La respuesta ha sido falsa, posiblemente no se encuentre la web $web_Url \n".
-                var_export($response,true));
+        if ($response == false) {
+            \Log::channel('facturalo')->error(__FILE__ . "::" . __LINE__ . " \n NV-M-404: La respuesta ha sido falsa, posiblemente no se encuentre la web $web_Url \n" .
+                var_export($response, true));
             $dataSend['message'] = 'Problemas de conexion con el servidor. Revise la configuracion. Codigo : NV-M-404';
 
             return $dataSend;
@@ -293,32 +292,30 @@ class SaleNoteController extends Controller
                     if ($this->searchInString('SQLSTATE[23000]', $message)) {
                         $err_gen = 'NV-SQL-';
                         if ($this->searchInString('`persons`', $message)) {
-                            $err_gen.="001";
-                            $dataSend['message'] = 'Problemas insertando datos del cliente. '.$err_gen;
+                            $err_gen .= "001";
+                            $dataSend['message'] = 'Problemas insertando datos del cliente. ' . $err_gen;
                         } else {
-                            $err_gen.="003";
-                            $dataSend['message'] = 'Problemas insertando datos'.$err_gen;
+                            $err_gen .= "003";
+                            $dataSend['message'] = 'Problemas insertando datos' . $err_gen;
                         }
                     } else {
-                        $err_gen.="004";
+                        $err_gen .= "004";
                         $dataSend['message'] = "Error desconocido. Codigo $err_gen";
                         $dataSend['extra'] = $response->message;
                     }
-                    \Log::channel('facturalo')->error(__FILE__."::".__LINE__." \n $err_gen: No se ha podido determinar el fallo. La respuesta es \n".
-                        var_export($response->message,true));
+                    \Log::channel('facturalo')->error(__FILE__ . "::" . __LINE__ . " \n $err_gen: No se ha podido determinar el fallo. La respuesta es \n" .
+                        var_export($response->message, true));
                     return $dataSend;
-
                 }
             }
             $alreadySendit->push();
-            $dataSend['message']='Se ha generado correctamente bajo el numero '.$alreadySendit->getNumber();
+            $dataSend['message'] = 'Se ha generado correctamente bajo el numero ' . $alreadySendit->getNumber();
             $dataSend['success'] = true;
-        }else{
-            \Log::channel('facturalo')->error(__FILE__."::".__LINE__." \n NV-M-500: No se ha podido determinar el fallo. La respuesta es \n".
-                var_export($response,true));
+        } else {
+            \Log::channel('facturalo')->error(__FILE__ . "::" . __LINE__ . " \n NV-M-500: No se ha podido determinar el fallo. La respuesta es \n" .
+                var_export($response, true));
             $dataSend['message'] = 'Error desconocido. Codigo : NV-M-500';
             return $dataSend;
-
         }
 
         return $dataSend;
@@ -330,34 +327,35 @@ class SaleNoteController extends Controller
      * @param Request $request
      * @return array
      */
-    public function EnviarOtroSitio(Request $request){
+    public function EnviarOtroSitio(Request $request)
+    {
         $proccesed = [];
         $text = '';
         $success = false;
         $extra = '';
-        if($request->has('sale_note_id')){
+        if ($request->has('sale_note_id')) {
             // para una NV
             $saleNoteId = $request->sale_note_id;
             return $this->sendDataToOtherSite($saleNoteId);
-        }elseif($request->has('sale_notes_id')){
+        } elseif ($request->has('sale_notes_id')) {
             // multiples NV
-            foreach($request->sale_notes_id as $saleNoteId){
-                $temp =$this->sendDataToOtherSite($saleNoteId);
+            foreach ($request->sale_notes_id as $saleNoteId) {
+                $temp = $this->sendDataToOtherSite($saleNoteId);
                 $proccesed[] = $temp;
                 $proccesed[] = $temp;
                 $proccesed[] = $temp;
-                if($success == false){
+                if ($success == false) {
                     $success = $temp['success'];
                 }
-                $extra .= $temp['extra']." | "??null;
-                $sms = $temp['message']??null;
-                $text.=($sms !== null)?$sms."<br>":null;
+                $extra .= $temp['extra'] . " | " ?? null;
+                $sms = $temp['message'] ?? null;
+                $text .= ($sms !== null) ? $sms . "<br>" : null;
             }
         }
-        $data['success']= $success;
-        $data['message']= $text;
-        $data['extra_info']= $extra;
-        $data['proccesed']= $proccesed;
+        $data['success'] = $success;
+        $data['message'] = $text;
+        $data['extra_info'] = $extra;
+        $data['proccesed'] = $proccesed;
         return $data;
     }
 
@@ -366,9 +364,10 @@ class SaleNoteController extends Controller
      *
      * @return mixed|string|null
      */
-    public function getSaleNoteToOtherSiteUrl(){
-            $e = MigrationConfiguration::first();
-        return $e!== null?$e->url:'';
+    public function getSaleNoteToOtherSiteUrl()
+    {
+        $e = MigrationConfiguration::first();
+        return $e !== null ? $e->url : '';
     }
 
     /**
@@ -377,28 +376,29 @@ class SaleNoteController extends Controller
      * @param Request $request
      * @return SaleNote[]|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Query\Builder[]|\Illuminate\Support\Collection|mixed
      */
-    public function getSaleNoteToOtherSite(Request $request){
+    public function getSaleNoteToOtherSite(Request $request)
+    {
 
 
-        $saleNoteAlready = SaleNoteMigration::where('success',1)
+        $saleNoteAlready = SaleNoteMigration::where('success', 1)
             ->select('sale_notes_id')
             ->get()
             ->pluck('sale_notes_id');
         $configuration = Configuration::first();
-        $saleNote = SaleNote::whereNotIn('id',$saleNoteAlready);
-        if($request->has('params')){
+        $saleNote = SaleNote::whereNotIn('id', $saleNoteAlready);
+        if ($request->has('params')) {
             $param = $request->params;
-            if(isset($param['client_id'])) {
+            if (isset($param['client_id'])) {
                 $saleNote->where('customer_id', $param['client_id']);
             }
-            if(isset($param['date_of_issue'])) {
+            if (isset($param['date_of_issue'])) {
                 $saleNote->where('date_of_issue', $param['date_of_issue']);
             }
         }
 
-        $saleNote = $saleNote->where('state_type_id','!=','11')
+        $saleNote = $saleNote->where('state_type_id', '!=', '11')
             ->get()
-            ->transform(function($row)use($configuration){
+            ->transform(function ($row) use ($configuration) {
                 /** @var SaleNote $row */
                 return $row->getCollectionData($configuration);
             });
@@ -411,7 +411,8 @@ class SaleNoteController extends Controller
      * @param $text
      * @return bool
      */
-    public function searchInString($search, $text){
+    public function searchInString($search, $text)
+    {
         return !(strpos($text, $search) === false);
     }
 
@@ -444,7 +445,6 @@ class SaleNoteController extends Controller
         /* $records = new SaleNoteCollection($records->paginate(config('tenant.items_per_page')));
         dd($records); */
         return new SaleNoteCollection($records->paginate(config('tenant.items_per_page')));
-
     }
 
 
@@ -453,47 +453,47 @@ class SaleNoteController extends Controller
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    private function getRecords($request){
+    private function getRecords($request)
+    {
         $records = SaleNote::whereTypeUser();
         // Solo devuelve matriculas
-        if($request != null && $request->has('onlySuscription') && (bool)$request->onlySuscription == true){
-            $records->whereNotNull('grade')->whereNotNull('section') ;
+        if ($request != null && $request->has('onlySuscription') && (bool)$request->onlySuscription == true) {
+            $records->whereNotNull('grade')->whereNotNull('section');
         }
         // Solo devuelve Suscripciones que tengan relacion en user_rel_suscription_plans.
-        if($request != null && $request->has('onlyFullSuscription') && (bool)$request->onlyFullSuscription == true){
+        if ($request != null && $request->has('onlyFullSuscription') && (bool)$request->onlyFullSuscription == true) {
             $records->whereNotNull('user_rel_suscription_plan_id')
                 ->whereNull('grade')->whereNull('section')
             ;
         }
-        if($request->column == 'customer'){
-            $records->whereHas('person', function($query) use($request){
-                                    $query
-                                        ->where('name', 'like', "%{$request->value}%")
-                                        ->orWhere('number', 'like', "%{$request->value}%");
-                                })
-                                ->latest();
-
-        }else{
+        if ($request->column == 'customer') {
+            $records->whereHas('person', function ($query) use ($request) {
+                $query
+                    ->where('name', 'like', "%{$request->value}%")
+                    ->orWhere('number', 'like', "%{$request->value}%");
+            })
+                ->latest();
+        } else {
             $records->where($request->column, 'like', "%{$request->value}%")
-                    ->latest('id');
+                ->latest('id');
         }
-        if($request->series) {
+        if ($request->series) {
             $records->where('series', 'like', '%' . $request->series . '%');
         }
-        if($request->number) {
+        if ($request->number) {
             $records->where('number', 'like', '%' . $request->number . '%');
         }
-        if($request->total_canceled != null) {
+        if ($request->total_canceled != null) {
             $records->where('total_canceled', $request->total_canceled);
         }
 
-        if($request->purchase_order) {
+        if ($request->purchase_order) {
             $records->where('purchase_order', $request->purchase_order);
         }
-        if($request->license_plate) {
+        if ($request->license_plate) {
             $records->where('license_plate', $request->license_plate);
         }
-        if($request->observations) {
+        if ($request->observations) {
             $records->where('observation', 'like', '%' . $request->observations . '%');
         }
         return $records;
@@ -503,22 +503,22 @@ class SaleNoteController extends Controller
     public function searchCustomers(Request $request)
     {
 
-        $customers = Person::where('number','like', "%{$request->input}%")
-                            ->orWhere('name','like', "%{$request->input}%")
-                            ->whereType('customers')->orderBy('name')
-                            ->whereIsEnabled()
-                            ->get()->transform(function(Person $row) {
-                                return [
-                                    'id' => $row->id,
-                                    'description' => $row->number.' - '.$row->name,
-                                    'seller_id' => $row->seller_id,
-                                    'seller' => $row->seller,
-                                    'name' => $row->name,
-                                    'number' => $row->number,
-                                    'identity_document_type_id' => $row->identity_document_type_id,
-                                    'identity_document_type_code' => $row->identity_document_type->code
-                                ];
-                            });
+        $customers = Person::where('number', 'like', "%{$request->input}%")
+            ->orWhere('name', 'like', "%{$request->input}%")
+            ->whereType('customers')->orderBy('name')
+            ->whereIsEnabled()
+            ->get()->transform(function (Person $row) {
+                return [
+                    'id' => $row->id,
+                    'description' => $row->number . ' - ' . $row->name,
+                    'seller_id' => $row->seller_id,
+                    'seller' => $row->seller,
+                    'name' => $row->name,
+                    'number' => $row->number,
+                    'identity_document_type_id' => $row->identity_document_type_id,
+                    'identity_document_type_code' => $row->identity_document_type->code
+                ];
+            });
 
         return compact('customers');
     }
@@ -526,7 +526,7 @@ class SaleNoteController extends Controller
     public function tables()
     {
         $user = new User();
-        if(\Auth::user()){
+        if (\Auth::user()) {
             $user = \Auth::user();
         }
         $establishment_id =  $user->establishment_id;
@@ -539,7 +539,7 @@ class SaleNoteController extends Controller
         $global_charge_types = ChargeDiscountType::whereIn('id', ['50'])->get();
         $company = Company::active();
         $payment_method_types = PaymentMethodType::all();
-        $series = collect(Series::all())->transform(function($row) {
+        $series = collect(Series::all())->transform(function ($row) {
             return [
                 'id' => $row->id,
                 'contingency' => (bool) $row->contingency,
@@ -549,13 +549,26 @@ class SaleNoteController extends Controller
             ];
         });
         $payment_destinations = $this->getPaymentDestinations();
-        $configuration = Configuration::select('destination_sale','ticket_58')->first();
+        $configuration = Configuration::select('destination_sale', 'ticket_58')->first();
         // $sellers = User::GetSellers(false)->get();
-        $sellers = User::getSellersToNvCpe($establishment_id,$userId);
+        $sellers = User::getSellersToNvCpe($establishment_id, $userId);
         $global_discount_types = ChargeDiscountType::getGlobalDiscounts();
 
-        return compact('customers', 'establishments','currency_types', 'discount_types', 'configuration',
-                         'charge_types','company','payment_method_types', 'series', 'payment_destinations','sellers', 'global_charge_types', 'global_discount_types');
+        return compact(
+            'customers',
+            'establishments',
+            'currency_types',
+            'discount_types',
+            'configuration',
+            'charge_types',
+            'company',
+            'payment_method_types',
+            'series',
+            'payment_destinations',
+            'sellers',
+            'global_charge_types',
+            'global_discount_types'
+        );
     }
 
     public function changed($id)
@@ -581,16 +594,17 @@ class SaleNoteController extends Controller
         $operation_types = OperationType::whereActive()->get();
         $is_client = $this->getIsClient();
 
-        return compact('items',
-        'categories',
-        'affectation_igv_types',
-        'system_isc_types',
-        'price_types',
-        'discount_types',
-        'charge_types',
-        'attribute_types',
-        'operation_types',
-        'is_client'
+        return compact(
+            'items',
+            'categories',
+            'affectation_igv_types',
+            'system_isc_types',
+            'price_types',
+            'discount_types',
+            'charge_types',
+            'attribute_types',
+            'operation_types',
+            'is_client'
         );
     }
 
@@ -598,7 +612,7 @@ class SaleNoteController extends Controller
     {
         $record = new SaleNoteResource(SaleNote::findOrFail($id));
 
-        return $record;
+        return $record; //record
     }
 
     public function record2($id)
@@ -618,8 +632,10 @@ class SaleNoteController extends Controller
     {
         DB::connection('tenant')->beginTransaction();
         try {
+            $isUpdate = true;
             if (!isset($inputs['id'])) {
                 $inputs['id'] = false;
+                $isUpdate = false;
             }
             $data = $this->mergeData($inputs);
             $this->sale_note =  SaleNote::query()->updateOrCreate(['id' => $inputs['id']], $data);
@@ -630,15 +646,14 @@ class SaleNoteController extends Controller
             $this->deleteAllItems($this->sale_note->items);
 
 
-            foreach($data['items'] as $row)
-            {
+            foreach ($data['items'] as $row) {
 
                 // $item_id = isset($row['id']) ? $row['id'] : null;
                 $item_id = isset($row['record_id']) ? $row['record_id'] : null;
                 $sale_note_item = SaleNoteItem::query()->firstOrNew(['id' => $item_id]);
 
-                if(isset($row['item']['lots'])){
-                    $row['item']['lots'] = isset($row['lots']) ? $row['lots']:$row['item']['lots'];
+                if (isset($row['item']['lots'])) {
+                    $row['item']['lots'] = isset($row['lots']) ? $row['lots'] : $row['item']['lots'];
                 }
 
                 $this->setIdLoteSelectedToItem($row);
@@ -646,9 +661,9 @@ class SaleNoteController extends Controller
                 $sale_note_item->sale_note_id = $this->sale_note->id;
                 $sale_note_item->save();
 
-                if(isset($row['lots'])){
+                if (isset($row['lots'])) {
 
-                    foreach($row['lots'] as $lot) {
+                    foreach ($row['lots'] as $lot) {
                         $record_lot = ItemLot::query()->findOrFail($lot['id']);
                         $record_lot->has_sale = true;
                         $record_lot->update();
@@ -660,43 +675,37 @@ class SaleNoteController extends Controller
                 $id_lote_selected = $this->getIdLoteSelectedItem($row);
 
                 // si tiene lotes y no fue generado a partir de otro documento (pedido...)
-                if($id_lote_selected && !$this->sale_note->isGeneratedFromExternalRecord())
-                {
-                    if(is_array($id_lote_selected))
-                    {
+                if ($id_lote_selected && !$this->sale_note->isGeneratedFromExternalRecord()) {
+                    if (is_array($id_lote_selected)) {
                         // presentacion - factor de lista de precios
                         $quantity_unit = isset($sale_note_item->item->presentation->quantity_unit) ? $sale_note_item->item->presentation->quantity_unit : 1;
 
-                        foreach ($id_lote_selected as $item)
-                        {
+                        foreach ($id_lote_selected as $item) {
                             $lot = ItemLotsGroup::query()->find($item['id']);
                             $lot->quantity = $lot->quantity - ($quantity_unit * $item['compromise_quantity']);
                             $this->validateStockLotGroup($lot, $sale_note_item);
                             $lot->save();
                         }
-
-                    }
-                    else {
+                    } else {
 
                         $quantity_unit = 1;
-                        if(isset($row['item']) && isset($row['item']['presentation'])&&isset($row['item']['presentation']['quantity_unit'])){
+                        if (isset($row['item']) && isset($row['item']['presentation']) && isset($row['item']['presentation']['quantity_unit'])) {
                             $quantity_unit = $row['item']['presentation']['quantity_unit'];
                         }
                         $lot = ItemLotsGroup::find($id_lote_selected);
                         $lot->quantity = ($lot->quantity - ($row['quantity'] * $quantity_unit));
                         $lot->save();
                     }
-
                 }
                 // control de lotes
 
             }
 
             //pagos
-            $this->savePayments($this->sale_note, $data['payments']);
+            $this->savePayments($this->sale_note, $data['payments'], $isUpdate);
 
             $this->setFilename();
-            $this->createPdf($this->sale_note,"a4", $this->sale_note->filename);
+            $this->createPdf($this->sale_note, "a4", $this->sale_note->filename);
             $this->regularizePayments($data['payments']);
             DB::connection('tenant')->commit();
 
@@ -707,10 +716,7 @@ class SaleNoteController extends Controller
                     'number_full' => $this->sale_note->number_full,
                 ],
             ];
-
-        }
-        catch(Exception $e)
-        {
+        } catch (Exception $e) {
             $this->generalWriteErrorLog($e);
 
             DB::connection('tenant')->rollBack();
@@ -735,14 +741,10 @@ class SaleNoteController extends Controller
     {
         $id_lote_selected = null;
 
-        if(isset($row['IdLoteSelected']))
-        {
+        if (isset($row['IdLoteSelected'])) {
             $id_lote_selected = $row['IdLoteSelected'];
-        }
-        else
-        {
-            if(isset($row['item']['lots_group']))
-            {
+        } else {
+            if (isset($row['item']['lots_group'])) {
                 $id_lote_selected = collect($row['item']['lots_group'])->where('compromise_quantity', '>', 0)->toArray();
             }
         }
@@ -760,34 +762,30 @@ class SaleNoteController extends Controller
      */
     private function setIdLoteSelectedToItem(&$row)
     {
-        if(isset($row['IdLoteSelected']))
-        {
+        if (isset($row['IdLoteSelected'])) {
             $row['item']['IdLoteSelected'] = $row['IdLoteSelected'];
-        }
-        else
-        {
+        } else {
             $row['item']['IdLoteSelected'] = isset($row['item']['IdLoteSelected']) ? $row['item']['IdLoteSelected'] : null;
         }
     }
 
 
-    private function regularizePayments($payments){
+    private function regularizePayments($payments)
+    {
 
         $total_payments = collect($payments)->sum('payment');
 
         $balance = $this->sale_note->total - $total_payments;
 
-        if($balance <= 0){
+        if ($balance <= 0) {
 
             $this->sale_note->total_canceled = true;
             $this->sale_note->save();
-
-        }else{
+        } else {
 
             $this->sale_note->total_canceled = false;
             $this->sale_note->save();
         }
-
     }
 
 
@@ -795,15 +793,14 @@ class SaleNoteController extends Controller
     {
         $item = SaleNoteItem::findOrFail($id);
 
-        if(isset($item->item->lots)){
+        if (isset($item->item->lots)) {
 
-            foreach($item->item->lots as $lot) {
+            foreach ($item->item->lots as $lot) {
                 // dd($lot->id);
                 $record_lot = ItemLot::findOrFail($lot->id);
                 $record_lot->has_sale = false;
                 $record_lot->update();
             }
-
         }
 
         $item->delete();
@@ -820,18 +817,17 @@ class SaleNoteController extends Controller
         $this->company = Company::active();
 
         // Para matricula, se busca el hijo en atributos
-        $attributes = $inputs['attributes']??[];
-        $children = $attributes['children_customer_id']??null;
+        $attributes = $inputs['attributes'] ?? [];
+        $children = $attributes['children_customer_id'] ?? null;
         $type_period = isset($inputs['type_period']) ? $inputs['type_period'] : null;
         $quantity_period = isset($inputs['quantity_period']) ? $inputs['quantity_period'] : null;
         $d_of_issue = new Carbon($inputs['date_of_issue']);
         $automatic_date_of_issue = null;
 
-        if($type_period && $quantity_period > 0){
+        if ($type_period && $quantity_period > 0) {
 
-            $add_period_date = ($type_period == 'month') ? $d_of_issue->addMonths($quantity_period): $d_of_issue->addYears($quantity_period);
+            $add_period_date = ($type_period == 'month') ? $d_of_issue->addMonths($quantity_period) : $d_of_issue->addYears($quantity_period);
             $automatic_date_of_issue = $add_period_date->format('Y-m-d');
-
         }
 
         if (key_exists('series_id', $inputs)) {
@@ -842,26 +838,23 @@ class SaleNoteController extends Controller
 
         $number = null;
 
-        if($inputs['id'])
-        {
+        if ($inputs['id']) {
             $number = $inputs['number'];
-        }
-        else{
+        } else {
 
             $document = SaleNote::query()
-                                ->select('number')->where('soap_type_id', $this->company->soap_type_id)
-                                ->where('series', $series)
-                                ->orderBy('number', 'desc')
-                                ->first();
+                ->select('number')->where('soap_type_id', $this->company->soap_type_id)
+                ->where('series', $series)
+                ->orderBy('number', 'desc')
+                ->first();
 
             $number = ($document) ? $document->number + 1 : 1;
-
         }
-        $seller_id = isset($inputs['seller_id'])?(int)$inputs['seller_id']:0;
-        if($seller_id == 0){
+        $seller_id = isset($inputs['seller_id']) ? (int)$inputs['seller_id'] : 0;
+        if ($seller_id == 0) {
             $seller_id = auth()->id();
         }
-        $additional_information = isset($inputs['additional_information'])?$inputs['additional_information']:'';
+        $additional_information = isset($inputs['additional_information']) ? $inputs['additional_information'] : '';
 
 
         $values = [
@@ -877,7 +870,7 @@ class SaleNoteController extends Controller
             'series' => $series,
             'number' => $number
         ];
-        if(!empty($children)){
+        if (!empty($children)) {
             $customer = PersonInput::set($inputs['customer_id']);
             $customer['children'] = PersonInput::set($children);
             $values['customer'] = $customer;
@@ -888,7 +881,7 @@ class SaleNoteController extends Controller
 
         unset($inputs['series_id']);
 
-//        $inputs->merge($values);
+        //        $inputs->merge($values);
         $inputs = array_merge($inputs, $values);
         return $inputs;
     }
@@ -907,8 +900,7 @@ class SaleNoteController extends Controller
 
         $created_from_pos = $inputs['created_from_pos'] ?? false;
 
-        if($created_from_pos && $configuration->enabled_point_system)
-        {
+        if ($created_from_pos && $configuration->enabled_point_system) {
             $values['point_system'] = $configuration->enabled_point_system;
             $values['point_system_data'] = [
                 'point_system_sale_amount' => $configuration->point_system_sale_amount,
@@ -919,15 +911,15 @@ class SaleNoteController extends Controller
     }
 
 
-//    public function recreatePdf($sale_note_id)
-//    {
-//        $this->sale_note = SaleNote::find($sale_note_id);
-//        $this->createPdf();
-//    }
+    //    public function recreatePdf($sale_note_id)
+    //    {
+    //        $this->sale_note = SaleNote::find($sale_note_id);
+    //        $this->createPdf();
+    //    }
 
     private function setFilename()
     {
-        $name = [$this->sale_note->series,$this->sale_note->number,date('Ymd')];
+        $name = [$this->sale_note->series, $this->sale_note->number, date('Ymd')];
         $this->sale_note->filename = join('-', $name);
 
         $this->sale_note->unique_filename = $this->sale_note->filename; //campo único para evitar duplicados
@@ -935,7 +927,9 @@ class SaleNoteController extends Controller
         $this->sale_note->save();
     }
 
-    public function toPrint($external_id, $format) {
+    public function toPrint($external_id, $format)
+    {
+
 
         $sale_note = SaleNote::where('external_id', $external_id)->first();
 
@@ -956,7 +950,8 @@ class SaleNoteController extends Controller
         return response()->file($temp, $this->generalPdfResponseFileHeaders($sale_note->filename));
     }
 
-    private function reloadPDF($sale_note, $format, $filename) {
+    private function reloadPDF($sale_note, $format, $filename)
+    {
         $this->createPdf($sale_note, $format, $filename);
     }
 
@@ -972,14 +967,10 @@ class SaleNoteController extends Controller
     {
         $width = 0;
 
-        if(config('tenant.enabled_template_ticket_80'))
-        {
+        if (config('tenant.enabled_template_ticket_80')) {
             $width = 76;
-        }
-        else
-        {
-            switch ($format_pdf)
-            {
+        } else {
+            switch ($format_pdf) {
                 case 'ticket_58':
                     $width = 56;
                     break;
@@ -1034,8 +1025,7 @@ class SaleNoteController extends Controller
         $pdf_margin_left = 5;
 
         // if (($format_pdf === 'ticket') OR ($format_pdf === 'ticket_58'))
-        if(in_array($format_pdf, ['ticket', 'ticket_58', 'ticket_50']))
-        {
+        if (in_array($format_pdf, ['ticket', 'ticket_58', 'ticket_50'])) {
             // $width = ($format_pdf === 'ticket_58') ? 56 : 78 ;
             // if(config('tenant.enabled_template_ticket_80')) $width = 76;
             $width = $this->getWidthTicket($format_pdf);
@@ -1058,8 +1048,8 @@ class SaleNoteController extends Controller
             $discount_global = 0;
             $extra_by_item_description = 0;
             foreach ($this->document->items as $it) {
-                if(strlen($it->item->description)>100){
-                    $extra_by_item_description +=24;
+                if (strlen($it->item->description) > 100) {
+                    $extra_by_item_description += 24;
                 }
                 if ($it->discounts) {
                     $discount_global = $discount_global + 1;
@@ -1069,38 +1059,39 @@ class SaleNoteController extends Controller
             $bank_accounts = BankAccount::count() * 6;
             $base_height = 120;
 
-            if($format_pdf === 'ticket_50') $this->changeValuesPdfTicket50($pdf_margin_right, $pdf_margin_left, $base_height);
+            if ($format_pdf === 'ticket_50') $this->changeValuesPdfTicket50($pdf_margin_right, $pdf_margin_left, $base_height);
 
             $pdf = new Mpdf([
                 'mode' => 'utf-8',
                 'format' => [
                     $width,
                     $base_height +
-                    ($quantity_rows * 8)+
-                    ($discount_global * 3) +
-                    $company_logo +
-                    $payments +
-                    $company_name +
-                    $company_address +
-                    $company_number +
-                    $customer_name +
-                    $customer_address +
-                    $p_order +
-                    $legends +
-                    $bank_accounts +
-                    $total_exportation +
-                    $total_free +
-                    $total_unaffected +
-                    $total_exonerated +
-                    $extra_by_item_description +
-                    $total_taxed],
+                        ($quantity_rows * 8) +
+                        ($discount_global * 3) +
+                        $company_logo +
+                        $payments +
+                        $company_name +
+                        $company_address +
+                        $company_number +
+                        $customer_name +
+                        $customer_address +
+                        $p_order +
+                        $legends +
+                        $bank_accounts +
+                        $total_exportation +
+                        $total_free +
+                        $total_unaffected +
+                        $total_exonerated +
+                        $extra_by_item_description +
+                        $total_taxed
+                ],
                 'margin_top' => $pdf_margin_top,
                 'margin_right' => $pdf_margin_right,
                 'margin_bottom' => $pdf_margin_bottom,
                 'margin_left' => $pdf_margin_left,
                 'default_font' => 'monospace'
             ]);
-        } else if($format_pdf === 'a5'){
+        } else if ($format_pdf === 'a5') {
 
             $company_name      = (strlen($this->company->name) / 20) * 10;
             $company_address   = (strlen($this->document->establishment->address) / 30) * 10;
@@ -1125,19 +1116,19 @@ class SaleNoteController extends Controller
 
 
             $alto = ($quantity_rows * 8) +
-                    ($discount_global * 3) +
-                    $company_name +
-                    $company_address +
-                    $company_number +
-                    $customer_name +
-                    $customer_address +
-                    $p_order +
-                    $legends +
-                    $total_exportation +
-                    $total_free +
-                    $total_unaffected +
-                    $total_exonerated +
-                    $total_taxed;
+                ($discount_global * 3) +
+                $company_name +
+                $company_address +
+                $company_number +
+                $customer_name +
+                $customer_address +
+                $p_order +
+                $legends +
+                $total_exportation +
+                $total_free +
+                $total_unaffected +
+                $total_exonerated +
+                $total_taxed;
             $diferencia = 148 - (float)$alto;
 
             $pdf = new Mpdf([
@@ -1145,16 +1136,14 @@ class SaleNoteController extends Controller
                 'format' => [
                     210,
                     $diferencia + $alto
-                    ],
+                ],
                 'margin_top' => 2,
                 'margin_right' => 5,
                 'margin_bottom' => 0,
                 'margin_left' => 5,
                 'default_font' => 'arial'
             ]);
-
-
-       } else {
+        } else {
 
             $pdf_font_regular = config('tenant.pdf_name_regular');
             $pdf_font_bold = config('tenant.pdf_name_bold');
@@ -1168,62 +1157,60 @@ class SaleNoteController extends Controller
 
                 $pdf = new Mpdf([
                     'fontDir' => array_merge($fontDirs, [
-                        app_path('CoreFacturalo'.DIRECTORY_SEPARATOR.'Templates'.
-                                                DIRECTORY_SEPARATOR.'pdf'.
-                                                DIRECTORY_SEPARATOR.$base_template.
-                                                DIRECTORY_SEPARATOR.'font')
+                        app_path('CoreFacturalo' . DIRECTORY_SEPARATOR . 'Templates' .
+                            DIRECTORY_SEPARATOR . 'pdf' .
+                            DIRECTORY_SEPARATOR . $base_template .
+                            DIRECTORY_SEPARATOR . 'font')
                     ]),
                     'fontdata' => $fontData + [
                         'custom_bold' => [
-                            'R' => $pdf_font_bold.'.ttf',
+                            'R' => $pdf_font_bold . '.ttf',
                         ],
                         'custom_regular' => [
-                            'R' => $pdf_font_regular.'.ttf',
+                            'R' => $pdf_font_regular . '.ttf',
                         ],
                     ],
                     'default_font' => 'arial'
                 ]);
-            }
-            else {
+            } else {
                 $pdf = new Mpdf([
                     'default_font' => 'arial'
                 ]);
             }
-
         }
 
-        $path_css = app_path('CoreFacturalo'.DIRECTORY_SEPARATOR.'Templates'.
-                                             DIRECTORY_SEPARATOR.'pdf'.
-                                             DIRECTORY_SEPARATOR.$base_template.
-                                             DIRECTORY_SEPARATOR.'style.css');
+        $path_css = app_path('CoreFacturalo' . DIRECTORY_SEPARATOR . 'Templates' .
+            DIRECTORY_SEPARATOR . 'pdf' .
+            DIRECTORY_SEPARATOR . $base_template .
+            DIRECTORY_SEPARATOR . 'style.css');
 
         $stylesheet = file_get_contents($path_css);
 
         // para impresion automatica
-        if($output == 'html') return $this->getHtmlDirectPrint($pdf, $stylesheet, $html);
+        if ($output == 'html') return $this->getHtmlDirectPrint($pdf, $stylesheet, $html);
 
         $pdf->WriteHTML($stylesheet, HTMLParserMode::HEADER_CSS);
         $pdf->WriteHTML($html, HTMLParserMode::HTML_BODY);
 
-        if(config('tenant.pdf_template_footer')) {
+        if (config('tenant.pdf_template_footer')) {
             /* if (($format_pdf != 'ticket') AND ($format_pdf != 'ticket_58') AND ($format_pdf != 'ticket_50')) */
-                if ($base_template != 'full_height') {
-                    $html_footer = $template->pdfFooter($base_template,$this->document);
-                } else {
-                    $html_footer = $template->pdfFooter('default',$this->document);
+            if ($base_template != 'full_height') {
+                $html_footer = $template->pdfFooter($base_template, $this->document);
+            } else {
+                $html_footer = $template->pdfFooter('default', $this->document);
+            }
+            $html_footer_legend = "";
+            if ($base_template != 'legend_amazonia') {
+                if ($this->configuration->legend_footer) {
+                    $html_footer_legend = $template->pdfFooterLegend($base_template, $this->document);
                 }
-                $html_footer_legend = "";
-                if ($base_template != 'legend_amazonia') {
-                    if($this->configuration->legend_footer){
-                        $html_footer_legend = $template->pdfFooterLegend($base_template, $this->document);
-                    }
-                }
+            }
 
-                if (($format_pdf === 'ticket') || ($format_pdf === 'ticket_58') || ($format_pdf === 'ticket_50')) {
-                    $pdf->WriteHTML($html_footer.$html_footer_legend, HTMLParserMode::HTML_BODY);
-                }else{
-                    $pdf->SetHTMLFooter($html_footer.$html_footer_legend);
-                }
+            if (($format_pdf === 'ticket') || ($format_pdf === 'ticket_58') || ($format_pdf === 'ticket_50')) {
+                $pdf->WriteHTML($html_footer . $html_footer_legend, HTMLParserMode::HTML_BODY);
+            } else {
+                $pdf->SetHTMLFooter($html_footer . $html_footer_legend);
+            }
         }
 
         if ($base_template === 'brand') {
@@ -1236,22 +1223,20 @@ class SaleNoteController extends Controller
 
         $helper_facturalo = new HelperFacturalo();
 
-        if($helper_facturalo->isAllowedAddDispatchTicket($format_pdf, 'sale-note', $this->document))
-        {
+        if ($helper_facturalo->isAllowedAddDispatchTicket($format_pdf, 'sale-note', $this->document)) {
             $helper_facturalo->addDocumentDispatchTicket($pdf, $this->company, $this->document, [
                 $template,
                 $base_template,
                 $width,
-                ($quantity_rows * 8) + $extra_by_item_description +200
+                ($quantity_rows * 8) + $extra_by_item_description + 200
             ]);
         }
-        if($helper_facturalo->isAllowedAddDispatchTicketIndividual($format_pdf, 'sale-note'))
-        {
+        if ($helper_facturalo->isAllowedAddDispatchTicketIndividual($format_pdf, 'sale-note')) {
             $helper_facturalo->addDocumentDispatchTicket($pdf, $this->company, $this->document, [
                 $template,
                 $base_template,
                 $width,
-                ($quantity_rows * 8) + $extra_by_item_description +200
+                ($quantity_rows * 8) + $extra_by_item_description + 200
             ], true);
         }
 
@@ -1276,7 +1261,7 @@ class SaleNoteController extends Controller
         $pdf->WriteHTML($ticket_html, HTMLParserMode::HEADER_CSS);
         $pdf->WriteHTML($html, HTMLParserMode::HTML_BODY);
 
-        return "<style>".$ticket_html.$stylesheet."</style>".$html;
+        return "<style>" . $ticket_html . $stylesheet . "</style>" . $html;
     }
 
 
@@ -1311,18 +1296,18 @@ class SaleNoteController extends Controller
             case 'customers':
 
                 $customers = Person::whereType('customers')
-                    ->whereIsEnabled()->orderBy('name')->take(20)->get()->transform(function(Person$row) {
-                    return [
-                        'id' => $row->id,
-                        'description' => $row->number.' - '.$row->name,
-                        'seller' => $row->seller,
-                        'seller_id' => $row->seller_id,
-                        'name' => $row->name,
-                        'number' => $row->number,
-                        'identity_document_type_id' => $row->identity_document_type_id,
-                        'identity_document_type_code' => $row->identity_document_type->code
-                    ];
-                });
+                    ->whereIsEnabled()->orderBy('name')->take(20)->get()->transform(function (Person $row) {
+                        return [
+                            'id' => $row->id,
+                            'description' => $row->number . ' - ' . $row->name,
+                            'seller' => $row->seller,
+                            'seller_id' => $row->seller_id,
+                            'name' => $row->name,
+                            'number' => $row->number,
+                            'identity_document_type_id' => $row->identity_document_type_id,
+                            'identity_document_type_code' => $row->identity_document_type->code
+                        ];
+                    });
                 return $customers;
 
                 break;
@@ -1336,11 +1321,11 @@ class SaleNoteController extends Controller
 
                 $items_u = Item::whereWarehouse()->whereIsActive()->whereNotIsSet()->orderBy('description')->take(20)->get();
 
-                $items_s = Item::where('unit_type_id','ZZ')->whereIsActive()->orderBy('description')->take(10)->get();
+                $items_s = Item::where('unit_type_id', 'ZZ')->whereIsActive()->orderBy('description')->take(10)->get();
 
                 $items = $items_u->merge($items_s);
 
-                return collect($items)->transform(function($row) use($warehouse){
+                return collect($items)->transform(function ($row) use ($warehouse) {
 
                     /** @var Item $row */
                     return $row->getDataToItemModal($warehouse);
@@ -1364,7 +1349,7 @@ class SaleNoteController extends Controller
                         'lots_enabled' => (bool) $row->lots_enabled,
                         'series_enabled' => (bool) $row->series_enabled,
                         'is_set' => (bool) $row->is_set,
-                        'warehouses' => collect($row->warehouses)->transform(function($row) use($warehouse_id){
+                        'warehouses' => collect($row->warehouses)->transform(function ($row) use ($warehouse_id) {
                             return [
                                 'warehouse_id' => $row->warehouse->id,
                                 'warehouse_description' => $row->warehouse->description,
@@ -1385,7 +1370,7 @@ class SaleNoteController extends Controller
                         //         'lot_code' => ($row->item_loteable_type) ? (isset($row->item_loteable->lot_code) ? $row->item_loteable->lot_code:null):null
                         //     ];
                         // }),
-                        'lots_group' => collect($row->lots_group)->transform(function($row){
+                        'lots_group' => collect($row->lots_group)->transform(function ($row) {
                             return [
                                 'id'  => $row->id,
                                 'code' => $row->code,
@@ -1473,7 +1458,6 @@ class SaleNoteController extends Controller
         });
 */
         return compact('items');
-
     }
 
 
@@ -1484,11 +1468,11 @@ class SaleNoteController extends Controller
         $warehouse = Warehouse::where('establishment_id', $establishment_id)->first();
         $search_item = $this->getItemsNotServicesById($id);
 
-        if(count($search_item) == 0){
+        if (count($search_item) == 0) {
             $search_item = $this->getItemsServicesById($id);
         }
 
-        $items = collect($search_item)->transform(function($row) use($warehouse){
+        $items = collect($search_item)->transform(function ($row) use ($warehouse) {
             $detail = $this->getFullDescription($row, $warehouse);
             return [
                 'id' => $row->id,
@@ -1536,18 +1520,17 @@ class SaleNoteController extends Controller
     }
 
 
-    public function getFullDescription($row, $warehouse){
+    public function getFullDescription($row, $warehouse)
+    {
 
-        $desc = ($row->internal_id)?$row->internal_id.' - '.$row->description : $row->description;
+        $desc = ($row->internal_id) ? $row->internal_id . ' - ' . $row->description : $row->description;
         $category = ($row->category) ? "{$row->category->name}" : "";
         $brand = ($row->brand) ? "{$row->brand->name}" : "";
 
-        if($row->unit_type_id != 'ZZ')
-        {
-            $warehouse_stock = ($row->warehouses && $warehouse) ? number_format($row->warehouses->where('warehouse_id', $warehouse->id)->first() != null ? $row->warehouses->where('warehouse_id', $warehouse->id)->first()->stock : 0 ,2) : 0;
+        if ($row->unit_type_id != 'ZZ') {
+            $warehouse_stock = ($row->warehouses && $warehouse) ? number_format($row->warehouses->where('warehouse_id', $warehouse->id)->first() != null ? $row->warehouses->where('warehouse_id', $warehouse->id)->first()->stock : 0, 2) : 0;
             $stock = ($row->warehouses && $warehouse) ? "{$warehouse_stock}" : "";
-        }
-        else{
+        } else {
             $stock = '';
         }
 
@@ -1566,13 +1549,12 @@ class SaleNoteController extends Controller
     public function searchCustomerById($id)
     {
         return $this->searchClientById($id);
-
     }
 
     public function option_tables()
     {
         $establishment = Establishment::where('id', auth()->user()->establishment_id)->first();
-        $series = Series::where('establishment_id',$establishment->id)->get();
+        $series = Series::where('establishment_id', $establishment->id)->get();
         $document_types_invoice = DocumentType::whereIn('id', ['01', '03'])->get();
         $payment_method_types = PaymentMethodType::all();
         $payment_destinations = $this->getPaymentDestinations();
@@ -1580,7 +1562,7 @@ class SaleNoteController extends Controller
         $configuration = Configuration::select(['restrict_sale_items_cpe', 'global_discount_type_id'])->first();
         $global_discount_types = ChargeDiscountType::getGlobalDiscounts();
 
-        return compact('series', 'document_types_invoice', 'payment_method_types', 'payment_destinations','sellers', 'configuration', 'global_discount_types');
+        return compact('series', 'document_types_invoice', 'payment_method_types', 'payment_destinations', 'sellers', 'configuration', 'global_discount_types');
     }
 
     public function email(Request $request)
@@ -1615,14 +1597,14 @@ class SaleNoteController extends Controller
 
     public function dispatches()
     {
-        $dispatches = Dispatch::latest()->get(['id','series','number'])->transform(function($row) {
+        $dispatches = Dispatch::latest()->get(['id', 'series', 'number'])->transform(function ($row) {
             return [
                 'id' => $row->id,
                 'series' => $row->series,
                 'number' => $row->number,
                 'number_full' => "{$row->series}-{$row->number}",
             ];
-        }); ;
+        });;
 
         return $dispatches;
     }
@@ -1636,9 +1618,8 @@ class SaleNoteController extends Controller
 
         return [
             'success' => true,
-            'message' => ($sale_note->enabled_concurrency) ? 'Recurrencia activada':'Recurrencia desactivada'
+            'message' => ($sale_note->enabled_concurrency) ? 'Recurrencia activada' : 'Recurrencia desactivada'
         ];
-
     }
 
     public function anulate($id)
@@ -1651,7 +1632,7 @@ class SaleNoteController extends Controller
             $obj->save();
 
             // $establishment = Establishment::where('id', auth()->user()->establishment_id)->first();
-            $warehouse = Warehouse::where('establishment_id',$obj->establishment_id)->first();
+            $warehouse = Warehouse::where('establishment_id', $obj->establishment_id)->first();
 
             foreach ($obj->items as $sale_note_item) {
 
@@ -1662,17 +1643,13 @@ class SaleNoteController extends Controller
                 //habilito las series
                 // ItemLot::where('item_id', $item->item_id )->where('warehouse_id', $warehouse->id)->update(['has_sale' => false]);
                 $this->voidedLots($sale_note_item);
-
             }
-
         });
 
         return [
             'success' => true,
             'message' => 'N. Venta anulada con éxito'
         ];
-
-
     }
 
     public function voidedSaleNoteItem($sale_note_item, $warehouse)
@@ -1680,7 +1657,7 @@ class SaleNoteController extends Controller
 
         $warehouse_id = ($sale_note_item->warehouse_id) ? $sale_note_item->warehouse_id : $warehouse->id;
 
-        if(!$sale_note_item->item->is_set){
+        if (!$sale_note_item->item->is_set) {
 
             $presentationQuantity = (!empty($sale_note_item->item->presentation)) ? $sale_note_item->item->presentation->quantity_unit : 1;
 
@@ -1691,15 +1668,13 @@ class SaleNoteController extends Controller
                 'quantity' => $sale_note_item->quantity * $presentationQuantity,
             ]);
 
-            $wr = ItemWarehouse::where([['item_id', $sale_note_item->item_id],['warehouse_id', $warehouse_id]])->first();
+            $wr = ItemWarehouse::where([['item_id', $sale_note_item->item_id], ['warehouse_id', $warehouse_id]])->first();
 
-            if($wr)
-            {
+            if ($wr) {
                 $wr->stock =  $wr->stock + ($sale_note_item->quantity * $presentationQuantity);
                 $wr->save();
             }
-
-        }else{
+        } else {
 
             $item = Item::findOrFail($sale_note_item->item_id);
 
@@ -1709,13 +1684,10 @@ class SaleNoteController extends Controller
                 $item_set_quantity  = ($it->quantity) ? $it->quantity : 1;
                 $presentationQuantity = 1;
                 $warehouse = $this->findWarehouse($sale_note_item->sale_note->establishment_id);
-                $this->createInventoryKardexSaleNote($sale_note_item->sale_note, $ind_item->id , (1 * ($sale_note_item->quantity * $presentationQuantity * $item_set_quantity)), $warehouse->id, $sale_note_item->id);
-                if(!$sale_note_item->sale_note->order_note_id) $this->updateStock($ind_item->id , (1 * ($sale_note_item->quantity * $presentationQuantity * $item_set_quantity)), $warehouse->id);
-
+                $this->createInventoryKardexSaleNote($sale_note_item->sale_note, $ind_item->id, (1 * ($sale_note_item->quantity * $presentationQuantity * $item_set_quantity)), $warehouse->id, $sale_note_item->id);
+                if (!$sale_note_item->sale_note->order_note_id) $this->updateStock($ind_item->id, (1 * ($sale_note_item->quantity * $presentationQuantity * $item_set_quantity)), $warehouse->id);
             }
-
         }
-
     }
 
 
@@ -1751,11 +1723,11 @@ class SaleNoteController extends Controller
         $document = SaleNote::where('external_id', $external_id)->first();
         $this->reloadPDF($document, $format, null);
         return $this->downloadStorage($document->filename, 'sale_note');
-
     }
 
 
-    public function savePayments($sale_note, $payments){
+    public function savePayments($sale_note, $payments, $isUpdate = false)
+    {
 
         $total = $sale_note->total;
         $balance = $total - collect($payments)->sum('payment');
@@ -1764,19 +1736,18 @@ class SaleNoteController extends Controller
 
         $this->apply_change = false;
 
-        if($balance < 0 && $search_cash){
+        if ($balance < 0 && $search_cash) {
 
-            $payments = collect($payments)->map(function($row) use($balance){
+            $payments = collect($payments)->map(function ($row) use ($balance) {
 
                 $change = null;
                 $payment = $row['payment'];
 
-                if($row['payment_method_type_id'] == '01' && !$this->apply_change){
+                if ($row['payment_method_type_id'] == '01' && !$this->apply_change) {
 
                     $change = abs($balance);
                     $payment = $row['payment'] - abs($balance);
                     $this->apply_change = true;
-
                 }
 
                 return [
@@ -1791,7 +1762,6 @@ class SaleNoteController extends Controller
                     "change" => $change,
                     "payment" => $payment
                 ];
-
             });
         }
 
@@ -1799,7 +1769,7 @@ class SaleNoteController extends Controller
 
         foreach ($payments as $row) {
 
-            if($balance < 0 && !$this->apply_change){
+            if ($balance < 0 && !$this->apply_change) {
                 $row['change'] = abs($balance);
                 $row['payment'] = $row['payment'] - abs($balance);
                 $this->apply_change = true;
@@ -1807,11 +1777,14 @@ class SaleNoteController extends Controller
 
             $record_payment = $sale_note->payments()->create($row);
 
-            if(isset($row['payment_destination_id'])){
+            if (isset($row['payment_destination_id'])) {
                 $this->createGlobalPayment($record_payment, $row);
+                if ($isUpdate) {
+                    $this->createCashDocumentPayment($record_payment, false);
+                }
             }
 
-            if(isset($row['payment_filename'])){
+            if (isset($row['payment_filename'])) {
                 $record_payment->payment_file()->create([
                     'filename' => $row['payment_filename']
                 ]);
@@ -1823,25 +1796,25 @@ class SaleNoteController extends Controller
     }
 
 
-    private function voidedLots($item){
+    private function voidedLots($item)
+    {
 
-        $i_lots_group = isset($item->item->lots_group) ? $item->item->lots_group:[];
+        $i_lots_group = isset($item->item->lots_group) ? $item->item->lots_group : [];
         $lot_group_selecteds_filter = collect($i_lots_group)->where('compromise_quantity', '>', 0);
         $lot_group_selecteds =  $lot_group_selecteds_filter->all();
 
-        if(count($lot_group_selecteds) > 0){
+        if (count($lot_group_selecteds) > 0) {
 
             foreach ($lot_group_selecteds as $lt) {
                 $lot = ItemLotsGroup::find($lt->id);
                 $lot->quantity = $lot->quantity + $lt->compromise_quantity;
                 $lot->save();
             }
-
         }
 
-        if(isset($item->item->lots)){
+        if (isset($item->item->lots)) {
             foreach ($item->item->lots as $it) {
-                if($it->has_sale == true){
+                if ($it->has_sale == true) {
                     $ilt = ItemLot::find($it->id);
                     $ilt->has_sale = false;
                     $ilt->save();
@@ -1857,25 +1830,25 @@ class SaleNoteController extends Controller
         ]);
         $clientId = $request->client_id;
         $records = SaleNote::without(['user', 'soap_type', 'state_type', 'currency_type', 'payments'])
-                            ->select('series', 'number', 'id', 'date_of_issue', 'total')
-                            ->where('customer_id', $clientId)
-                            ->whereNull('document_id')
-                            ->whereIn('state_type_id', ['01', '03', '05'])
-                            ->orderBy('number', 'desc');
+            ->select('series', 'number', 'id', 'date_of_issue', 'total')
+            ->where('customer_id', $clientId)
+            ->whereNull('document_id')
+            ->whereIn('state_type_id', ['01', '03', '05'])
+            ->orderBy('number', 'desc');
 
         $dateOfIssue = $request->date_of_issue;
         $dateOfDue = $request->date_of_due;
-        if ($dateOfIssue&&!$dateOfDue) {
+        if ($dateOfIssue && !$dateOfDue) {
             $records = $records->where('date_of_issue', $dateOfIssue);
         }
 
-        if ($dateOfIssue&&$dateOfDue) {
-            $records = $records->whereBetween('date_of_issue', [$dateOfIssue,$dateOfDue]);
+        if ($dateOfIssue && $dateOfDue) {
+            $records = $records->whereBetween('date_of_issue', [$dateOfIssue, $dateOfDue]);
         }
-        $sum_total=0;
+        $sum_total = 0;
         $records = $records->take(20)
             ->get();
-        $sum_total=number_format($records->sum('total'),2);
+        $sum_total = number_format($records->sum('total'), 2);
         return response()->json([
             'success' => true,
             'data' => $records,
@@ -1889,15 +1862,14 @@ class SaleNoteController extends Controller
             'notes_id' => 'required|array',
         ]);
 
-        if($request->select_all){
+        if ($request->select_all) {
 
             $items = SaleNoteItem::whereIn('sale_note_id', $request->notes_id)->get();
-
-        }else{
+        } else {
 
             $items = SaleNoteItem::whereIn('sale_note_id', $request->notes_id)
-                    ->select('item_id', 'quantity','unit_price','item')
-                    ->get();
+                ->select('item_id', 'quantity', 'unit_price', 'item')
+                ->get();
         }
 
 
@@ -1928,8 +1900,8 @@ class SaleNoteController extends Controller
         $obj = SaleNote::find($request->id);
         $this->sale_note = $obj->replicate();
         $this->sale_note->external_id = Str::uuid()->toString();
-        $this->sale_note->state_type_id = '01' ;
-        $this->sale_note->number = SaleNote::getLastNumberByModel($obj) ;
+        $this->sale_note->state_type_id = '01';
+        $this->sale_note->number = SaleNote::getLastNumberByModel($obj);
         $this->sale_note->unique_filename = null;
 
         $this->sale_note->changed = false;
@@ -1937,8 +1909,7 @@ class SaleNoteController extends Controller
 
         $this->sale_note->save();
 
-        foreach($obj->items as $row)
-        {
+        foreach ($obj->items as $row) {
             $new = $row->replicate();
             $new->sale_note_id = $this->sale_note->id;
             $new->save();
@@ -1952,7 +1923,6 @@ class SaleNoteController extends Controller
                 'id' => $this->sale_note->id,
             ],
         ];
-
     }
 
 
@@ -1961,10 +1931,10 @@ class SaleNoteController extends Controller
      *
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application|\Illuminate\View\View
      */
-    public function SetAdvanceConfiguration(){
+    public function SetAdvanceConfiguration()
+    {
         $migrationConfiguration = MigrationConfiguration::getCollectionData();
-        return view('tenant.configuration.sale_notes',compact('migrationConfiguration'));
-
+        return view('tenant.configuration.sale_notes', compact('migrationConfiguration'));
     }
 
     /**
@@ -1973,30 +1943,30 @@ class SaleNoteController extends Controller
      * @param Request $request
      * @return array
      */
-    public function SaveSetAdvanceConfiguration(Request $request){
+    public function SaveSetAdvanceConfiguration(Request $request)
+    {
 
         $data = $request->all();
         $data['success'] = false;
         $data['send_data_to_other_server'] = (bool)$data['send_data_to_other_server'];
 
-        if(auth()->user()->type !=='admin'){
+        if (auth()->user()->type !== 'admin') {
             $data['message'] = 'No puedes realizar cambios';
             return $data;
         }
         $configuration = Configuration::first();
         $migrationConfiguration = MigrationConfiguration::first();
-        if(empty($migrationConfiguration)) $migrationConfiguration = new MigrationConfiguration($data);
+        if (empty($migrationConfiguration)) $migrationConfiguration = new MigrationConfiguration($data);
 
         $migrationConfiguration->setUrl($data['url'])->setApiKey($data['apiKey'])->push();
-        $configuration->setSendDataToOtherServer($data['send_data_to_other_server'] )->push();
+        $configuration->setSendDataToOtherServer($data['send_data_to_other_server'])->push();
 
-        $data['url']=$migrationConfiguration->getUrl();
-        $data['apiKey']=$migrationConfiguration->getApiKey();
+        $data['url'] = $migrationConfiguration->getUrl();
+        $data['apiKey'] = $migrationConfiguration->getApiKey();
         $data['send_data_to_other_server'] = $configuration->isSendDataToOtherServer();
         $data['success'] = true;
         $data['message'] = 'Ha sido acualizado';
         return $data;
-
     }
 
 
@@ -2006,14 +1976,14 @@ class SaleNoteController extends Controller
      * @param Request $request
      * @return array
      */
-    public function transformDataOrder(Request $request){
+    public function transformDataOrder(Request $request)
+    {
 
         $data = SaleNoteHelper::transformForOrder($request->all());
 
         return [
             'data' => $data
         ];
-
     }
 
 
@@ -2037,13 +2007,13 @@ class SaleNoteController extends Controller
     public function recordsDispatch($sale_note_id)
     {
         $sale_note = SaleNote::whereFilterWithOutRelations()
-                                ->with(['dispatch_sale'])
-                                ->select([
-                                    'id',
-                                    'number',
-                                    'series'
-                                ])
-                                ->findOrFail($sale_note_id);
+            ->with(['dispatch_sale'])
+            ->select([
+                'id',
+                'number',
+                'series'
+            ])
+            ->findOrFail($sale_note_id);
 
         return [
             'id' => $sale_note->id,
@@ -2057,7 +2027,6 @@ class SaleNoteController extends Controller
 
         return new DispatchSaleNoteCollection($records);
         */
-
     }
 
     public function recordDispatch(Request $request)
@@ -2069,18 +2038,19 @@ class SaleNoteController extends Controller
         $record->save();
         return [
             'success' => true,
-            'message' => ($id)?'Despacho editado con éxito':'Despacho registrado con éxito'
+            'message' => ($id) ? 'Despacho editado con éxito' : 'Despacho registrado con éxito'
         ];
     }
 
     public function recordsDispatchNote($dispatch_id)
     {
-        $records = DispatchSaleNote::where('id',$dispatch_id)->get();
+        $records = DispatchSaleNote::where('id', $dispatch_id)->get();
 
         return new DispatchSaleNoteCollection($records);
     }
 
-    public function statusUpdate(Request $request){
+    public function statusUpdate(Request $request)
+    {
         //dd($request->all());
         $id = $request->input('dispatch_id');
 
@@ -2094,7 +2064,6 @@ class SaleNoteController extends Controller
             'success' => true,
             'message' => 'Se actualizo el estado de despacho con éxito'
         ];
-
     }
 
     public function destroyStatus($id)
@@ -2112,7 +2081,8 @@ class SaleNoteController extends Controller
      *
      *
      */
-    public function deleteRelationInvoice(Request $request) {
+    public function deleteRelationInvoice(Request $request)
+    {
         // dd($request->all());
         try {
             $sale_note = SaleNote::find($request->id);
@@ -2124,7 +2094,7 @@ class SaleNoteController extends Controller
             $sale_note->changed = 0;
             $sale_note->document_id = null;
             $sale_note->save();
-        }catch(RequestException $e){
+        } catch (RequestException $e) {
             return ['success' => false];
         }
 

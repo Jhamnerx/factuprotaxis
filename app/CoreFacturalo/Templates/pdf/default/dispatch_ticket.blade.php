@@ -60,7 +60,7 @@
 <table class="full-width border-box mt-10 mb-10">
     <thead>
     <tr>
-        <th class="border-bottom text-left">DESTINATARIO</th>
+        <th class="border-bottom text-left">{{ $document['transfer_reason_type_id'] != '02' ? 'DESTINATARIO' : 'PROVEEDOR' }}</th>
     </tr>
     </thead>
     <tbody>
@@ -88,6 +88,42 @@
     </tr>
     </tbody>
 </table>
+@if ($document['transfer_reason_type_id'] == '02')
+<table class="full-width border-box mt-10 mb-10">
+    @php
+        // dd($document->toArray());
+        $company = \App\CoreFacturalo\Helpers\Template\TemplateHelper::getInformationCompany();
+        // dd($company);
+    @endphp
+    <thead>
+    <tr>
+        <th class="border-bottom text-left">DESTINATARIO</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Razón Social: {{ $company['company']->name }}</td>
+    </tr>
+    <tr>
+        <td>RUC: {{ $company['company']->number }}
+        </td>
+    </tr>
+    <tr>
+        <td>Dirección: {{ $company['establishment']->address }}
+            {{-- {{ ($customer->district_id !== '-')? ', '.$customer->district->description : '' }}
+            {{ ($customer->province_id !== '-')? ', '.$customer->province->description : '' }}
+            {{ ($customer->department_id !== '-')? '- '.$customer->department->description : '' }} --}}
+        </td>
+    </tr>
+    @if ($company['establishment']->telephone)
+    <tr>
+        <td>Teléfono:{{ $company['establishment']->telephone }}</td>
+    </tr>
+    @endif
+    </tbody>
+</table>
+    
+@endif
 <table class="full-width border-box mt-10 mb-10">
     <thead>
     <tr>
@@ -118,8 +154,12 @@
         @endif
     </tr>
     <tr>
-        <td>P.Partida: {{ $document->origin->location_id }} - {{ $document->origin->address }}</td>
-        <td>P.Llegada: {{ $document->delivery->location_id }} - {{ $document->delivery->address }}</td>
+        @php
+            $direction_label_delivery = $document['transfer_reason_type_id'] == '02' ? 'P.Partida:': 'P.Llegada:';
+            $direction_label_origin = $document['transfer_reason_type_id'] != '02' ? 'P.Partida:': 'P.Llegada:';
+        @endphp
+        <td> {{ $direction_label_origin }} {{ $document->origin->location_id }} - {{ $document->origin->address }}</td>
+        <td> {{ $direction_label_delivery }} {{ $document->delivery->location_id }} - {{ $document->delivery->address }}</td>
     </tr>
     </tbody>
 </table>
@@ -130,7 +170,17 @@
     </tr>
     </thead>
     <tbody>
-    @if($document->transport_mode_type_id === '01')
+    @if($document->is_transport_m1l)
+    <tr>
+        @if($document->is_transport_m1l)
+            <td>Indicador de traslado en vehículos de categoría M1 o L: SI</td>
+        @endif
+        @if($document->license_plate_m1l)
+            <td>Placa de vehículo: {{ $document->license_plate_m1l}}</td>
+        @endif
+    </tr>
+    @endif
+    @if($document->transport_mode_type_id === '01' && !$document->is_transport_m1l)
         @php
             $document_type_dispatcher = App\Models\Tenant\Catalogs\IdentityDocumentType::findOrFail($document->dispatcher->identity_document_type_id);
         @endphp
@@ -139,36 +189,38 @@
         <td>{{ $document_type_dispatcher->description }}: {{ $document->dispatcher->number }}</td>
     </tr>
     @else
-    <tr>
-        @if($document->transport_data)
-            <td>Número de placa del vehículo Principal: {{ $document->transport_data['plate_number'] }}</td>
-        @endif
-        @if($document->transport_data['tuc'])
-            <td>Certificado de habilitación vehicular: {{ $document->transport_data['tuc'] }}</td>
-        @endif
-    </tr>
-    <tr>
-        @if($document->driver->number)
-            <td>Conductor Principal: {{$document->driver->name}}</td>
-        @endif
-        @if($document->driver->number)
-            <td>Documento de conductor: {{ $document->driver->number }}</td>
-        @endif
-    </tr>
-    <tr>
-        @if($document->secondary_license_plates)
-            @if($document->secondary_license_plates->semitrailer)
-                <td>Número de placa semirremolque: {{ $document->secondary_license_plates->semitrailer }}</td>
+        @if(!$document->is_transport_m1l)
+        <tr>
+            @if($document->transport_data)
+                <td>Número de placa del vehículo Principal: {{ $document->transport_data['plate_number'] }}</td>
             @endif
+            @if(isset($document->transport_data['tuc']) && $document->transport_data['tuc'])
+                <td>Certificado de habilitación vehicular: {{ $document->transport_data['tuc'] }}</td>
+            @endif
+        </tr>
+        <tr>
+            @if($document->driver->number)
+                <td>Conductor Principal: {{$document->driver->name}}</td>
+            @endif
+            @if($document->driver->number)
+                <td>Documento de conductor: {{ $document->driver->number }}</td>
+            @endif
+        </tr>
+        <tr>
+            @if($document->secondary_license_plates)
+                @if($document->secondary_license_plates->semitrailer)
+                    <td>Número de placa semirremolque: {{ $document->secondary_license_plates->semitrailer }}</td>
+                @endif
+            @endif
+            @if($document->driver->license)
+                <td>Licencia del conductor: {{ $document->driver->license }}</td>
+            @endif
+        </tr>
         @endif
-        @if($document->driver->license)
-            <td>Licencia del conductor: {{ $document->driver->license }}</td>
-        @endif
-    </tr>
     @endif
     </tbody>
 </table>
-@if($document->secondary_transports)
+@if($document->secondary_transports && !$document->is_transport_m1l)
     <table class="full-width border-box mt-10 mb-10">
         <thead>
         <tr>
@@ -189,7 +241,7 @@
         </tbody>
     </table>
 @endif
-@if($document->secondary_drivers)
+@if($document->secondary_drivers && !$document->is_transport_m1l)
     <table class="full-width border-box mt-10 mb-10">
         <thead>
         <tr>

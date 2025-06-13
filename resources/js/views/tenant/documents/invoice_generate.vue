@@ -1,5 +1,8 @@
 <template>
-    <div :class="{ 'content-opacity': isVisible }">
+    <div
+        :class="{ 'content-opacity': isVisible }"
+        @click.self="toggleInformation"
+    >
         <Keypress key-event="keyup" @success="checkKey" />
         <Keypress
             key-event="keyup"
@@ -16,21 +19,11 @@
                     <div
                         class="row card-header card-header-invoice no-gutters align-items-start m-0"
                     >
-                        <div class="col-xl-2 col-md-2 col-12">
-                            <logo
-                                :path_logo="
-                                    company.logo != null
-                                        ? `/storage/uploads/logos/${
-                                              company.logo
-                                          }`
-                                        : ''
-                                "
-                                :position_class="'text-left'"
-                                url="/"
-                            ></logo>
+                        <div class="col-xl-2 col-md-2 col-12 is-hidden-mobile">
+                            <logo url="/" :path_logo="getCurrentLogo"></logo>
                         </div>
                         <div
-                            class="col-xl-6 col-md-6 col-12 pl-2 align-self-center"
+                            class="col-xl-6 col-md-6 col-12 pl-2 align-self-center is-hidden-mobile"
                         >
                             <address class="mb-0" style="line-height: initial;">
                                 <span class="font-weight-bold">{{
@@ -50,7 +43,7 @@
                         </div>
                         <div class="col-xl-4 col-md-4 col-12 align-self-end">
                             <div class="">
-                                <div class="row">
+                                <div class="row datetime-container">
                                     <div class="col-lg-6 align-self-end">
                                         <div
                                             :class="{
@@ -107,8 +100,8 @@
                         </div>
                     </div>
                     <div class="card-body no-gutters">
-                        <div class="row">
-                            <div class="col-lg-4 align-self-end">
+                        <div class="row inputs-container">
+                            <div class="col-lg-4 align-self-end invoice-type">
                                 <div
                                     :class="{
                                         'has-danger': errors.document_type_id
@@ -141,7 +134,7 @@
                                     ></small>
                                 </div>
                             </div>
-                            <div class="col-lg-2">
+                            <div class="col-lg-2 d-none">
                                 <div
                                     :class="{
                                         'has-danger': errors.establishment_id
@@ -169,7 +162,7 @@
                                     ></small>
                                 </div>
                             </div>
-                            <div class="col-lg-2 align-self-end">
+                            <div class="col-lg-2 align-self-end serie-input">
                                 <div
                                     :class="{ 'has-danger': errors.series_id }"
                                     class="form-group"
@@ -194,7 +187,7 @@
                                     ></small>
                                 </div>
                             </div>
-                            <div class="col-lg-2 align-self-end">
+                            <div class="col-lg-2 align-self-end operation-type">
                                 <div
                                     :class="{
                                         'has-danger': errors.operation_type_id
@@ -241,7 +234,7 @@
                                     ></small>
                                 </div>
                             </div>
-                            <div class="col-lg-2 align-self-end">
+                            <div class="col-lg-2 align-self-end money-input">
                                 <div
                                     :class="{
                                         'has-danger': errors.currency_type_id
@@ -267,7 +260,7 @@
                                     ></small>
                                 </div>
                             </div>
-                            <div class="col-lg-2 align-self-end">
+                            <div class="col-lg-2 align-self-end change-type">
                                 <div
                                     :class="{
                                         'has-danger': errors.exchange_rate_sale
@@ -298,8 +291,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-body border-top no-gutters">
-                        <div class="row">
+                    <div class="card-body no-gutters">
+                        <div class="">
                             <div
                                 :class="{ 'has-danger': errors.customer_id }"
                                 class="form-group form-client-default ml-1 w-50 mb-0 p-0"
@@ -397,7 +390,7 @@
                             <!-- sistema por puntos -->
                         </div>
                     </div>
-                    <div class="card-body border-top no-gutters">
+                    <div class="card-body no-gutters">
                         <template v-if="showSearchItemsMainForm">
                             <div class="row">
                                 <div
@@ -447,16 +440,24 @@
                         <div>
                             <!-- Botón para mostrar/ocultar el componente -->
                             <span
-                                class="toggle-button toggle-button-invoice"
+                                class="toggle-button toggle-button-orders"
                                 :class="{ shift: isVisible }"
                                 @click="toggleInformation"
-                            >
-                                {{
+                                :title="
                                     isVisible
-                                        ? "Cerrar Información Adicional"
-                                        : "Abrir Información Adicional"
-                                }}
+                                        ? 'Cerrar Información Adicional'
+                                        : 'Abrir Información Adicional'
+                                "
+                            >
+                                <span class="toggle-button-text">
+                                    {{
+                                        isVisible
+                                            ? "Cerrar Información Adicional"
+                                            : "Abrir Información Adicional"
+                                    }}
+                                </span>
                             </span>
+
                             <div
                                 class="additional-information"
                                 :class="{ show: isVisible }"
@@ -464,6 +465,14 @@
                                 <h3 class="text-center">
                                     Información Adicional
                                 </h3>
+
+                                <div class="close-container">
+                                    <i
+                                        class="el-icon el-icon-close"
+                                        @click="toggleInformation"
+                                    >
+                                    </i>
+                                </div>
                                 <div class="w-100">
                                     <div class="pl-5 pr-5 mt-5 w-100">
                                         <div class="col-12 px-0">
@@ -811,7 +820,7 @@
                                                 :disabled="typeUser == 'seller'"
                                             >
                                                 <el-option
-                                                    v-for="option in sellers"
+                                                    v-for="option in filteredSellers"
                                                     :key="option.id"
                                                     :label="option.name"
                                                     :value="option.id"
@@ -1001,7 +1010,7 @@
                                     </div>
                                     <div
                                         v-if="isActiveBussinessTurn('hotel')"
-                                        class=""
+                                        class="px-5"
                                     >
                                         <el-tooltip
                                             class="item my-2"
@@ -1023,7 +1032,7 @@
                                         v-if="
                                             isActiveBussinessTurn('transport')
                                         "
-                                        class=""
+                                        class="px-5"
                                     >
                                         <el-tooltip
                                             class="item my-2"
@@ -1067,7 +1076,7 @@
                             <table class="table table-sm">
                                 <thead>
                                     <tr class="table-titles-default">
-                                        <th width="0.5%"><!--#--></th>
+                                        <th width="0.5%"></th>
                                         <th
                                             class="font-weight-bold"
                                             width="30%"
@@ -1297,9 +1306,9 @@
                                                     <el-input-number
                                                         v-model="row.quantity"
                                                         :min="0.01"
-                                                        class="input-custom"
+                                                        class="input-custom "
                                                         :controls="false"
-                                                        style="min-width: 98px !important"
+                                                        style="min-width: 70px !important"
                                                         :disabled="
                                                             hasRowAdvancedOption(
                                                                 row
@@ -1325,8 +1334,11 @@
                                         </td>
 
                                         <td class="text-right">
-                                            <template v-if="showEditableItems">
-                                                <span class="currency">{{
+                                            <div
+                                                v-if="showEditableItems"
+                                                class="input-with-currency"
+                                            >
+                                                <span class="currency-symbol">{{
                                                     currency_type.symbol
                                                 }}</span>
                                                 <div
@@ -1361,7 +1373,7 @@
                                                     >
                                                     </el-input-number>
                                                 </div>
-                                            </template>
+                                            </div>
                                             <template v-else>
                                                 {{ currency_type.symbol }}
                                                 {{
@@ -1373,8 +1385,11 @@
                                         </td>
 
                                         <td class="text-right">
-                                            <template v-if="showEditableItems">
-                                                <span class="currency">{{
+                                            <div
+                                                v-if="showEditableItems"
+                                                class="input-with-currency"
+                                            >
+                                                <span class="currency-symbol">{{
                                                     currency_type.symbol
                                                 }}</span>
                                                 <div
@@ -1409,7 +1424,7 @@
                                                     >
                                                     </el-input-number>
                                                 </div>
-                                            </template>
+                                            </div>
                                             <template v-else>
                                                 {{ currency_type.symbol }}
                                                 {{
@@ -1421,8 +1436,11 @@
                                         </td>
 
                                         <td class="text-right">
-                                            <template v-if="showEditableItems">
-                                                <span class="currency">{{
+                                            <div
+                                                v-if="showEditableItems"
+                                                class="input-with-currency"
+                                            >
+                                                <span class="currency-symbol">{{
                                                     currency_type.symbol
                                                 }}</span>
                                                 <div
@@ -1459,7 +1477,7 @@
                                                     >
                                                     </el-input-number>
                                                 </div>
-                                            </template>
+                                            </div>
                                             <template v-else>
                                                 {{ currency_type.symbol }}
                                                 {{ row.total_value }}
@@ -1467,8 +1485,11 @@
                                         </td>
 
                                         <td class="text-right">
-                                            <template v-if="showEditableItems">
-                                                <span class="currency">{{
+                                            <div
+                                                v-if="showEditableItems"
+                                                class="input-with-currency"
+                                            >
+                                                <span class="currency-symbol">{{
                                                     currency_type.symbol
                                                 }}</span>
                                                 <div
@@ -1501,7 +1522,7 @@
                                                     >
                                                     </el-input-number>
                                                 </div>
-                                            </template>
+                                            </div>
                                             <template v-else>
                                                 {{ currency_type.symbol }}
                                                 {{ row.total }}
@@ -1545,7 +1566,7 @@
                                     <!-- @todo: Mejorar evitando duplicar codigo -->
                                     <!-- Ocultar en cel -->
                                     <tr>
-                                        <td class="pt-3" colspan="4">
+                                        <td class="pt-1" colspan="4">
                                             <el-popover
                                                 placement="top-start"
                                                 :open-delay="1000"
@@ -1555,7 +1576,7 @@
                                             >
                                                 <el-button
                                                     slot="reference"
-                                                    class="btn waves-effect waves-light btn-primary hidden-sm-down"
+                                                    class="btn waves-effect waves-light btn-primary hidden-sm-down mt-2"
                                                     type="button"
                                                     @click.prevent="
                                                         clickAddItemInvoice
@@ -1565,6 +1586,17 @@
                                                     <kbd>F2</kbd>
                                                 </el-button>
                                             </el-popover>
+                                            <div
+                                                v-if="form.items.length > 0"
+                                                class="total-rows mt-2"
+                                            >
+                                                <span
+                                                    >Total de ítems:
+                                                    {{
+                                                        form.items.length
+                                                    }}</span
+                                                >
+                                            </div>
                                             <!-- <el-select
                                             v-if="!configuration.enable_list_product"
                                             v-model="selected_option_price"
@@ -3363,7 +3395,7 @@
                             Vista Previa
                         </button>
                         <button
-                            class="btn btn-default"
+                            class="btn btn-default second-buton"
                             style="min-width: 180px"
                             @click.prevent="close()"
                         >
@@ -3526,8 +3558,20 @@
 </template>
 
 <style>
+.input-with-currency {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    position: relative;
+}
+.input-with-currency div {
+    width: 100%;
+}
 .input-custom {
     width: 50% !important;
+}
+.input-with-currency div .input-custom {
+    width: 100% !important;
 }
 .el-textarea__inner {
     height: 65px !important;
@@ -3572,13 +3616,13 @@
     font-weight: 400;
     font-size: 16px;
     line-height: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: auto;
+    display: block;
     height: auto;
     border: none;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
 }
 .toggle-button:hover {
     background-color: rgba(0, 123, 255, 0.8);
@@ -3636,6 +3680,7 @@
 .table-responsive.payment th {
     border-bottom: none !important;
 }
+
 @media only screen and (max-width: 991px) {
     .form-client-default {
         width: 100% !important;
@@ -3645,18 +3690,39 @@
     .input-price-default {
         margin-bottom: 20px;
     }
+    .is-hidden-mobile {
+        display: none;
+    }
+    datetime-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .datetime-container > div {
+        width: 50%;
+    }
+    .inputs-container .invoice-type {
+        width: 70%;
+    }
+    .inputs-container .serie-input {
+        width: 30%;
+    }
+    .money-input {
+        width: 25%;
+    }
+    .operation-type {
+        width: 40%;
+    }
+    .change-type {
+        width: 35%;
+    }
 }
 @media only screen and (max-width: 550px) {
     .additional-information {
-        width: 85%;
+        width: 95%;
     }
     .toggle-button.shift {
         right: 64%;
-    }
-}
-@media only screen and (max-width: 420px) {
-    .toggle-button.shift {
-        right: 56%;
     }
 }
 </style>
@@ -3847,10 +3913,24 @@ export default {
             ],
             showDialogPreview: false,
             value_taxed_without_rounded: 0,
-            total_without_rounded: 0
+            total_without_rounded: 0,
+            recordDiscountsGlobal: null
         };
     },
     computed: {
+        getCurrentLogo() {
+            const isDarkMode = document.documentElement.classList.contains(
+                "dark"
+            );
+
+            if (isDarkMode && this.company.logo_dark) {
+                return `/storage/uploads/logos/${this.company.logo_dark}`;
+            }
+            if (this.company.logo) {
+                return `/storage/uploads/logos/${this.company.logo}`;
+            }
+            return "";
+        },
         isGeneratedFromExternal() {
             return (
                 this.table != undefined &&
@@ -3864,6 +3944,9 @@ export default {
             );
         },
         isGlobalDiscountBase: function() {
+            if (this.recordDiscountsGlobal) {
+                return this.recordDiscountsGlobal.discount_type_id === "02";
+            }
             return this.configuration.global_discount_type_id === "02";
         },
         ...mapState(["config", "series", "all_series"]),
@@ -3907,6 +3990,14 @@ export default {
                 return this.configuration.add_description_to_document_item;
 
             return false;
+        },
+        filteredSellers() {
+            if (!this.isUpdateDocument) {
+                return this.sellers.filter(
+                    seller => !seller.name.includes("(SUSPENDIDO)")
+                );
+            }
+            return this.sellers;
         }
     },
     async created() {
@@ -3924,8 +4015,6 @@ export default {
             this.$store.commit("setAllSeries", response.data.series);
             // this.all_series = response.data.series
             this.all_customers = response.data.customers;
-            console.log(this.all_customers);
-
             this.sellers = response.data.sellers;
             this.discount_types = response.data.discount_types;
             this.charges_types = response.data.charges_types;
@@ -3933,8 +4022,6 @@ export default {
             this.enabled_discount_global =
                 response.data.enabled_discount_global;
             this.company = response.data.company;
-            console.log(this.config);
-
             this.user = response.data.user;
             this.document_type_03_filter =
                 response.data.document_type_03_filter;
@@ -3969,13 +4056,15 @@ export default {
             // this.default_document_type = response.data.document_id;
             // this.default_series_type = response.data.series_id;
             this.selectDocumentType();
+
             this.changeEstablishment();
             this.changeDateOfIssue();
             this.changeDocumentType();
             this.changeDestinationSale();
-            this.changeCurrencyType();
             this.setDefaultDocumentType();
             this.setConfigGlobalDiscountType();
+            this.startConnectionQzTray();
+            this.verifySelectedSeller();
         });
         await this.getPercentageIgv();
         this.loading_form = true;
@@ -4104,6 +4193,12 @@ export default {
             this.form.sale_notes_relateds = JSON.parse(notesNumbersFromNotes);
             localStorage.removeItem("notes");
         }
+
+        // if (this.form.currency_type_id === 'USD') { // Si los documentos precargados han sido establecidos y tienen dolar
+        //     this.changeCurrencyType();
+        // } else if (this.config.currency_type_id === 'USD' ) { // Si en configuracion tiene como dolar por defecto
+        //     this.changeCurrencyType();
+        // }
 
         this.startConnectionQzTray();
     },
@@ -4421,8 +4516,6 @@ export default {
             );
         },
         setDefaultSerieByDocument() {
-            console.log(this.authUser.multiple_default_document_types);
-
             if (this.authUser.multiple_default_document_types) {
                 const default_document_type_serie = _.find(
                     this.authUser.default_document_types,
@@ -4451,7 +4544,6 @@ export default {
             let alt = _.find(this.document_types, {
                 id: this.default_document_type
             });
-            console.log("alt", alt);
             if (this.default_document_type !== null && alt !== undefined) {
                 this.form.document_type_id = this.default_document_type;
                 this.changeDocumentType();
@@ -4523,7 +4615,7 @@ export default {
                 data.pending_amount_prepayment || 0;
             this.form.payment_method_type_id = data.payment_method_type_id;
             this.form.charges = data.charges || [];
-            this.form.discounts = this.prepareDataGlobalDiscount(data);
+            // this.form.discounts = this.prepareDataGlobalDiscount(data);
             // this.form.discounts = data.discounts || [];
             this.form.seller_id = data.seller_id;
             this.form.items = this.onPrepareItems(data.items);
@@ -4595,23 +4687,30 @@ export default {
 
             this.form.quotation_id = data.quotation_id;
 
+            this.recordDiscountsGlobal = data.discounts[0];
+            let discount_type_id = data.discounts[0].discount_type_id;
+            this.total_global_discount =
+                discount_type_id !== "02"
+                    ? data.total_discount
+                    : _.round(data.total_discount * 1.18, 2);
+
             this.form.additional_information = this.onPrepareAdditionalInformation(
                 data.additional_information
             );
 
-            if (this.enabled_discount_global) {
-                let discount_global =
-                    this.configuration.global_discount_type_id === "02" &&
-                    this.configuration.exact_discount
-                        ? _.round(
-                              parseFloat(
-                                  (data.total_discount * 1.18).toFixed(3)
-                              ),
-                              2
-                          )
-                        : data.total_discount;
-                this.total_global_discount = discount_global;
-            }
+            // if (this.enabled_discount_global) {
+            //     let discount_global =
+            //         this.configuration.global_discount_type_id === "02" &&
+            //         this.configuration.exact_discount
+            //             ? _.round(
+            //                   parseFloat(
+            //                       (data.total_discount * 1.18).toFixed(3)
+            //                   ),
+            //                   2
+            //               )
+            //             : data.total_discount;
+            //     this.total_global_discount = discount_global;
+            // }
 
             // this.form.additional_information = data.additional_information;
             // this.form.fee = [];
@@ -4636,6 +4735,7 @@ export default {
 
             this.prepareDataCustomer();
 
+            this.regenerateItems();
             this.calculateTotal();
             // this.currency_type = _.find(this.currency_types, {'id': this.form.currency_type_id})
 
@@ -4645,6 +4745,20 @@ export default {
             if (this.table) {
                 this.filterSeries();
             }
+        },
+        regenerateItems() {
+            let items = [];
+            this.form.items.forEach(row => {
+                items.push(
+                    calculateRowItem(
+                        row,
+                        this.form.currency_type_id,
+                        this.form.exchange_rate_sale,
+                        this.percentage_igv
+                    )
+                );
+            });
+            this.form.items = items;
         },
         preparePaymentsFee(data) {
             if (this.isCreditPaymentCondition) {
@@ -4929,7 +5043,10 @@ export default {
                         this.form.fee[index].date = date;
                     }
                 }
-            } else if (payment_method_type.id == "09") {
+            } else if (
+                payment_method_type.id == "09" ||
+                payment_method_type.is_credit
+            ) {
                 this.form.payment_method_type_id = payment_method_type.id;
                 this.form.date_of_due = this.form.date_of_issue;
                 // this.form.payments = []
@@ -5698,7 +5815,9 @@ export default {
         async changeDateOfIssue() {
             this.validateDateOfIssue();
 
-            this.form.date_of_due = this.form.date_of_issue;
+            if (!this.form.quotation_id) {
+                this.form.date_of_due = this.form.date_of_issue;
+            }
             // if (! this.isUpdate) {
             await this.searchExchangeRateByDate(this.form.date_of_issue).then(
                 response => {
@@ -5706,7 +5825,7 @@ export default {
                 }
             );
             await this.getPercentageIgv();
-            this.changeCurrencyType();
+            // this.changeCurrencyType(); //
             // }
         },
         assignmentDateOfPayment() {
@@ -5733,8 +5852,6 @@ export default {
                     contingency: this.is_contingency,
                     id: this.config.user.serie
                 });
-
-                console.log(this.config.user.serie);
             }
 
             //console.log(series);
@@ -5866,6 +5983,18 @@ export default {
                 );
             });
             this.form.items = items;
+
+            if (this.form.currency_type_id === "PEN") {
+                this.total_global_discount = _.round(
+                    this.total_global_discount * this.form.exchange_rate_sale,
+                    2
+                );
+            } else {
+                this.total_global_discount = _.round(
+                    this.total_global_discount / this.form.exchange_rate_sale,
+                    2
+                );
+            }
             this.calculateTotal();
         },
         calculateTotal() {
@@ -5889,7 +6018,6 @@ export default {
             // let total_free_igv = 0
 
             this.form.items.forEach(row => {
-                console.log(row);
                 total_discount += parseFloat(row.total_discount);
                 total_charge += parseFloat(row.total_charge);
 
@@ -6082,6 +6210,16 @@ export default {
             this.form.subtotal = _.round(total, 2);
             this.form.total = _.round(total_all, 2);
 
+            if (
+                this.verifyRecalculateTotalTaxed() &&
+                this.form.total_taxed > 0
+            ) {
+                this.form.total_taxed = this.recalculateDecimalTotalTaxed(
+                    this.form.total,
+                    this.form.total_igv
+                );
+            }
+
             // this.form.subtotal = _.round(total + this.form.total_plastic_bag_taxes, 2)
             // this.form.total = _.round(total + this.form.total_plastic_bag_taxes - this.total_discount_no_base, 2)
 
@@ -6105,6 +6243,22 @@ export default {
             this.chargeGlobal();
 
             this.setTotalPointsBySale(this.config);
+        },
+        recalculateDecimalTotalTaxed(total, igv) {
+            return total - igv;
+        },
+        verifyRecalculateTotalTaxed() {
+            const keysToCheck = [
+                "total_isc",
+                "total_igv_free",
+                "total_discount",
+                "total_exportation",
+                "total_exonerated",
+                "total_unaffected",
+                "total_free",
+                "total_plastic_bag_taxes"
+            ];
+            return !keysToCheck.some(key => this.form[key] > 0);
         },
         sumDiscountsNoBaseByItem(row) {
             let sum_discount_no_base = 0;
@@ -6221,8 +6375,12 @@ export default {
         },
         setGlobalDiscount(factor, amount, base) {
             this.form.discounts.push({
-                discount_type_id: this.global_discount_type.id,
-                description: this.global_discount_type.description,
+                discount_type_id: this.recordDiscountsGlobal
+                    ? this.recordDiscountsGlobal.discount_type_id
+                    : this.global_discount_type.id,
+                description: this.recordDiscountsGlobal
+                    ? this.recordDiscountsGlobal.description
+                    : this.global_discount_type.description,
                 factor: factor,
                 amount: amount,
                 base: base,
@@ -6233,15 +6391,30 @@ export default {
         discountGlobal(ctx) {
             this.deleteDiscountGlobal();
 
-            let amount_discount =
-                this.configuration.global_discount_type_id === "02" &&
-                this.configuration.exact_discount
-                    ? this.total_global_discount / 1.18
-                    : this.total_global_discount;
+            let amount_discount = this.tota_global_discount;
+            if (this.is_amount) {
+                if (this.recordDiscountsGlobal) {
+                    if (this.recordDiscountsGlobal.discount_type_id === "02") {
+                        amount_discount =
+                            this.total_global_discount /
+                            (1 + this.percentage_igv);
+                    } else {
+                        amount_discount = this.total_global_discount;
+                    }
+                } else {
+                    amount_discount =
+                        this.configuration.global_discount_type_id === "02" &&
+                        this.configuration.exact_discount
+                            ? this.total_global_discount /
+                              (1 + this.percentage_igv)
+                            : this.total_global_discount;
+                }
+            }
+
             let input_global_discount = parseFloat(amount_discount);
 
             if (input_global_discount > 0) {
-                const percentage_igv = 18;
+                const percentage_igv = this.percentage_igv * 100;
                 let base = this.isGlobalDiscountBase
                     ? parseFloat(ctx.total_taxed)
                     : parseFloat(ctx.total);
@@ -6411,9 +6584,11 @@ export default {
             await this.asignPlateNumberToItems();
 
             let val_detraction = await this.validateDetraction();
-            if (!val_detraction.success)
-                return this.$message.error(val_detraction.message);
-
+            if (!this.configuration.available_detraction_for_amount_minor) {
+                if (!val_detraction.success) {
+                    return this.$message.error(val_detraction.message);
+                }
+            }
             if (!this.enabled_payments) {
                 this.form.payments = [];
             }
@@ -6816,7 +6991,6 @@ export default {
             }
         },
         openDialogLots(item) {
-            console.log(item);
             this.recordItem = item;
             this.showDialogItemSeriesIndex = true;
         },
@@ -6896,9 +7070,12 @@ export default {
             await this.asignPlateNumberToItems();
 
             let val_detraction = await this.validateDetraction();
-            if (!val_detraction.success) {
-                this.$message.error(val_detraction.message);
-                return false;
+
+            if (!this.configuration.available_detraction_for_amount_minor) {
+                if (!val_detraction.success) {
+                    this.$message.error(val_detraction.message);
+                    return false;
+                }
             }
 
             if (!this.enabled_payments) {
@@ -6946,6 +7123,16 @@ export default {
             }
 
             return url;
+        },
+        verifySelectedSeller() {
+            if (this.form.seller_id) {
+                const sellerExists = this.filteredSellers.some(
+                    s => s.id === this.form.seller_id
+                );
+                if (!sellerExists) {
+                    this.form.seller_id = this.idUser || null;
+                }
+            }
         }
     }
 };

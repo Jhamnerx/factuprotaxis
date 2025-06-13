@@ -90,12 +90,9 @@ class PosController extends Controller
 
             $full_description = ($row->internal_id) ? $row->internal_id . ' - ' . $row->description : $row->description;
 
-            if($row->warehouse_prices->count() > 0) 
-            {
+            if ($row->warehouse_prices->count() > 0) {
                 $sale_unit_price = $row->warehouse_prices->first()->price;
-            } 
-            else
-            {
+            } else {
                 $sale_unit_price = $row->sale_unit_price;
             }
 
@@ -155,7 +152,6 @@ class PosController extends Controller
         });
 
         return compact('items');
-
     }
 
     public function tables()
@@ -181,7 +177,6 @@ class PosController extends Controller
             'payment_method_types',
             'categories'
         );
-
     }
 
     public function payment_tables()
@@ -191,14 +186,13 @@ class PosController extends Controller
             ->where([['establishment_id', auth()->user()->establishment_id], ['contingency', false]])
             ->get();
 
-        $payment_method_types = PaymentMethodType::all();
+        $payment_method_types = PaymentMethodType::NotCredit()->where('id', '!=', '07')->get();
         $cards_brand = CardBrand::all();
         $payment_destinations = $this->getPaymentDestinations();
         $global_discount_types = ChargeDiscountType::whereIn('id', ['02', '03'])->whereActive()->get();
 
 
         return compact('series', 'payment_method_types', 'cards_brand', 'payment_destinations', 'global_discount_types');
-
     }
 
     public function table($table)
@@ -229,14 +223,14 @@ class PosController extends Controller
             if ($configuration->isShowServiceOnPos() !== true) {
                 $items->where('unit_type_id', '!=', 'ZZ');
             }
-            $items = $items->where('series_enabled', 0)
-                ->orderBy('description')
+            //$items = $items->where('series_enabled', 0)
+            $items = $items->orderBy('description')
                 ->take(100)
                 ->get()
                 ->transform(function (Item $row) use ($configuration) {
                     $full_description = ($row->internal_id) ? $row->internal_id . ' - ' . $row->description : $row->description;
                     $currency = $row->currency_type;
-                    if(empty($currency )){
+                    if (empty($currency)) {
                         $currency = CurrencyType::first();
                     }
                     return [
@@ -299,7 +293,6 @@ class PosController extends Controller
 
             $card_brands = CardBrand::all();
             return $card_brands;
-
         }
 
         return [];
@@ -334,9 +327,11 @@ class PosController extends Controller
                 $individual_item = $set->individual_item;
                 $individual_quantity = $set->quantity * 1;
                 $total_item_quantity = $individual_quantity * $quantity;
-                $item_warehouse = ItemWarehouse::where([
+                $item_warehouse = ItemWarehouse::where(
+                    [
                         ['item_id', $individual_item->id],
-                        ['warehouse_id', $warehouse->id]]
+                        ['warehouse_id', $warehouse->id]
+                    ]
                 )->first();
                 if (!$item_warehouse)
                     return [
@@ -357,8 +352,6 @@ class PosController extends Controller
                 }
                 // dd($individual_item);
             }
-
-
         } else {
 
             if ($item->unit_type_id == 'ZZ') {
@@ -385,14 +378,12 @@ class PosController extends Controller
                     ];
                 }
             }
-
         }
 
         return [
             'success' => true,
             'message' => ''
         ];
-
     }
 
     /**
@@ -406,7 +397,7 @@ class PosController extends Controller
     {
         $items = Item::whereWarehouse()
             ->whereIsActive()
-            ->where('series_enabled', 0)
+            //->where('series_enabled', 0)
             ->orderBy('description');
         $config = Configuration::first();
         if ($config->isShowServiceOnPos() !== true) {
@@ -419,8 +410,9 @@ class PosController extends Controller
 
         self::FilterItem($items, $request);
 
-        return new PosCollection($items->paginate(50));
+        $items_collection = $items->paginate(50);
 
+        return new PosCollection($items_collection);
     }
 
     /**
@@ -455,7 +447,7 @@ class PosController extends Controller
                 });
             });
         }
-        
+
         $item->whereIsActive();
     }
 
@@ -468,13 +460,17 @@ class PosController extends Controller
      */
     public function search_items_cat(Request $request)
     {
-        $item = Item::whereWarehouse()
-            // ->whereIsActive()
-            ->where('series_enabled', 0);
+        $item = Item::whereWarehouse();
+        // ->whereIsActive()
+        //->where('series_enabled', 0);
+
+        $config = Configuration::first();
+        if ($config->isShowServiceOnPos() !== true) {
+            $item->where('unit_type_id', '!=', 'ZZ');
+        }
 
         self::FilterItem($item, $request);
         return new PosCollection($item->paginate(50));
-
     }
 
     /**

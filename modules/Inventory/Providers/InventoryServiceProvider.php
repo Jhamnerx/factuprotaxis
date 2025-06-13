@@ -48,11 +48,10 @@ class InventoryServiceProvider extends ServiceProvider
     protected function registerConfig()
     {
         $this->publishes([
-            __DIR__ . '/../Config/config.php' => config_path('inventory.php'),
+            __DIR__.'/../Config/config.php' => config_path('inventory.php'),
         ], 'config');
         $this->mergeConfigFrom(
-            __DIR__ . '/../Config/config.php',
-            'inventory'
+            __DIR__.'/../Config/config.php', 'inventory'
         );
     }
 
@@ -65,11 +64,11 @@ class InventoryServiceProvider extends ServiceProvider
     {
         $viewPath = resource_path('views/modules/inventory');
 
-        $sourcePath = __DIR__ . '/../Resources/views';
+        $sourcePath = __DIR__.'/../Resources/views';
 
         $this->publishes([
             $sourcePath => $viewPath
-        ], 'views');
+        ],'views');
 
         $this->loadViewsFrom(array_merge(array_map(function ($path) {
             return $path . '/modules/inventory';
@@ -88,7 +87,7 @@ class InventoryServiceProvider extends ServiceProvider
         if (is_dir($langPath)) {
             $this->loadTranslationsFrom($langPath, 'inventory');
         } else {
-            $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'inventory');
+            $this->loadTranslationsFrom(__DIR__ .'/../Resources/lang', 'inventory');
         }
     }
 

@@ -171,7 +171,7 @@
                     </div>
                 </div>
                 <div class="row col-md-12">
-                    <div class="col-md-6">
+                    <div class="col-md-6 btn-submit-container">
                         <el-input
                             v-model="form.customer_email"
                             ref="ref_customer_email"
@@ -188,7 +188,13 @@
                         <!-- <small class="form-control-feedback" v-if="errors.customer_email" v-text="errors.customer_email[0]"></small> -->
                     </div>
 
-                    <div class="col-md-6" v-if="!config.qr_api_enable_ws">
+                    <div
+                        class="col-md-6 btn-submit-container"
+                        v-if="!config.qr_api_enable_ws"
+                    >
+                        <div class="code-number-container">
+                            <span>+51</span>
+                        </div>
                         <el-input v-model="form.customer_telephone">
                             <template slot="prepend"
                                 >+51</template
@@ -248,7 +254,11 @@
         ></sale-note-generate>
     </el-dialog>
 </template>
-
+<style>
+.code-number-container {
+    display: none;
+}
+</style>
 <script>
 import { mapState, mapActions } from "vuex/dist/vuex.mjs";
 import QrApi from "@viewsModuleQrApi/QrApiTemplate";
@@ -272,11 +282,10 @@ export default {
             configuration: {},
             activeName: "first",
             showDialogGenerate: false,
-            button_convert_cpe_pos: true,
-            wsp: {}
+            button_convert_cpe_pos: true
         };
     },
-    async created() {
+    created() {
         this.initForm();
         this.loadConfiguration();
         /*
@@ -284,11 +293,6 @@ export default {
                 this.$store.commit('setConfiguration', response.data)
             });
             */
-        await this.$http.get(`/companies/record`).then(response => {
-            if (response.data !== "") {
-                this.wsp = response.data.data;
-            }
-        });
     },
     mounted() {},
     computed: {
@@ -322,42 +326,13 @@ export default {
             if (!this.form.customer_telephone) {
                 return this.$message.error("El número es obligatorio");
             }
-            if (!this.wsp.ws_api_token) {
-                return this.$message.error(
-                    "No se ha configurado el token de la API de Whatsapp"
-                );
-            }
-            const url = this.form.download_pdf;
 
-            if (!url) {
-                return this.$message.error(
-                    "No se encontró una URL en el mensaje"
-                );
-            }
-
-            const payload = {
-                api_key: this.wsp.ws_api_token,
-                receiver: `51${this.form.customer_telephone}`,
-                data: {
-                    url: url,
-                    media_type: "file",
-                    caption: this.form.message_text
-                }
-            };
-
-            this.$http
-                .post("https://whatsapp.siapol.site/api/send-media", payload)
-                .then(response => {
-                    if (response.data.success) {
-                        this.$message.success("Mensaje enviado correctamente");
-                        form.customer_telephone = null;
-                    } else {
-                        this.$message.error("Error al enviar el mensaje");
-                    }
-                })
-                .catch(error => {
-                    this.$message.error("Error al enviar el mensaje");
-                });
+            window.open(
+                `https://wa.me/51${this.form.customer_telephone}?text=${
+                    this.form.message_text
+                }`,
+                "_blank"
+            );
         },
         someMethod(response) {
             if (!this.showDialog) {

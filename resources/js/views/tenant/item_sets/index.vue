@@ -1,28 +1,65 @@
 <template>
     <div class="item_sets">
         <div class="page-header pr-0">
-            <h2><a href="/item-sets">
-                <svg  xmlns="http://www.w3.org/2000/svg" style="margin-top: -5px;"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-category-2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 4h6v6h-6z" /><path d="M4 14h6v6h-6z" /><path d="M17 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M7 7m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg>
-            </a></h2>
+            <h2>
+                <a href="/item-sets">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        style="margin-top: -5px;"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="icon icon-tabler icons-tabler-outline icon-tabler-category-2"
+                    >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M14 4h6v6h-6z" />
+                        <path d="M4 14h6v6h-6z" />
+                        <path d="M17 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                        <path d="M7 7m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                    </svg>
+                </a>
+            </h2>
             <ol class="breadcrumbs">
                 <li class="active"><span>Productos</span></li>
                 <li><span class="text-muted">Productos compuestos</span></li>
             </ol>
             <div class="right-wrapper pull-right">
                 <div class="btn-group flex-wrap">
-                    <button type="button" class="btn btn-custom btn-sm  mt-2 mr-2 dropdown-toggle"
-                            data-toggle="dropdown" aria-expanded="false"><i class="fa fa-upload"></i> Importar <span
-                        class="caret"></span></button>
-                    <div class="dropdown-menu" role="menu" x-placement="bottom-start"
-                         style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 42px, 0px);">
-                        <a class="dropdown-item text-1" href="#" @click.prevent="clickImportSet()">1. Productos
-                            compuestos</a>
-                        <a class="dropdown-item text-1" href="#" @click.prevent="clickImportSetIndividual()">2. Detalle
-                            productos compuestos</a>
+                    <button
+                        type="button"
+                        class="btn btn-custom btn-sm  mt-2 mr-2 dropdown-toggle"
+                        data-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        <i class="fa fa-upload"></i> Importar
+                        <span class="caret"></span>
+                    </button>
+                    <div
+                        class="dropdown-menu"
+                        role="menu"
+                        x-placement="bottom-start"
+                        style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 42px, 0px);"
+                    >
+                        <a
+                            class="dropdown-item text-1"
+                            href="#"
+                            @click.prevent="clickImportSet()"
+                            >1. Productos compuestos</a
+                        >
+                        <a
+                            class="dropdown-item text-1"
+                            href="#"
+                            @click.prevent="clickImportSetIndividual()"
+                            >2. Detalle productos compuestos</a
+                        >
                     </div>
                 </div>
-                <template
-                >
+                <template>
                     <!-- <button type="button" class="btn btn-custom btn-sm  mt-2 mr-2" @click.prevent="clickImport()"><i class="fa fa-upload"></i> Importar</button> -->
                     <button
                         type="button"
@@ -42,14 +79,23 @@
             <div class="data-table-visible-columns">
                 <el-dropdown :hide-on-click="false">
                     <el-button type="primary">
-                        Mostrar/Ocultar columnas<i class="el-icon-arrow-down el-icon--right"></i>
+                        Mostrar/Ocultar columnas<i
+                            class="el-icon-arrow-down el-icon--right"
+                        ></i>
                     </el-button>
                     <el-dropdown-menu slot="dropdown">
-                        <el-dropdown-item v-for="(column, index) in columnsComputed" :key="index">
+                        <el-dropdown-item
+                            v-for="(column, index) in columnsComputed"
+                            :key="index"
+                        >
                             <el-checkbox
-                                v-if="column.title !== undefined && column.visible !== undefined"
+                                v-if="
+                                    column.title !== undefined &&
+                                        column.visible !== undefined
+                                "
                                 v-model="column.visible"
-                            >{{ column.title }}
+                                @change="saveColumnVisibility"
+                                >{{ column.title }}
                             </el-checkbox>
                         </el-dropdown-item>
                     </el-dropdown-menu>
@@ -59,26 +105,36 @@
                 <data-table :resource="resource">
                     <tr slot="heading" width="100%">
                         <!-- <th>#</th> -->
-                        <th>Cód. Interno</th>
+                        <th class="text-right" style="width: 89px;">
+                            Cód. Interno
+                        </th>
                         <th>Unidad</th>
                         <th>Nombre</th>
                         <th v-if="columns.description.visible">Descripción</th>
                         <th v-if="columns.model.visible">Modelo</th>
                         <!-- <th v-if="columns.brand.visible">Marca</th>  -->
-                        <th v-if="columns.item_code.visible">Cód. SUNAT</th>
+                        <th class="text-right" v-if="columns.item_code.visible">
+                            Cód. SUNAT
+                        </th>
                         <!-- <th  class="text-left">Stock</th> -->
                         <th class="text-right">P.Unitario (Venta)</th>
-                        <th class="text-center">Tiene Igv</th>
+                        <th class="text-left">Tiene Igv</th>
                         <th class="text-right">Acciones</th>
-                    <tr>
+                    </tr>
+
+                    <tr></tr>
                     <tr slot-scope="{ index, row }">
                         <!-- <td>{{ index }}</td> -->
-                        <td>{{ row.internal_id }}</td>
+                        <td class="text-right">{{ row.internal_id }}</td>
                         <td>{{ row.unit_type_id }}</td>
                         <td>{{ row.description }}</td>
-                        <td v-if="columns.description.visible">{{ row.name }}</td>
+                        <td v-if="columns.description.visible">
+                            {{ row.name }}
+                        </td>
                         <td v-if="columns.model.visible">{{ row.model }}</td>
-                        <td v-if="columns.item_code.visible">{{ row.item_code }}</td>
+                        <td class="text-right" v-if="columns.item_code.visible">
+                            {{ row.item_code }}
+                        </td>
                         <!-- <td>
                             <template v-if="typeUser=='seller' && row.unit_type_id !='ZZ'">{{ row.stock }}</template>
                             <template v-else-if="typeUser!='seller'&& row.unit_type_id !='ZZ'">
@@ -86,14 +142,22 @@
                             </template>
                         </td> -->
                         <td class="text-right">{{ row.sale_unit_price }}</td>
-                        <td class="text-center">{{ row.has_igv_description }}</td>
+                        <td class="text-left">{{ row.has_igv_description }}</td>
                         <td class="text-right">
                             <template v-if="typeUser === 'admin'">
-                                <button type="button" class="btn waves-effect waves-light btn-xs btn-info"
-                                        @click.prevent="clickCreate(row.id)">Editar
+                                <button
+                                    type="button"
+                                    class="btn waves-effect waves-light btn-xs btn-info"
+                                    @click.prevent="clickCreate(row.id)"
+                                >
+                                    Editar
                                 </button>
-                                <button type="button" class="btn waves-effect waves-light btn-xs btn-danger"
-                                        @click.prevent="clickDelete(row.id)">Eliminar
+                                <button
+                                    type="button"
+                                    class="btn waves-effect waves-light btn-xs btn-danger"
+                                    @click.prevent="clickDelete(row.id)"
+                                >
+                                    Eliminar
                                 </button>
                             </template>
                         </td>
@@ -101,36 +165,36 @@
                 </data-table>
             </div>
 
-            <items-form :showDialog.sync="showDialog"
-                        :recordId="recordId"></items-form>
+            <items-form
+                :showDialog.sync="showDialog"
+                :recordId="recordId"
+            ></items-form>
 
             <items-import :showDialog.sync="showImportSetDialog"></items-import>
 
-            <items-import-set-individual :showDialog.sync="showImportSetIndividualDialog"></items-import-set-individual>
+            <items-import-set-individual
+                :showDialog.sync="showImportSetIndividualDialog"
+            ></items-import-set-individual>
 
             <warehouses-detail
                 :showDialog.sync="showWarehousesDetail"
-                :warehouses="warehousesDetail">
+                :warehouses="warehousesDetail"
+            >
             </warehouses-detail>
-
         </div>
     </div>
 </template>
 <script>
-
-import ItemsForm from './form.vue'
-import WarehousesDetail from './partials/warehouses.vue'
-import ItemsImport from './import.vue'
-import DataTable from '../../../components/DataTable.vue'
-import {deletable} from '../../../mixins/deletable'
-import ItemsImportSetIndividual from './partials/import_set_individual.vue'
-import {mapActions, mapState} from "vuex/dist/vuex.mjs";
+import ItemsForm from "./form.vue";
+import WarehousesDetail from "./partials/warehouses.vue";
+import ItemsImport from "./import.vue";
+import DataTable from "../../../components/DataTable.vue";
+import { deletable } from "../../../mixins/deletable";
+import ItemsImportSetIndividual from "./partials/import_set_individual.vue";
+import { mapActions, mapState } from "vuex/dist/vuex.mjs";
 
 export default {
-    props: [
-        'configuration',
-        'typeUser',
-    ],
+    props: ["configuration", "typeUser"],
     mixins: [deletable],
     components: {
         ItemsForm,
@@ -140,10 +204,8 @@ export default {
         ItemsImportSetIndividual
     },
     computed: {
-        ...mapState([
-            'config',
-        ]),
-        columnsComputed: function () {
+        ...mapState(["config"]),
+        columnsComputed: function() {
             return this.columns;
         }
     },
@@ -154,17 +216,17 @@ export default {
             showImportSetDialog: false,
             showImportSetIndividualDialog: false,
             showWarehousesDetail: false,
-            resource: 'item-sets',
+            resource: "item-sets",
             recordId: null,
             warehousesDetail: [],
             // config: {},
             columns: {
                 description: {
-                    title: 'Descripción',
+                    title: "Descripción",
                     visible: true
                 },
                 item_code: {
-                    title: 'Cód. SUNAT',
+                    title: "Cód. SUNAT",
                     visible: false
                 },
                 /*
@@ -177,9 +239,9 @@ export default {
                     visible: false
                 },*/
                 model: {
-                    title: 'Modelo',
+                    title: "Modelo",
                     visible: false
-                },
+                }
                 /*
                 brand: {
                     title: 'Marca',
@@ -195,52 +257,67 @@ export default {
                 },
 
                  */
-            },
-        }
+            }
+        };
     },
     created() {
-        this.loadConfiguration()
-        this.$store.commit('setConfiguration', this.configuration)
+        this.loadColumnVisibility();
+        this.loadConfiguration();
+        this.$store.commit("setConfiguration", this.configuration);
         if (this.config.is_pharmacy !== true) {
             // delete this.columns.sanitary;
             // delete this.columns.cod_digemid;
         }
         this.canCreateProduct();
-
     },
     methods: {
-        ...mapActions([
-            'loadConfiguration',
-        ]),
+        saveColumnVisibility() {
+            localStorage.setItem(
+                "columnVisibilityItemsets",
+                JSON.stringify(this.columns)
+            );
+        },
+        loadColumnVisibility() {
+            const savedColumns = localStorage.getItem(
+                "columnVisibilityItemsets"
+            );
+            if (savedColumns) {
+                this.columns = JSON.parse(savedColumns);
+            }
+        },
+        ...mapActions(["loadConfiguration"]),
         canCreateProduct() {
-            if (this.typeUser === 'admin') {
-                this.can_add_new_product = true
-            } else if (this.typeUser === 'seller') {
-                if (this.config !== undefined && this.config.seller_can_create_product !== undefined) {
+            if (this.typeUser === "admin") {
+                this.can_add_new_product = true;
+            } else if (this.typeUser === "seller") {
+                if (
+                    this.config !== undefined &&
+                    this.config.seller_can_create_product !== undefined
+                ) {
                     this.can_add_new_product = this.config.seller_can_create_product;
                 }
             }
             return this.can_add_new_product;
         },
         clickImportSetIndividual() {
-            this.showImportSetIndividualDialog = true
+            this.showImportSetIndividualDialog = true;
         },
         clickWarehouseDetail(warehouses) {
-            this.warehousesDetail = warehouses
-            this.showWarehousesDetail = true
+            this.warehousesDetail = warehouses;
+            this.showWarehousesDetail = true;
         },
         clickCreate(recordId = null) {
-            this.recordId = recordId
-            this.showDialog = true
+            this.recordId = recordId;
+            this.showDialog = true;
         },
         clickImportSet() {
-            this.showImportSetDialog = true
+            this.showImportSetDialog = true;
         },
         clickDelete(id) {
             this.destroy(`/${this.resource}/${id}`).then(() =>
-                this.$eventHub.$emit('reloadData')
-            )
+                this.$eventHub.$emit("reloadData")
+            );
         }
     }
-}
+};
 </script>

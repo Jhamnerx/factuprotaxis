@@ -932,7 +932,6 @@
                         </div>
                     </div>
                 </el-tab-pane>
-
                 <el-tab-pane class v-if="!isService" name="third">
                     <span slot="label">Presentaciones</span>
                     <div class="row">
@@ -1206,7 +1205,6 @@
                         </div>
                     </div>
                 </el-tab-pane>
-
                 <el-tab-pane class name="fourth">
                     <span slot="label">Atributos</span>
                     <div class="row">
@@ -2095,6 +2093,13 @@ export default {
         });
 
         await this.setDefaultConfiguration();
+
+        this.$eventHub.$on("establishmentChanged", () => {
+            this.loadCurrentEstablishment();
+        });
+    },
+    beforeDestroy() {
+        this.$eventHub.$off("establishmentChanged");
     },
 
     methods: {
@@ -2274,12 +2279,14 @@ export default {
                 exchange_points: false,
                 quantity_of_points: 0,
                 factory_code: null,
-                restrict_sale_cpe: false
+                restrict_sale_cpe: false,
+                warehouse_id: null
             };
 
             this.show_has_igv = true;
             this.purchase_show_has_igv = true;
             this.enabled_percentage_of_profit = false;
+            this.loadCurrentEstablishment();
         },
         onSuccess(response, file, fileList) {
             if (response.success) {
@@ -2404,6 +2411,30 @@ export default {
                         //     });
                         // }
                     });
+            }
+
+            this.setDataToItemWarehousePrices();
+
+            if (this.warehouses.length === 0) {
+                await this.reloadTables();
+            }
+
+            this.setDialogTitle();
+
+            if (this.recordId) {
+                await this.$http
+                    .get(`/${this.resource}/record/${this.recordId}`)
+                    .then(response => {
+                        this.form = response.data.data;
+                        this.has_percentage_perception = this.form
+                            .percentage_perception
+                            ? true
+                            : false;
+                        this.changeAffectationIgvType();
+                        this.changePurchaseAffectationIgvType();
+                    });
+            } else {
+                this.loadCurrentEstablishment();
             }
 
             this.setDataToItemWarehousePrices();
@@ -2724,6 +2755,35 @@ export default {
             //if(isNaN(item.quantity)) item.quantity = 0 ;
             this.form.supplies.push(item);
             this.changeItem();
+        },
+        loadCurrentEstablishment() {
+            this.$http
+                .get("/establishments/getEstablishmentActive")
+                .then(response => {
+                    if (response.data.success) {
+                        const establishment = response.data.establishment;
+
+                        if (establishment && this.warehouses.length > 0) {
+                            const relatedWarehouse = this.warehouses.find(w =>
+                                w.description.includes(
+                                    establishment.description
+                                )
+                            );
+
+                            if (relatedWarehouse) {
+                                this.form.warehouse_id = relatedWarehouse.id;
+                            } else {
+                                this.form.warehouse_id = this.warehouses[0].id;
+                            }
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error(
+                        "Error al obtener la sucursal activa:",
+                        error
+                    );
+                });
         }
     }
 };

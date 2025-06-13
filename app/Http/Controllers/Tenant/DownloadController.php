@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Tenant;
 
 use App\CoreFacturalo\Helpers\Storage\StorageDocument;
@@ -15,26 +16,30 @@ class DownloadController extends Controller
 {
     use StorageDocument;
 
-    public function downloadExternal($model, $type, $external_id, $format = null) {
-        $model = "App\\Models\\Tenant\\".ucfirst($model);
+    public function downloadExternal($model, $type, $external_id, $format = null)
+    {
+        $model = "App\\Models\\Tenant\\" . ucfirst($model);
         $document = $model::where('external_id', $external_id)->first();
 
         if (!$document) throw new Exception("El código {$external_id} es inválido, no se encontro documento relacionado");
 
         if ($format != null) $this->reloadPDF($document, 'invoice', $format);
 
-        if(in_array($document->document_type_id, ['09', '31']) && $type === 'cdr') {
-            if((new Facturalo)->hasPseSend()) {
+        // Cambio para que se refleje el qr_url de ose o sunat  dentro del pdf de gre ("a4") para el listado
+        if ($document->document_type->id == '09' && $document->qr_url) $this->reloadPDF($document, 'dispatch', 'a4');
+
+        if (in_array($document->document_type_id, ['09', '31']) && $type === 'cdr') {
+            if ((new Facturalo)->hasPseSend()) {
                 $type = 'cdr';
             } else {
                 $type = 'cdr_xml';
             }
-
         }
         return $this->download($type, $document);
     }
 
-    public function download($type, $document) {
+    public function download($type, $document)
+    {
         switch ($type) {
             case 'pdf':
                 $folder = 'pdf';
@@ -78,10 +83,11 @@ class DownloadController extends Controller
      * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
      * @throws \Exception
      */
-    public function toPrint($model, $external_id, $format = 'a4') {
+    public function toPrint($model, $external_id, $format = 'a4')
+    {
         $document_type = $model;
 
-        $model = "App\\Models\\Tenant\\".ucfirst($model);
+        $model = "App\\Models\\Tenant\\" . ucfirst($model);
 
         $document = $model::where('external_id', $external_id)->first();
 
@@ -89,22 +95,22 @@ class DownloadController extends Controller
             throw new Exception("El código {$external_id} es inválido, no se encontro documento relacionado");
         }
 
-        if ($document_type == 'quotation'){
+        if ($document_type == 'quotation') {
             // Las cotizaciones tienen su propio controlador, si se generan por este medio, dará error
             $quotation = new QuotationController();
-            return $quotation->toPrint($external_id,$format);
-        }elseif($document_type =='salenote'){
+            return $quotation->toPrint($external_id, $format);
+        } elseif ($document_type == 'salenote') {
             $saleNote = new SaleNoteController();
-            return $saleNote->toPrint($external_id,$format);
+            return $saleNote->toPrint($external_id, $format);
         }
         $type = 'invoice';
         if ($document_type == 'dispatch') {
             $type = 'dispatch';
         }
-        if($document->document_type_id === '07') {
+        if ($document->document_type_id === '07') {
             $type = 'credit';
         }
-        if($document->document_type_id === '08') {
+        if ($document->document_type_id === '08') {
             $type = 'debit';
         }
 
@@ -124,14 +130,14 @@ class DownloadController extends Controller
         return response()->file($temp, $this->generalPdfResponseFileHeaders($document->filename));
     }
 
-    public function toTicket($model, $external_id, $format = null) {
-        $model = "App\\Models\\Tenant\\".ucfirst($model);
+    public function toTicket($model, $external_id, $format = null)
+    {
+        $model = "App\\Models\\Tenant\\" . ucfirst($model);
         $document = $model::where('id', $external_id)->first();
 
         if (!$document) throw new Exception("El código {$external_id} es inválido, no se encontro documento relacionado");
 
         if ($format != null) return $this->reloadTicket($document, 'invoice', $format);
-
     }
 
     /**
@@ -140,7 +146,8 @@ class DownloadController extends Controller
      * @param  string $format
      * @return void
      */
-    private function reloadTicket($document, $type, $format) {
+    private function reloadTicket($document, $type, $format)
+    {
         return (new Facturalo)->createPdf($document, $type, $format, 'html');
     }
 
@@ -150,7 +157,8 @@ class DownloadController extends Controller
      * @param  string $format
      * @return void
      */
-    private function reloadPDF($document, $type, $format) {
+    private function reloadPDF($document, $type, $format)
+    {
         (new Facturalo)->createPdf($document, $type, $format);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Tenant;
 
 use App\CoreFacturalo\Helpers\Storage\StorageDocument;
@@ -50,8 +51,7 @@ class SaleNotePaymentController extends Controller
         $total = $sale_note->total;
         $total_difference = round($total - $total_paid, 2);
 
-        if($total_difference < 1)
-        {
+        if ($total_difference < 1) {
             $sale_note->total_canceled = true;
             $sale_note->save();
         }
@@ -79,11 +79,10 @@ class SaleNotePaymentController extends Controller
             $record->save();
             $this->createGlobalPayment($record, $request->all());
             $this->saveFiles($record, $request, 'sale_notes');
-
+            $this->createCashDocumentPayment($record, false);
         });
 
-        if($request->paid == true)
-        {
+        if ($request->paid == true) {
             $sale_note = SaleNote::find($request->sale_note_id);
             $sale_note->total_canceled = true;
             $sale_note->save();
@@ -93,7 +92,7 @@ class SaleNotePaymentController extends Controller
                 ['sale_note_id',  $sale_note->id]
             ])->first();
 
-            if($credit) {
+            if ($credit) {
 
                 $cash = Cash::where([
                     ['user_id', auth()->user()->id],
@@ -104,22 +103,21 @@ class SaleNotePaymentController extends Controller
                 $credit->cash_id_processed = $cash->id;
                 $credit->save();
 
-                $req = [
-                    'document_id' => null,
-                    'sale_note_id' => $sale_note->id
-                ];
+                // $req = [
+                //     'document_id' => null,
+                //     'sale_note_id' => $sale_note->id
+                // ];
 
-                $cash->cash_documents()->updateOrCreate($req);
+                // $cash->cash_documents()->updateOrCreate($req);
 
             }
-
         }
 
         $this->createPdf($request->input('sale_note_id'));
 
         return [
             'success' => true,
-            'message' => ($id)?'Pago editado con éxito':'Pago registrado con éxito'
+            'message' => ($id) ? 'Pago editado con éxito' : 'Pago registrado con éxito'
         ];
     }
 
@@ -127,6 +125,7 @@ class SaleNotePaymentController extends Controller
     {
         $item = SaleNotePayment::findOrFail($id);
         $sale_note_id = $item->sale_note_id;
+        $item->cashDocumentPayments()->delete();
         $item->delete();
 
         $sale_note = SaleNote::find($item->sale_note_id);
@@ -148,11 +147,11 @@ class SaleNotePaymentController extends Controller
         $total = $sale_note->total;
         $total_difference = round($total - $total_paid, 2);
 
-        if($total_difference == 0) {
-            Log::info('true '.$total_difference);
+        if ($total_difference == 0) {
+            Log::info('true ' . $total_difference);
             $sale_note->total_canceled = true;
         } else {
-            Log::info('false '.$total_difference);
+            Log::info('false ' . $total_difference);
             $sale_note->total_canceled = false;
         }
         $sale_note->save();
@@ -162,30 +161,27 @@ class SaleNotePaymentController extends Controller
 
         $template = new Template();
         $pdf = null;
-        if($format == 'a5')
-        {
-              $pdf = new Mpdf([
+        if ($format == 'a5') {
+            $pdf = new Mpdf([
                 'mode' => 'utf-8',
                 'format' => [
                     78,
                     220
-                    ],
+                ],
                 'margin_top' => 2,
                 'margin_right' => 5,
                 'margin_bottom' => 0,
                 'margin_left' => 5
             ]);
-
-        }
-        else{
-           $pdf = new Mpdf();
+        } else {
+            $pdf = new Mpdf();
         }
 
         $document = SaleNote::find($sale_note_id);
 
         $base_template = config('tenant.pdf_template');
 
-        $html = $template->pdf($base_template, "sale_note", $company, $document,"a4");
+        $html = $template->pdf($base_template, "sale_note", $company, $document, "a4");
 
         $pdf_font_regular = config('tenant.pdf_name_regular');
         $pdf_font_bold = config('tenant.pdf_name_bold');
@@ -199,40 +195,40 @@ class SaleNotePaymentController extends Controller
 
             $pdf = new Mpdf([
                 'fontDir' => array_merge($fontDirs, [
-                    app_path('CoreFacturalo'.DIRECTORY_SEPARATOR.'Templates'.
-                        DIRECTORY_SEPARATOR.'pdf'.
-                        DIRECTORY_SEPARATOR.$base_template.
-                        DIRECTORY_SEPARATOR.'font')
+                    app_path('CoreFacturalo' . DIRECTORY_SEPARATOR . 'Templates' .
+                        DIRECTORY_SEPARATOR . 'pdf' .
+                        DIRECTORY_SEPARATOR . $base_template .
+                        DIRECTORY_SEPARATOR . 'font')
                 ]),
                 'fontdata' => $fontData + [
-                        'custom_bold' => [
-                            'R' => $pdf_font_bold.'.ttf',
-                        ],
-                        'custom_regular' => [
-                            'R' => $pdf_font_regular.'.ttf',
-                        ],
-                    ]
+                    'custom_bold' => [
+                        'R' => $pdf_font_bold . '.ttf',
+                    ],
+                    'custom_regular' => [
+                        'R' => $pdf_font_regular . '.ttf',
+                    ],
+                ]
             ]);
         }
 
-        $path_css = app_path('CoreFacturalo'.DIRECTORY_SEPARATOR.'Templates'.
-            DIRECTORY_SEPARATOR.'pdf'.
-            DIRECTORY_SEPARATOR.$base_template.
-            DIRECTORY_SEPARATOR.'style.css');
+        $path_css = app_path('CoreFacturalo' . DIRECTORY_SEPARATOR . 'Templates' .
+            DIRECTORY_SEPARATOR . 'pdf' .
+            DIRECTORY_SEPARATOR . $base_template .
+            DIRECTORY_SEPARATOR . 'style.css');
 
         $stylesheet = file_get_contents($path_css);
 
         $pdf->WriteHTML($stylesheet, HTMLParserMode::HEADER_CSS);
         $pdf->WriteHTML($html, HTMLParserMode::HTML_BODY);
 
-        if(config('tenant.pdf_template_footer')) {
-            $html_footer = $template->pdfFooter($base_template,$document);
+        if (config('tenant.pdf_template_footer')) {
+            $html_footer = $template->pdfFooter($base_template, $document);
             $pdf->SetHTMLFooter($html_footer);
         }
 
         $this->uploadStorage($document->filename, $pdf->output('', 'S'), 'sale_note');
         return $document->filename;
-//        $this->uploadFile($pdf->output('', 'S'), 'sale_note');
+        //        $this->uploadFile($pdf->output('', 'S'), 'sale_note');
     }
 
     public function toPrint($sale_note_id, $format)
@@ -250,6 +246,4 @@ class SaleNotePaymentController extends Controller
 
         return response()->file($temp, $this->generalPdfResponseFileHeaders($filename));
     }
-
-
 }

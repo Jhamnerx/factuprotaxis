@@ -50,10 +50,17 @@ class PersonController extends Controller
     public function records($type, Request $request)
     {
 
-        $records = Person::where($request->column, 'like', "%{$request->value}%")
-            ->where('type', $type)
+        $value = $request->value;
+        if ($request->column == 'document_type') {
+            $records = Person::whereHas('identity_document_type', function ($query) use ($value) {
+                $query->where('description', 'like', "%{$value}%");
+            });
+        } else {
+            $records = Person::where($request->column, 'like', "%{$request->value}%");
+        }
+        $records = $records->where('type', $type)
             ->whereFilterCustomerBySeller($type)
-            ->orderBy('name');
+            ->orderBy('id', 'desc');
 
         return new PersonCollection($records->paginate(config('tenant.items_per_page')));
     }
@@ -110,6 +117,26 @@ class PersonController extends Controller
             }
         }
 
+
+        // restricción para direcciones secundarias - Perú
+        $addresses = $request->input('addresses') ?: [];
+        foreach ($addresses as $index => $row) {
+            if (isset($row['country_id']) && $row['country_id'] === 'PE') {
+
+                if (
+                    empty($row['location_id']) || !is_array($row['location_id']) || count($row['location_id']) !== 3 ||
+                    !isset($row['location_id'][0]) || !isset($row['location_id'][1]) || !isset($row['location_id'][2]) ||
+                    empty($row['location_id'][0]) || empty($row['location_id'][1]) || empty($row['location_id'][2])
+                ) {
+
+                    return [
+                        'success' => false,
+                        'message' => 'Falta registrar el ubigeo en la dirección secundaria #' . ($index)
+                    ];
+                }
+            }
+        }
+
         $id = $request->input('id');
         $person = Person::firstOrNew(['id' => $id]);
         $data = $request->all();
@@ -117,10 +144,14 @@ class PersonController extends Controller
         $person->fill($data);
 
         $location_id = $request->input('location_id');
-        if (is_array($location_id) && count($location_id) === 3) {
+        if ($request->input('country_id') === 'PE' && is_array($location_id) && count($location_id) === 3) {
             $person->district_id = $location_id[2];
             $person->province_id = $location_id[1];
             $person->department_id = $location_id[0];
+        } else {
+            $person->district_id = null;
+            $person->province_id = null;
+            $person->department_id = null;
         }
 
         if ($request->password && $request->email) {
@@ -129,10 +160,17 @@ class PersonController extends Controller
 
         $person->save();
 
-        $person->addresses()->delete();
+        $addressesByPerson  = $person->addresses()->get();
         $addresses = $request->input('addresses');
-        foreach ($addresses as $row) {
-            $person->addresses()->updateOrCreate(['id' => $row['id']], $row);
+
+        if ($addressesByPerson->count() > count($addresses)) {
+            $addressesByPerson->each(function ($item) use ($addresses) {
+                if (!collect($addresses)->contains('id', $item->id))  $item->delete();
+            });
+        } else {
+            foreach ($addresses as $row) {
+                $person->addresses()->updateOrCreate(['id' => $row['id']], $row);
+            }
         }
 
         $optional_email = $request->optional_email;

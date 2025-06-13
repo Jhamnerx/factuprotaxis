@@ -17,7 +17,7 @@
         -->
         <div
             class="dialog-close-btn"
-            style="position: absolute; top: 10px; right: 10px"
+            style="position: absolute; top: 10px; right: 10px;"
         >
             <el-button
                 @click="clickClose"
@@ -314,21 +314,15 @@ export default {
                 }
             ],
             company: {},
-            locked_emission: {},
-            wsp: {}
+            locked_emission: {}
         };
     },
     created() {
         this.loadConfiguration(this.$store);
         this.$store.commit("setConfiguration", this.configuration);
     },
-    async mounted() {
+    mounted() {
         this.initForm();
-        await this.$http.get(`/companies/record`).then(response => {
-            if (response.data !== "") {
-                this.wsp = response.data.data;
-            }
-        });
     },
     computed: {
         ...mapState(["config"]),
@@ -382,34 +376,12 @@ export default {
                 return this.$message.error("El número es obligatorio");
             }
 
-            if (!this.wsp.ws_api_token) {
-                return this.$message.error(
-                    "No se ha configurado el token de la API de Whatsapp"
-                );
-            }
-            const payload = {
-                api_key: this.wsp.ws_api_token,
-                receiver: `51${this.form.customer_telephone}`,
-                data: {
-                    url: this.form.download_pdf,
-                    media_type: "file",
-                    caption: this.form.message_text
-                }
-            };
-
-            this.$http
-                .post("https://whatsapp.siapol.site/api/send-media", payload)
-                .then(response => {
-                    if (response.status === 200) {
-                        this.$message.success("Mensaje enviado correctamente");
-                        form.customer_telephone = null;
-                    } else {
-                        this.$message.error("Error al enviar el mensaje");
-                    }
-                })
-                .catch(error => {
-                    this.$message.error("Error al enviar el mensaje");
-                });
+            window.open(
+                `https://wa.me/51${this.form.customer_telephone}?text=${
+                    this.form.message_text
+                }`,
+                "_blank"
+            );
         },
         initForm() {
             this.errors = {};

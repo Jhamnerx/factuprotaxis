@@ -56,36 +56,51 @@
                     </div>
                 </div> -->
 
-                <div class="mt-3">
+                <div class="mt-3 theme-color-selector">
                     <h5>Selecciona un color de tema:</h5>
                     <div class="color-selector">
                         <button
                             type="button"
                             class="btn-theme-white"
+                            :class="{
+                                'theme-selected':
+                                    visuals.sidebar_theme === 'white'
+                            }"
                             @click="onChangeTheme('white')"
-                            style="background-color: #90dad9;"
                         ></button>
                         <button
                             type="button"
-                            class="btn-theme-acid"
+                            :class="{
+                                'theme-selected':
+                                    visuals.sidebar_theme === 'acid'
+                            }"
                             @click="onChangeTheme('acid')"
                             style="background-color: #c1b1f1;"
                         ></button>
                         <button
                             type="button"
-                            class="btn-theme-cupcake"
+                            :class="{
+                                'theme-selected':
+                                    visuals.sidebar_theme === 'cupcake'
+                            }"
                             @click="onChangeTheme('cupcake')"
                             style="background-color: #e7dad0;"
                         ></button>
                         <button
                             type="button"
-                            class="btn-theme-retro"
+                            :class="{
+                                'theme-selected':
+                                    visuals.sidebar_theme === 'retro'
+                            }"
                             @click="onChangeTheme('retro')"
                             style="background-color: #ebddb7;"
                         ></button>
                         <button
                             type="button"
-                            class="btn-theme-lemonade"
+                            :class="{
+                                'theme-selected':
+                                    visuals.sidebar_theme === 'lemonade'
+                            }"
                             @click="onChangeTheme('lemonade')"
                             style="background-color: #cddfae;"
                         ></button>
@@ -126,7 +141,7 @@
 
                 <div class="pt-3 form-modern">
                     <label class="control-label"
-                        >Cantidad de columnas en POS</label
+                        >Visualización de productos en POS</label
                     >
                     <div
                         :class="{
@@ -134,13 +149,25 @@
                         }"
                     >
                         <el-select
-                            v-model="form.colums_grid_item"
-                            @change="submitForm"
+                            v-model="form.layout_mode"
+                            @change="submitViewPos"
                         >
-                            <el-option label="3" value="3"></el-option>
-                            <el-option label="4" value="4"></el-option>
-                            <el-option label="5" value="5"></el-option>
-                            <el-option label="6" value="6"></el-option>
+                            <el-option
+                                label="Predeterminado"
+                                value="default"
+                            ></el-option>
+                            <el-option
+                                label="Cómodo"
+                                value="comfortable"
+                            ></el-option>
+                            <el-option
+                                label="Compacto"
+                                value="compact"
+                            ></el-option>
+                            <el-option
+                                label="Apilado"
+                                value="stacked"
+                            ></el-option>
                         </el-select>
                         <small
                             class="form-control-feedback"
@@ -149,7 +176,32 @@
                         ></small>
                     </div>
                 </div>
-
+                <div class="pt-3 form-modern">
+                    <label class="control-label"
+                        >Imagen predeterminada de productos</label
+                    >
+                    <el-input
+                        v-model="fileName"
+                        :readonly="true"
+                        placeholder="Ninguna imagen subida"
+                    >
+                        <el-upload
+                            slot="append"
+                            :headers="headers"
+                            :on-success="successUploadDefaultImage"
+                            :on-error="errorUpload"
+                            :show-file-list="false"
+                            :action="`/api/configurations/default-image`"
+                            :with-credentials="true"
+                            name="image"
+                        >
+                            <el-button
+                                icon="el-icon-upload"
+                                type="primary"
+                            ></el-button>
+                        </el-upload>
+                    </el-input>
+                </div>
                 <div class="pt-3 form-modern">
                     <label class="control-label">Cambiar tema</label>
                     <div :class="{ 'has-danger': errors.compact_sidebar }">
@@ -207,7 +259,8 @@ export default {
             form: {},
             visuals: {},
             skins: {},
-            dialogSkinsVisible: false
+            dialogSkinsVisible: false,
+            fileName: ""
         };
     },
     async created() {
@@ -216,6 +269,18 @@ export default {
         await this.getRecords();
     },
     methods: {
+        successUploadDefaultImage(response, file) {
+            if (response.message) {
+                this.$message.success(response.message);
+                this.form.default_image = response.file;
+                this.fileName = response.file;
+            }
+        },
+
+        errorUpload(err) {
+            this.$message.error("Error al subir la imagen");
+            console.error("Error upload:", err);
+        },
         async loadThemes() {
             try {
                 const response = await fetch("/json/themes/themes.json");
@@ -287,8 +352,25 @@ export default {
                     this.visuals = response.data.data.visual;
                     this.form = response.data.data;
                     this.skins = response.data.data.skins;
+
+                    if (this.form.default_image) {
+                        this.fileName = this.form.default_image;
+                    }
+
                     if (this.visual.sidebar_theme) {
                         this.applyTheme(this.visual.sidebar_theme);
+                    }
+
+                    const storedLayoutMode = localStorage.getItem(
+                        "layout_mode"
+                    );
+
+                    if (!this.form.layout_mode && !storedLayoutMode) {
+                        this.form.layout_mode = "default";
+                        localStorage.setItem("layout_mode", "default");
+                        this.submitViewPos(); // Enviar solo si nunca se ha establecido antes
+                    } else if (storedLayoutMode) {
+                        this.form.layout_mode = storedLayoutMode; // Usar el valor guardado localmente
                     }
                 }
             });
@@ -338,6 +420,39 @@ export default {
                     this.loading_submit = false;
                 });
         },
+        submitViewPos() {
+            if (this.form.layout_mode === localStorage.getItem("layout_mode")) {
+                return;
+            }
+
+            this.loading_submit = true;
+            this.$http
+                .post(`/${this.resource}`, this.form)
+                .then(response => {
+                    if (response.data.success) {
+                        this.$message.success(response.data.message);
+                        localStorage.setItem(
+                            "layout_mode",
+                            this.form.layout_mode
+                        );
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    } else {
+                        this.$message.error(response.data.message);
+                    }
+                })
+                .catch(error => {
+                    if (error.response.status === 422) {
+                        this.errors = error.response.data.errors;
+                    } else {
+                        console.log(error);
+                    }
+                })
+                .finally(() => {
+                    this.loading_submit = false;
+                });
+        },
         dialogSkins() {
             this.dialogSkinsVisible = true;
         }
@@ -374,5 +489,10 @@ export default {
     border-radius: 6px;
     cursor: pointer;
     outline: none;
+    transition: border 0.2s ease;
+}
+
+.color-selector button.theme-selected {
+    box-shadow: 0 0 0 4px var(--highlight-color);
 }
 </style>

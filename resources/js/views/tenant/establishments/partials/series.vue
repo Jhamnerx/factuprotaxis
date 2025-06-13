@@ -27,7 +27,7 @@
                                 <template v-else>
                                     <td>
                                         <div class="form-group mb-0" :class="{'has-danger': row.errors.document_type_id}">
-                                            <el-select v-model="row.document_type_id">
+                                            <el-select v-model="row.document_type_id" filterable>
                                                 <el-option v-for="option in document_types" :key="option.id" :value="option.id" :label="option.description"></el-option>
                                             </el-select>
                                             <small class="form-control-feedback" v-if="row.errors.document_type_id" v-text="row.errors.document_type_id[0]"></small>

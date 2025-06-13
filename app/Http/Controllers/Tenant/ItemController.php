@@ -66,6 +66,8 @@ use Mpdf\Mpdf;
 use setasign\Fpdi\Fpdi;
 use Modules\Inventory\Models\InventoryConfiguration;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 
 class ItemController extends Controller
@@ -105,7 +107,6 @@ class ItemController extends Controller
         ];
     }
 
-
     public function records(Request $request)
     {
 
@@ -126,6 +127,9 @@ class ItemController extends Controller
 
         // $records = Item::whereTypeUser()->whereNotIsSet();
         $records = $this->getInitialQueryRecords();
+
+        $sortField = $request->get('sort_field', 'id');
+        $sortDirection = $request->get('sort_direction', 'desc');
 
         switch ($request->column) {
 
@@ -202,7 +206,7 @@ class ItemController extends Controller
         }
 
 
-        return $records->orderBy('id', 'desc');
+        return $records->orderBy($sortField, $sortDirection);
     }
 
 
@@ -681,6 +685,11 @@ class ItemController extends Controller
             }
             */
         // }
+
+        if ($id) {
+            Cache::forget("item_{$id}");
+            Log::info('Caché eliminada para el ítem actualizado:', ['item_id' => $id]);
+        }
 
         return [
             'success' => true,
@@ -1286,7 +1295,7 @@ class ItemController extends Controller
         }
         $extra_data = $extradata;
         $records = $records->get();
-        $height = 23;
+        $height = 30;
 
         $width = 48;
         $pdfj = new Fpdi();
@@ -1401,8 +1410,8 @@ class ItemController extends Controller
 
         $stock = $item_warehouse->stock;
 
-        $width = ($format == 1) ? 80 : 104.1;
-        $height = ($format == 1) ? 26 : 24;
+        $width = ($format == 1) ? 84 : 104.1;
+        $height = ($format == 1) ? 30 : 28;
 
         $pdf = new Mpdf([
             'mode' => 'utf-8',

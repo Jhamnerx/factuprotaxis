@@ -16,11 +16,12 @@
                 class="col-6 col-md-4 form-group"
                 :class="{ 'has-danger': errors.duration }"
             >
-                <label for="duration">Cant. noches</label>
+                <label class="control-label" for="duration">Cant. noches</label>
                 <el-input-number
                     v-model="form.duration"
                     controls-position="right"
                     @change="updateDuration"
+                    :min="1"
                 ></el-input-number>
                 <small
                     class="form-control-feedback"
@@ -32,12 +33,13 @@
                 class="col-6 col-md-4 form-group"
                 :class="{ 'has-danger': errors.output_date }"
             >
-                <label>Fecha de salida</label>
+                <label class="control-label">Fecha de salida</label>
                 <el-date-picker
                     v-model="form.output_date"
                     type="date"
                     placeholder="Seleccione una fecha"
-                    value-format="yyyy-MM-dd"
+                    value-format="dd-MM-yyyy"
+                    format="dd-MM-yyyy"
                     readonly
                 ></el-date-picker>
                 <small
@@ -50,7 +52,7 @@
                 class="col-6 col-md-4 form-group"
                 :class="{ 'has-danger': errors.output_time }"
             >
-                <label>Hora de salida</label>
+                <label class="control-label">Hora de salida</label>
                 <el-input v-model="form.output_time" placeholder="HH:MM">
                 </el-input>
                 <small
@@ -61,19 +63,20 @@
             </div>
           </div>
 
-          <div class="row text-center">
+          <div class="row text-center ml-auto" style="width: 200px;">
+            <div class="col-6">
+              <el-button class="btn-block second-buton" @click="closeDialog" style="min-width: 78px;">Cancelar</el-button>
+            </div>
             <div class="col-6">
               <el-button
                 native-type="submit"
                 type="primary"
                 class="btn-block"
                 :disabled="loading"
+                style="min-width: 78px;"
                 >Guardar</el-button
               >
-            </div>
-            <div class="col-6">
-              <el-button class="btn-block" @click="closeDialog">Cancelar</el-button>
-            </div>
+            </div>            
           </div>
         </div>
       </form>
@@ -96,6 +99,7 @@ export default {
       errors: {},
       loading: false,
       item: {},
+      item_debt: {},
     }
   },
   methods: {
@@ -123,7 +127,6 @@ export default {
       }
     },
     updateDuration() {
-      console.log('cambio')
       const newDate = moment().add(this.form.duration, "days")
       this.form.output_date = newDate.format("YYYY-MM-DD")
 
@@ -133,33 +136,79 @@ export default {
       this.$http
           .get(`/hotels/reception/${this.room.rent.id}/rent/get-item`)
           .then(response => {
-            this.item = response.data.item
-            this.changeJsonItem()
+            this.item = response.data.data.item
+            this.item_debt = response.data.data.item_debt
+            if(this.item_debt && this.item_debt.payment_status=='DEBT'){
+              this.changeJsonItem()
+            }else{
+              this.addJsonItem()
+            }
+            
           })
     },
     changeJsonItem() {
-      //calcular los cambios aqui, actualizar el json y enviar al form
+
       let quantity = this.form.duration
-      let percentage_igv = this.item.percentage_igv
-      let unit_price = this.item.unit_price
+
+      if(this.item && this.item.payment_status=='PAID'){
+        quantity = quantity - this.item.item.quantity;
+        console.log(this.item.item.quantity)
+      }
+
+      console.log(quantity)
+      
+      let percentage_igv = this.item_debt.item.percentage_igv
+      let unit_price = this.item_debt.item.unit_price
       let total = quantity * unit_price
       let total_base_igv = total / (1 + (percentage_igv / 100))
       let total_igv = total - total_base_igv
 
-      this.item.quantity = quantity
-      this.item.total = _.round(total, 2)
-      this.item.total_base_igv = _.round(total_base_igv, 2)
-      this.item.total_value = _.round(total_base_igv, 2)
-      this.item.total_taxes = _.round(total_igv, 2)
-      this.item.total_igv = _.round(total_igv, 2)
+      this.item_debt.item.quantity = quantity
+      this.item_debt.item.unit_value = _.round(unit_price, 2)
+      this.item_debt.item.input_unit_price_value = _.round(unit_price, 2)
+      this.item_debt.item.total = _.round(total, 2)
+      this.item_debt.item.total_base_igv = _.round(total_base_igv, 2)
+      this.item_debt.item.total_value = _.round(total_base_igv, 2)
+      this.item_debt.item.total_taxes = _.round(total_igv, 2)
+      this.item_debt.item.total_igv = _.round(total_igv, 2)
 
-      this.item.total_value_without_rounding = total_base_igv
-      this.item.total_base_igv_without_rounding = total_base_igv
-      this.item.total_igv_without_rounding = total_igv
-      this.item.total_taxes_without_rounding = total_igv
-      this.item.total_without_rounding = total
+      this.item_debt.item.total_value_without_rounding = total_base_igv
+      this.item_debt.item.total_base_igv_without_rounding = total_base_igv
+      this.item_debt.item.total_igv_without_rounding = total_igv
+      this.item_debt.item.total_taxes_without_rounding = total_igv
+      this.item_debt.item.total_without_rounding = total
 
+      this.form.item = this.item_debt
+    },
+    addJsonItem() {
 
+      let quantity = this.form.duration
+
+      if(this.item && this.item.payment_status=='PAID'){
+        quantity = quantity - this.item.item.quantity;
+        console.log(this.item.item.quantity)
+      }
+
+      let percentage_igv = this.item.item.percentage_igv
+      let unit_price = this.item.item.unit_price
+      let total = quantity * unit_price
+      let total_base_igv = total / (1 + (percentage_igv / 100))
+      let total_igv = total - total_base_igv
+
+      this.item.item.quantity = quantity
+      this.item.item.unit_value = _.round(unit_price, 2)
+      this.item.item.input_unit_price_value = _.round(unit_price, 2)
+      this.item.item.total = _.round(total, 2)
+      this.item.item.total_base_igv = _.round(total_base_igv, 2)
+      this.item.item.total_value = _.round(total_base_igv, 2)
+      this.item.item.total_taxes = _.round(total_igv, 2)
+      this.item.item.total_igv = _.round(total_igv, 2)
+
+      this.item.item.total_value_without_rounding = total_base_igv
+      this.item.item.total_base_igv_without_rounding = total_base_igv
+      this.item.item.total_igv_without_rounding = total_igv
+      this.item.item.total_taxes_without_rounding = total_igv
+      this.item.item.total_without_rounding = total
       this.form.item = this.item
     },
     onSubmit() {

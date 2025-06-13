@@ -5,11 +5,12 @@
                 <svg  xmlns="http://www.w3.org/2000/svg" style="margin-top: -5px;" width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-truck"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M5 17h-2v-11a1 1 0 0 1 1 -1h9v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5" /></svg>
             </a></h2>
             <ol class="breadcrumbs">
-                <li class="active"><span> Nueva Guía de Remisión </span></li>
+                <li class="active"><span> Nueva Guía de Remisión </span></li> 
             </ol>
         </div>
         <div class="card tab-content-default row-new mb-0 pt-2 pt-md-0 mt-4">
             <!-- <div class="card-header bg-info">
+
                 <h3 class="my-0">Nueva Guía de Remisión</h3>
             </div> -->
             <div class="card-body">
@@ -210,13 +211,58 @@
                         <div class="row">
                         </div>
                         <hr>
+                        <div class="row">
+                            <div class="col-12">
+                                <button class="btn waves-effect waves-light btn-sm btn-primary"
+                                    type="button"
+                                    @click.prevent="openDialogReferenceDocument()">
+                                    Documento relacionado
+                                </button>
+                            </div>
+                            <div class="col-12" v-if="form.reference_documents.length > 0">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th class="font-weight-bold">Tipo de Documento</th>
+                                                <th class="font-weight-bold">Número</th>
+                                                <th class="font-weight-bold">Proveedor</th>
+                                                <th class="font-weight-bold">RUC</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(row, index) in form.reference_documents" :key="index">
+                                                <td>{{ index + 1 }}</td>
+                                                <td>{{ row.document_type.description }}</td>
+                                                <td>{{ row.number }}</td>
+                                                <td>{{ row.name }}</td>
+                                                <td>{{ row.customer }}</td>
+                                                <td class="text-end">
+                                                    <button class="btn waves-effect waves-light btn-xs btn-danger"
+                                                        type="button"
+                                                        @click.prevent="clickRemoveReferenceDocument(index)">x
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
                         <h4>Datos envío</h4>
                         <div class="row">
                             <div class="col-lg-12">
                                 <div :class="{ 'has-danger': errors.origin_address_id }" class="form-group">
-                                    <label class="control-label">Punto de partida<span class="text-danger"> *</span>
-                                        <a href="#"
-                                           @click.prevent="showDialogOriginAddressForm = true">[+ Nuevo]</a>
+                                    <label class="control-label">
+                                        <span v-show="form.transfer_reason_type_id != '02'">Punto de partida</span>
+                                        <span v-show="form.transfer_reason_type_id == '02'">Punto de llegada</span>
+                                        <span class="text-danger"> *</span>
+                                        <a href="#" @click.prevent="showDialogOriginAddressForm = true">
+                                            [+ Nuevo]
+                                        </a>
                                     </label>
                                     <el-select v-model="form.origin_address_id" placeholder="Seleccionar punto de partida">
                                         <el-option v-for="option in origin_addresses" :key="option.id"
@@ -230,9 +276,12 @@
                         <div class="row">
                             <div class="col-lg-12">
                                 <div :class="{ 'has-danger': errors.delivery_address_id }" class="form-group">
-                                    <label class="control-label">Punto de llegada<span class="text-danger"> *</span>
-                                        <a href="#" v-if="form.customer_id"
-                                            @click.prevent="showDialogDeliveryAddressForm = true">[+ Nuevo]</a>
+                                    <label class="control-label">
+                                        <span v-show="form.transfer_reason_type_id != '02'">Punto de llegada</span>
+                                        <span v-show="form.transfer_reason_type_id == '02'">Punto de partida</span>
+                                        <span class="text-danger"> *</span>
+                                            <a href="#" v-if="form.customer_id"
+                                                @click.prevent="showDialogDeliveryAddressForm = true">[+ Nuevo]</a>
                                     </label>
                                     <el-select v-model="form.delivery_address_id"
                                         placeholder="Seleccionar punto de llegada">
@@ -245,8 +294,34 @@
                             </div>
                         </div>
                         <hr>
-                        <h4>Datos modo de traslado</h4>
-                        <div class="row">
+                        <div class="row" v-if="form.transport_mode_type_id === '01'">
+                            <div class="col-lg-4">
+                                <div class="form-comtrol">
+                                    <el-checkbox v-model="form.has_transport_driver_01">
+                                        Registrar vehículos y conductores del transportista
+                                    </el-checkbox>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row align-items-center">
+                            <div class="col-lg-3">
+                                <h4 class="mb-0" >Datos modo de traslado</h4>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="form-comtrol border-0 p-0">
+                                    <el-checkbox v-model="form.is_transport_m1l">
+                                    Traslados de vehículos de la categoría M1 o L
+                                    </el-checkbox>
+                                </div>
+                            </div>
+                            <div v-if="form.is_transport_m1l" class="col-lg-4">
+                                <div class="form-group mb-0">
+                                    <label class="control-label">Número de placa</label>
+                                    <el-input v-model="form.license_plate_m1l"></el-input>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" v-if="!form.is_transport_m1l">
                             <template v-if="form.transport_mode_type_id === '01'">
                                 <div class="col-lg-6">
                                     <div :class="{ 'has-danger': errors.dispatcher_id }" class="form-group">
@@ -269,7 +344,7 @@
                                     </div>
                                 </div>
                             </template>
-                            <template v-if="form.transport_mode_type_id === '02'">
+                            <template v-if="form.transport_mode_type_id === '02'|| form.has_transport_driver_01">
                                 <div class="col-lg-7 form-modern">
                                     <label class="control-label">
                                         Datos del conductor
@@ -366,7 +441,7 @@
                                             v-text="errors.transport_id[0]"></small>
                                     </div>
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-3" v-if="form.transport_mode_type_id === '02'">
                                     <div class="form-group">
                                         <label class="control-label">N° placa semirremolque</label>
                                         <el-input v-model="form.secondary_license_plates.semitrailer"></el-input>
@@ -732,6 +807,13 @@
                 :lotsGroupSelected="lotsGroupSelected"
             >
             </list-lots-group>
+
+            <DialogReferenceDocument
+            dispatch_type_id="09"
+            :document_data="parentId ? document.document_data : {}"
+            :showDialog.sync="showDialogReferenceDocumentForm"
+            @addReferenceDocument="addReferenceDocument"
+            :supplierData="supplier_data"></DialogReferenceDocument>
         </div>
     </div>
 </template>
@@ -748,6 +830,7 @@ import DispatcherForm from './dispatchers/form.vue';
 import TransportForm from './transports/form.vue';
 import OriginAddressForm from './OriginAddress/Form';
 import DeliveryAddressForm from './partials/DispatchAddressForm';
+import DialogReferenceDocument from './Carrier/partials/DialogReferenceDocument.vue'
 
 import DispatchFinish from './partials/finish'
 import { mapActions, mapState } from "vuex/dist/vuex.mjs";
@@ -777,7 +860,8 @@ export default {
         OriginAddressForm,
         DeliveryAddressForm,
         SelectLotsForm,
-        ListLotsGroup
+        ListLotsGroup,
+        DialogReferenceDocument
     },
     mixins: [setDefaultSeriesByMultipleDocumentTypes],
     computed: {
@@ -802,6 +886,7 @@ export default {
     },
     data() {
         return {
+            showDialogReferenceDocumentForm: false,
             can_add_new_product: false,
             showDialogNewItem: false,
             showDialogAddItems: false,
@@ -911,8 +996,12 @@ export default {
 
         if (this.parentId) {
             this.form = Object.assign({}, this.form, this.document);
+            this.calculatePackagesFromItems();
             await this.reloadDataCustomers(this.form.customer_id);
             await this.getDeliveryAddresses(this.form.customer_id);
+            if (this.delivery_addresses.length > 0) {
+                this.form.delivery_address_id = _.head(this.delivery_addresses).id;
+            }
             await this.changeEstablishment()
             if (this.parentTable !== 'dispatches') {
                 this.setDefaults();
@@ -920,7 +1009,12 @@ export default {
         } else {
             this.searchRemoteCustomers('')
             if (this.establishments.length > 0) {
-                this.form.establishment_id = _.head(this.establishments).id;
+    
+                if (this.config.establishment && this.config.establishment.id) {
+                    this.form.establishment_id = this.config.establishment.id;
+                } else {
+                    this.form.establishment_id = _.head(this.establishments).id;
+                }
             }
             await this.changeEstablishment()
             this.changeSeries();
@@ -939,12 +1033,61 @@ export default {
         this.$eventHub.$on('initInputPerson', () => {
             this.initInputPerson()
         });
+
+        this.initSupplierData()
+        if (this.parentId) {
+            this.form = Object.assign({}, this.form, this.document);
+            this.calculatePackagesFromItems();
+            await this.form.customer_id && this.reloadDataCustomers(this.form.customer_id);
+            await this.form.customer_id && this.getDeliveryAddresses(this.form.customer_id);
+            await this.changeEstablishment()
+            if (this.parentTable !== 'dispatches') {
+                this.setDefaults();
+            }
+            if (this.parentTable == 'purchases') {
+                this.form.transfer_reason_type_id = '02'
+            }
+            if(this.document.document_data.length) {
+                this.form.reference_documents = this.document.document_data;
+            }
+        } else {
+            this.searchRemoteCustomers('')
+            if (this.establishments.length > 0) {
+                this.form.establishment_id = _.head(this.establishments).id;
+            }
+            await this.changeEstablishment()
+            this.changeSeries();
+            this.setDefaults();
+        }
+        this.$eventHub.$on('reloadDataPersons', (customer_id) => {
+            this.reloadDataCustomers(customer_id)
+        })
+        this.$eventHub.$on('initInputPerson', () => {
+            this.initInputPerson()
+        });
     },
     methods: {
+        addReferenceDocument(row) {
+            this.form.reference_documents.push(JSON.parse(JSON.stringify(row)))
+        },
+        clickRemoveReferenceDocument(index) {
+            this.form.reference_documents.splice(index, 1)
+        },
+        openDialogReferenceDocument() {
+            this.showDialogReferenceDocumentForm = true
+        },
         ...mapActions([
             'loadItems',
             'loadConfiguration',
         ]),
+        generalDisabledSeries() {
+    
+            return (
+                this.configuration && 
+                this.configuration.restrict_series_selection_seller &&
+                this.config.typeUser !== "admin"
+            );
+        },
         initForm() {
             this.errors = {}
             let customer_id = parseInt(this.config.establishment.customer_id);
@@ -969,7 +1112,7 @@ export default {
                 port_code: null,
                 unit_type_id: 'KGM',
                 total_weight: 1,
-                packages_number: 1,
+                packages_number: 0,
                 container_number: null,
                 dispatcher_id: null,
                 dispatcher: {},
@@ -990,7 +1133,11 @@ export default {
                 delivery_address_id: null,
                 date_delivery_to_transport: null,
                 secondary_transports: null,
+                reference_documents: [],
                 secondary_drivers: null,
+                has_transport_driver_01: false,
+                is_transport_m1l: false,
+                license_plate_m1l:null,
             }
         },
         setDescriptionOfItem(item) {
@@ -1295,6 +1442,24 @@ export default {
                     'establishment_id': this.form.establishment_id,
                     'document_type_id': this.form.document_type_id
                 });
+        
+                const serieExists = this.series.find(s => s.number === this.form.series);
+        
+                if (!serieExists) {
+                    this.form.series = null;
+            
+                    if (this.config.user && this.config.user.serie) {
+                        const defaultSeries = this.series.find(s => s.number === this.config.user.serie);
+                        if (defaultSeries) {
+                            this.form.series = defaultSeries.number;
+                        } else {
+                            this.setDefaultSeries();
+                        }
+                    } else {
+                        this.setDefaultSeries();
+                    }
+                }
+        
                 await this.getOriginAddresses(this.form.establishment_id)
                 if(this.form.transfer_reason_type_id==='04'){
                     await this.getAddressesOtherEstablishment(this.form.establishment_id)
@@ -1307,15 +1472,13 @@ export default {
             //this.generalSetDefaultSerieByDocumentType('09');
         },
         setDefaultSeries() {
-            let series_id = parseInt(this.config.user.serie);
-            if (isNaN(series_id)) series_id = null;
-            let searchSeries = _.find(this.series, {
-                'establishment_id': this.form.establishment_id,
-                'document_type_id': this.form.document_type_id,
-                'id': series_id
-            });
-            if (searchSeries !== undefined && searchSeries.length > 0) {
-                this.form.series = searchSeries.number;
+            if (this.series.length > 0) {
+
+                const defaultSeries = this.series.find(s => s.is_default === true);
+        
+                this.form.series = defaultSeries ? defaultSeries.number : this.series[0].number;
+            } else {
+                this.form.series = null;
             }
         },
         addItem(form) {
@@ -1431,6 +1594,7 @@ export default {
         clickRemoveItem(index) {
             this.decrementValueAttr(this.form.items[index])
             this.form.items.splice(index, 1);
+            this.calculatePackagesFromItems();
         },
         async submit() {
             if (this.config.affect_all_documents) {
@@ -1453,7 +1617,6 @@ export default {
                 }
                 this.form.driver = _.find(this.drivers, { 'id': this.form.driver_id });
                 this.form.transport = _.find(this.transports, { 'id': this.form.transport_id });
-                // this.form.license_plate = this.form.transport.plate_number;
 
                 if (this.form.driver.identity_document_type_id === '' || _.isNull(this.form.driver.identity_document_type_id)) {
                     return this.$message.error('El tipo de documento del conductor es requerido')
@@ -1467,9 +1630,6 @@ export default {
                 if (this.form.driver.license === '' || _.isNull(this.form.driver.license)) {
                     return this.$message.error('La licencia del conductor es requerido')
                 }
-                // if (this.form.license_plate === '' || _.isNull(this.form.license_plate)) {
-                //     return this.$message.error('El número de placa es requerido')
-                // }
                 if (this.selectedDrivers.length > 1) {
                     this.form.secondary_drivers = this.selectedDrivers.slice(1);
                 }
@@ -1501,9 +1661,44 @@ export default {
                 if (this.form.dispatcher.name === '' || _.isNull(this.form.dispatcher.name)) {
                     return this.$message.error('El nombre del transportista es requerido')
                 }
-                // if (this.form.dispatcher.number_mtc === '' || _.isNull(this.form.dispatcher.number_mtc)) {
-                //     return this.$message.error('El MTC del transportista es requerido')
-                // }
+
+                if(this.form.has_transport_driver_01){
+                    if (this.selectedDrivers.length > 0) {
+                        this.form.driver_id = _.head(this.selectedDrivers).id;
+                    }
+                    if (this.selectedTransports.length > 0) {
+                        this.form.transport_id = _.head(this.selectedTransports).id;
+                    }
+                    if (!this.form.driver_id) {
+                        return this.$message.error('El conductor es requerido')
+                    }
+                    if (!this.form.transport_id) {
+                        return this.$message.error('El vehículo es requerido')
+                    }
+                    this.form.driver = _.find(this.drivers, { 'id': this.form.driver_id });
+                    this.form.transport = _.find(this.transports, { 'id': this.form.transport_id });
+
+                    if (this.form.driver.identity_document_type_id === '' || _.isNull(this.form.driver.identity_document_type_id)) {
+                        return this.$message.error('El tipo de documento del conductor es requerido')
+                    }
+                    if (this.form.driver.number === '' || _.isNull(this.form.driver.number)) {
+                        return this.$message.error('El número del conductor es requerido')
+                    }
+                    if (this.form.driver.name === '' || _.isNull(this.form.driver.name)) {
+                        return this.$message.error('El nombre del conductor es requerido')
+                    }
+                    if (this.form.driver.license === '' || _.isNull(this.form.driver.license)) {
+                        return this.$message.error('La licencia del conductor es requerido')
+                    }
+
+                    if (this.selectedDrivers.length > 1) {
+                        this.form.secondary_drivers = this.selectedDrivers.slice(1);
+                    }
+                    if (this.selectedTransports.length > 1) {
+                        this.form.secondary_transports = this.selectedTransports.slice(1);
+                    }
+                }
+
             }
             const validateQuantity = await this.verifyQuantityItems()
             if (!validateQuantity.validate) {
@@ -1645,6 +1840,28 @@ export default {
             this.quantity = lots.length;
             this.calculateTotal(false)
         },
-    }
+        calculatePackagesFromItems() {
+            if (!this.form.items || this.form.items.length === 0) {
+              return;
+            }
+            let totalPackages = 0;
+            this.form.items.forEach(item => {
+                const quantity = parseFloat(item.quantity || 0);
+                totalPackages += quantity;
+            });
+            this.form.packages_number = totalPackages;
+        },
+    },
+    watch: {
+        'config.establishment.id': {
+            handler: function(newVal, oldVal) {
+                if (newVal && newVal !== oldVal) {
+                    this.form.establishment_id = newVal;
+                    this.changeEstablishment();
+                }
+            },
+            deep: true
+        }
+    },
 }
 </script>

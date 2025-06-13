@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Tenant\Api;
 
 use App\Http\Controllers\Controller;
@@ -8,6 +9,7 @@ use App\Models\Tenant\CashDocument;
 use App\Models\Tenant\Document;
 use App\Models\Tenant\SaleNote;
 use App\Models\Tenant\CashDocumentCredit;
+use App\Models\Tenant\CashDocumentPayment;
 
 
 class CashController extends Controller
@@ -25,7 +27,8 @@ class CashController extends Controller
      * timeOpening: "H:m:s"
      * internalsId: [{external_id: String, type: String NOTA|BOLETA|'' }]
      */
-    public function storeRestaurant(Request $request) {
+    public function storeRestaurant(Request $request)
+    {
 
         $cash = new Cash();
         $cash->user_id = auth()->user()->id;
@@ -47,7 +50,7 @@ class CashController extends Controller
         // se recorren todos los externals id de la caja anteriormente creada
         // para registrar la relación con ella y acumular el monto total
         foreach ($request->internalsId as $row) {
-            if($row['type'] == 'NOTA'){
+            if ($row['type'] == 'NOTA') {
                 $sale_note = SaleNote::where('external_id', $row['external_id'])->first();
                 $total_documents += (float)$sale_note->total;
 
@@ -81,89 +84,72 @@ class CashController extends Controller
         ];
     }
 
-    public function cash_document(Request $request) {
+    public function cash_document(Request $request)
+    {
 
         $cash = Cash::where([
-                                ['id', $request->cash_id],
-                                ['state', true],
-                            ])->first();
-        
-        (int)$payment_credit = 0;
-        
+            ['user_id', auth()->id()],
+            ['state', true],
+        ])->firstOrFail();
 
-        if($request->document_id != null) {
-            $document_id = $request->document_id;
+        $isDocument = $request->document_id !== null;
+        $documentModel = $isDocument ? Document::class : SaleNote::class;
+        $documentField = $isDocument ? 'document_id' : 'sale_note_id';
+        $paymentConditionField = $isDocument ? 'payment_condition_id' : 'payment_method_type_id';
+        $creditCondition = $isDocument ? '02' : '09';
 
-            $document =  Document::find((int)$document_id);
+        $document = $documentModel::findOrFail((int) $request->$documentField);
 
-                                            //credito
-            if($document->payment_condition_id == '02')  {
-                CashDocumentCredit::create([
-                    'cash_id' => $cash->id,
-                    'document_id' => $document_id
-                ]);
+        $isCredit = $document->$paymentConditionField === $creditCondition;
+        $cashDocumentCredit = $isCredit ? CashDocumentCredit::create([
+            'cash_id' => $cash->id,
+            $documentField => $document->id,
+        ]) : null;
 
-                $payment_credit += 1;
-            }
-        }
-        else if($request->sale_note_id != null) {
+        $cashDocument = $cash->cash_documents()->updateOrCreate([
+            'document_id' => $request->document_id,
+            'sale_note_id' => $request->sale_note_id,
+            'quotation_id' => $request->quotation_id,
+        ]);
 
-             $document_id = $request->sale_note_id;
+        $document->payments->each(function ($payment) use ($cash, $isDocument, $cashDocument) {
+            CashDocumentPayment::create([
+                'cash_id' => $cash->id,
+                $isDocument ? 'document_payment_id' : 'sale_note_payment_id' => $payment->id,
+                'cash_document_id' => optional($cashDocument)->id,
+            ]);
+        });
 
-             $document =  SaleNote::find((int)$document_id);
-
-                                                //credito
-             if($document->payment_method_type_id == '09')  {
-                CashDocumentCredit::create([
-                    'cash_id' => $cash->id,
-                    'sale_note_id' => $document_id
-                ]);
-
-                $payment_credit += 1;
-            }
-        }
-
-        if($payment_credit == 0) {
-
-            $req = [
-                'document_id' => $request->document_id,
-                'sale_note_id' => $request->sale_note_id,
-                'quotation_id' => $request->quotation_id,
-            ];
-
-            $cash->cash_documents()->updateOrCreate($req);
-        }
-        
-        return [
+        return response()->json([
             'success' => true,
             'message' => 'Venta con éxito',
-        ];
+        ]);
     }
 
     public function opening_cash()
     {
-        $cash = Cash::where([['user_id', auth()->user()->id],['state', true]])->first();
+        $cash = Cash::where([['user_id', auth()->user()->id], ['state', true]])->first();
 
         return [
-            'success' => ($cash)?true:false,
+            'success' => ($cash) ? true : false,
             'message' => 'Verificar si existe caja abierta',
             'data' => [
-                'cash_id' => ($cash)?$cash->id:null,
-                'description' => ($cash)?$cash->reference_number . " " . $cash->date_opening . " (" . $cash->user->name . ")":'',
+                'cash_id' => ($cash) ? $cash->id : null,
+                'description' => ($cash) ? $cash->reference_number . " " . $cash->date_opening . " (" . $cash->user->name . ")" : '',
             ]
         ];
     }
 
     public function opening_cash_check($cash_id)
     {
-        $cash = Cash::where([['id', $cash_id],['state', true]])->first();
+        $cash = Cash::where([['id', $cash_id], ['state', true]])->first();
 
         return [
-            'success' => ($cash)?true:false,
+            'success' => ($cash) ? true : false,
             'message' => 'Verificar si existe caja abierta',
             'data' => [
-                'cash_id' => ($cash)?$cash->id:null,
-                'description' => ($cash)?$cash->reference_number . " " . $cash->date_opening . " (" . $cash->user->name . ")":'',
+                'cash_id' => ($cash) ? $cash->id : null,
+                'description' => ($cash) ? $cash->reference_number . " " . $cash->date_opening . " (" . $cash->user->name . ")" : '',
             ]
         ];
     }
@@ -173,26 +159,27 @@ class CashController extends Controller
         $cash = Cash::where('state', true)
             ->with('user')
             ->get()
-            ->map(function($cash) { 
+            ->map(function ($cash) {
                 return [
                     'id' => $cash->id,
                     'description' => $cash->reference_number . " " . $cash->date_opening . " (" . $cash->user->name . ")",
                 ];
             });
-        
+
         return [
             'success' => true,
             'message' => 'Cajas disponibles',
-            'data' => ($cash)?$cash:[]
+            'data' => ($cash) ? $cash : []
         ];
     }
 
-    public function close() {
+    public function close()
+    {
 
 
-        $cash = Cash::where('user_id',auth()->user()->id)->where('state',1)->first();
+        $cash = Cash::where('user_id', auth()->user()->id)->where('state', 1)->first();
 
-        if(!$cash){
+        if (!$cash) {
             return [
                 'success' => false,
                 'message' => 'Caja no encontrada',
@@ -208,46 +195,41 @@ class CashController extends Controller
         foreach ($cash->cash_documents as $cash_document) {
 
 
-            if($cash_document->sale_note){
+            if ($cash_document->sale_note) {
 
-                if(in_array($cash_document->sale_note->state_type_id, ['01','03','05','07','13'])){
+                if (in_array($cash_document->sale_note->state_type_id, ['01', '03', '05', '07', '13'])) {
                     $final_balance += ($cash_document->sale_note->currency_type_id == 'PEN') ? $cash_document->sale_note->total : ($cash_document->sale_note->total * $cash_document->sale_note->exchange_rate_sale);
                 }
 
                 // $final_balance += $cash_document->sale_note->total;
 
-            }
-            else if($cash_document->document){
+            } else if ($cash_document->document) {
 
-                if(in_array($cash_document->document->state_type_id, ['01','03','05','07','13'])){
+                if (in_array($cash_document->document->state_type_id, ['01', '03', '05', '07', '13'])) {
                     $final_balance += ($cash_document->document->currency_type_id == 'PEN') ? $cash_document->document->total : ($cash_document->document->total * $cash_document->document->exchange_rate_sale);
                 }
 
                 // $final_balance += $cash_document->document->total;
 
-            }
-            else if($cash_document->expense_payment){
+            } else if ($cash_document->expense_payment) {
 
-                if($cash_document->expense_payment->expense->state_type_id == '05'){
-                    $final_balance -= ($cash_document->expense_payment->expense->currency_type_id == 'PEN') ? $cash_document->expense_payment->payment:($cash_document->expense_payment->payment  * $cash_document->expense_payment->expense->exchange_rate_sale);
+                if ($cash_document->expense_payment->expense->state_type_id == '05') {
+                    $final_balance -= ($cash_document->expense_payment->expense->currency_type_id == 'PEN') ? $cash_document->expense_payment->payment : ($cash_document->expense_payment->payment  * $cash_document->expense_payment->expense->exchange_rate_sale);
                 }
 
                 // $final_balance -= $cash_document->expense_payment->payment;
 
-            }
-            else if($cash_document->purchase){
-                if(in_array($cash_document->purchase->state_type_id, ['01','03','05','07','13'])){
-                    if($cash_document->purchase->total_canceled == 1) {
+            } else if ($cash_document->purchase) {
+                if (in_array($cash_document->purchase->state_type_id, ['01', '03', '05', '07', '13'])) {
+                    if ($cash_document->purchase->total_canceled == 1) {
                         $final_balance -= ($cash_document->purchase->currency_type_id == 'PEN') ? $cash_document->purchase->total : ($cash_document->purchase->total * $cash_document->purchase->exchange_rate_sale);
                     }
                 }
             }
             // cotizacion
-            else if($cash_document->quotation)
-            {
+            else if ($cash_document->quotation) {
                 $final_balance += ($cash_document->quotation->applyQuotationToCash()) ? $cash_document->quotation->getTransformTotal() : 0;
             }
-
         }
 
         $cash->final_balance = round($final_balance + $cash->beginning_balance, 2);
@@ -259,7 +241,5 @@ class CashController extends Controller
             'success' => true,
             'message' => 'Caja cerrada con éxito',
         ];
-
     }
-
 }

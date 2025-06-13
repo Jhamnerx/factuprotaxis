@@ -25,7 +25,9 @@
                             >Producto manual
                         </el-checkbox>
                     </div>
-                    <div class="col-md-7 col-lg-7 col-xl-7 col-sm-7">
+                    <div
+                        class="col-md-7 col-lg-7 col-xl-7 col-sm-7 product-model"
+                    >
                         <template v-if="various_item">
                             <div class="form-group">
                                 <label class="control-label"
@@ -40,10 +42,42 @@
                             </div>
                         </template>
                         <template v-else>
+                            <div class="tooltips-container">
+                                <el-tooltip
+                                    slot="append"
+                                    :disabled="recordItem != null"
+                                    class="item"
+                                    content="Ver Stock del Producto"
+                                    effect="dark"
+                                    placement="bottom"
+                                >
+                                    <el-button
+                                        :disabled="isEditItemNote"
+                                        @click.prevent="clickWarehouseDetail()"
+                                    >
+                                        <i class="fa fa-search"></i>
+                                    </el-button>
+                                </el-tooltip>
+                                <el-tooltip
+                                    slot="append"
+                                    :disabled="recordItem != null"
+                                    class="item"
+                                    content="Historial de ventas"
+                                    effect="dark"
+                                    placement="bottom"
+                                >
+                                    <el-button
+                                        :disabled="isEditItemNote"
+                                        @click.prevent="clickHistorySales()"
+                                    >
+                                        <i class="fa fa-list"></i>
+                                    </el-button>
+                                </el-tooltip>
+                            </div>
                             <div
                                 id="custom-select"
                                 :class="{ 'has-danger': errors.item_id }"
-                                class="form-group"
+                                class="form-group more-width-input"
                             >
                                 <label class="control-label">
                                     Producto/Servicio
@@ -103,40 +137,6 @@
                                                 ></el-option>
                                             </el-tooltip>
                                         </el-select>
-                                        <el-tooltip
-                                            slot="append"
-                                            :disabled="recordItem != null"
-                                            class="item"
-                                            content="Ver Stock del Producto"
-                                            effect="dark"
-                                            placement="bottom"
-                                        >
-                                            <el-button
-                                                :disabled="isEditItemNote"
-                                                @click.prevent="
-                                                    clickWarehouseDetail()
-                                                "
-                                            >
-                                                <i class="fa fa-search"></i>
-                                            </el-button>
-                                        </el-tooltip>
-                                        <el-tooltip
-                                            slot="append"
-                                            :disabled="recordItem != null"
-                                            class="item"
-                                            content="Historial de ventas"
-                                            effect="dark"
-                                            placement="bottom"
-                                        >
-                                            <el-button
-                                                :disabled="isEditItemNote"
-                                                @click.prevent="
-                                                    clickHistorySales()
-                                                "
-                                            >
-                                                <i class="fa fa-list"></i>
-                                            </el-button>
-                                        </el-tooltip>
                                     </el-input>
                                 </template>
                                 <template v-else>
@@ -261,32 +261,12 @@
                             class="form-group"
                         >
                             <label class="control-label">Cantidad</label>
-                            <el-input
-                                :tabindex="'2'"
-                                ref="inputQuantity"
+                            <el-input-number
                                 v-model="form.quantity"
+                                @change="calculateTotal"
                                 :disabled="form.item.calculate_quantity"
-                                @blur="validateQuantity"
-                                @input.native="changeValidateQuantity"
-                            >
-                                <el-button
-                                    slot="prepend"
-                                    :disabled="
-                                        form.quantity < 0.01 ||
-                                            form.item.calculate_quantity
-                                    "
-                                    icon="el-icon-minus"
-                                    style="padding-right: 5px ;padding-left: 12px"
-                                    @click="clickDecrease"
-                                ></el-button>
-                                <el-button
-                                    slot="append"
-                                    :disabled="form.item.calculate_quantity"
-                                    icon="el-icon-plus"
-                                    style="padding-right: 5px ;padding-left: 12px"
-                                    @click="clickIncrease"
-                                ></el-button>
-                            </el-input>
+                                :min="0.01"
+                            ></el-input-number>
                             <small
                                 v-if="errors.quantity"
                                 class="form-control-feedback"
@@ -736,7 +716,6 @@
                                             </tbody>
                                         </table>
                                     </div>
-
                                     <div v-if="charge_types.length > 0">
                                         <label class="control-label">
                                             Cargos
@@ -815,7 +794,6 @@
                                             </tbody>
                                         </table>
                                     </div>
-
                                     <div v-if="attribute_types.length > 0">
                                         <label class="control-label">
                                             Atributos
@@ -998,6 +976,7 @@
             :quantity="form.quantity"
             @addRowSelectLot="addRowSelectLot"
             :inputSearch="input_search_by_serie"
+            :documentId="documentId"
         >
         </select-lots-form>
     </el-dialog>
@@ -1007,7 +986,9 @@
     margin-right: 5% !important;
     max-width: 80% !important;
 }
-
+.el-button + .el-button {
+    margin-left: 0;
+}
 .el-select-currency {
     width: 59px;
 }
@@ -1054,7 +1035,8 @@ export default {
         "isCreditNoteAndType03",
         "isUpdateDocument",
         "permissionEditItemPrices",
-        "selectedOptionPrice"
+        "selectedOptionPrice",
+        "documentId"
     ],
     components: {
         ItemForm,
@@ -1549,6 +1531,7 @@ export default {
         // },
         initForm() {
             this.errors = {};
+            this.readonly_total = 0;
 
             this.form = {
                 // category_id: [1],
@@ -1811,6 +1794,8 @@ export default {
         async changeItem() {
             this.clearExtraInfoItem();
 
+            this.clearExtraInfoItem();
+
             this.form.item = _.find(this.items, { id: this.form.item_id });
             this.form.item = this.setExtraFieldOfitem(this.form.item);
             this.form.item_unit_types = _.find(this.items, {
@@ -1826,8 +1811,6 @@ export default {
                     let priceSelected = first_list[this.selectedOptionPrice];
                     // row.sale_unit_price = priceSelected;
                     this.form.unit_price_value = priceSelected;
-                } else {
-                    this.form.unit_price_value = "0";
                 }
             }
 
@@ -1839,6 +1822,7 @@ export default {
             this.form.quantity = 1;
             this.cleanTotalItem();
             this.showListStock = true;
+            this.readonly_total = this.form.unit_price_value;
 
             //asignar variables isc
             this.form.has_isc = this.form.item.has_isc;
@@ -1997,7 +1981,6 @@ export default {
                 if (!this.form.IdLoteSelected)
                     return this.$message.error("Debe seleccionar lote.");
             }
-
             let extra = this.form.item.extra;
 
             if (this.validateTotalItem().total_item) return;

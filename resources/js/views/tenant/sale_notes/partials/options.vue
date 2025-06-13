@@ -25,8 +25,9 @@
                     <el-tabs v-model="activeName">
                         <el-tab-pane label="A4" name="first">
                             <iframe
-                                :src="form.print_a4"
-                                type="application/pdf"
+                                :src="
+                                    `${form.print_a4}?cache_bust=${Date.now()}`
+                                "
                                 width="100%"
                                 height="400px"
                             />
@@ -37,7 +38,11 @@
                             v-if="ShowTicket80"
                         >
                             <iframe
-                                :src="form.print_ticket"
+                                :src="
+                                    `${
+                                        form.print_ticket
+                                    }?cache_bust=${Date.now()}`
+                                "
                                 type="application/pdf"
                                 width="100%"
                                 height="400px"
@@ -49,7 +54,11 @@
                             v-if="ShowTicket58"
                         >
                             <iframe
-                                :src="form.print_ticket_58"
+                                :src="
+                                    `${
+                                        form.print_ticket_58
+                                    }?cache_bust=${Date.now()}`
+                                "
                                 type="application/pdf"
                                 width="100%"
                                 height="400px"
@@ -61,7 +70,11 @@
                             v-if="ShowTicket50"
                         >
                             <iframe
-                                :src="form.print_ticket_50"
+                                :src="
+                                    `${
+                                        form.print_ticket_50
+                                    }?cache_bust=${Date.now()}`
+                                "
                                 type="application/pdf"
                                 width="100%"
                                 height="400px"
@@ -69,13 +82,32 @@
                         </el-tab-pane>
                         <el-tab-pane label="A5" name="second">
                             <iframe
-                                :src="form.print_a5"
+                                :src="
+                                    `${form.print_a5}?cache_bust=${Date.now()}`
+                                "
                                 type="application/pdf"
                                 width="100%"
                                 height="400px"
                             />
                         </el-tab-pane>
                     </el-tabs>
+                    <!--<el-tabs v-model="activeName">
+                        <el-tab-pane label="A4" name="first">
+                            <iframe :src="form.print_a4" type="application/pdf" width="100%" height="400px"/>
+                        </el-tab-pane>
+                        <el-tab-pane label="Ticket 80mm" name="fourth" v-if="ShowTicket80">
+                            <iframe :src="form.print_ticket" type="application/pdf" width="100%" height="400px"/>
+                        </el-tab-pane>
+                        <el-tab-pane label="Ticket 58mm" name="third" v-if="ShowTicket58">
+                            <iframe :src="form.print_ticket_58" type="application/pdf" width="100%" height="400px"/>
+                        </el-tab-pane>
+                        <el-tab-pane label="Ticket 50mm" name="fifth" v-if="ShowTicket50">
+                            <iframe :src="form.print_ticket_50" type="application/pdf" width="100%" height="400px"/>
+                        </el-tab-pane>
+                        <el-tab-pane label="A5" name="second">
+                            <iframe :src="form.print_a5" type="application/pdf" width="100%" height="400px"/>
+                        </el-tab-pane>
+                    </el-tabs>-->
                 </div>
                 <div class="col-12 container-btns text-center">
                     <br /><br />
@@ -250,19 +282,15 @@ export default {
             showDialogOptions: false,
             documentNewId: null,
             activeName: "first",
-            isSafari: false,
-            wsp: {}
+            isSafari: false
         };
     },
-    async created() {
+    created() {
         this.initForm();
         this.loadConfiguration(this.$store);
+        this.configuration = this.$store.state.config;
+        console.log("this.configuration asignado:", this.configuration);
         this.$store.commit("setConfiguration", this.configuration);
-        await this.$http.get(`/companies/record`).then(response => {
-            if (response.data !== "") {
-                this.wsp = response.data.data;
-            }
-        });
     },
     mounted() {
         if (navigator.userAgent.indexOf("Safari") != -1) {
@@ -271,44 +299,35 @@ export default {
     },
     computed: {
         ...mapState(["config"]),
-        ShowTicket58: function() {
-            if (this.configuration === undefined) return false;
-            if (this.configuration == null) return false;
-            if (this.configuration.show_ticket_58 === undefined) return false;
-            if (this.configuration.show_ticket_58 == null) return false;
-            if (
-                this.configuration.show_ticket_58 !== undefined &&
-                this.configuration.show_ticket_58 !== null
-            ) {
-                return this.configuration.show_ticket_58;
-            }
-            return false;
+        ShowTicket58() {
+            const value =
+                this.config &&
+                this.config.show_ticket_58 !== undefined &&
+                this.config.show_ticket_58 !== null
+                    ? this.config.show_ticket_58
+                    : false;
+            console.log("ShowTicket58:", value);
+            return value;
         },
-        ShowTicket80: function() {
-            if (this.configuration === undefined) return false;
-            if (this.configuration == null) return false;
-            if (this.configuration.show_ticket_80 === undefined) return false;
-            if (this.configuration.show_ticket_80 == null) return false;
-            if (
-                this.configuration.show_ticket_80 !== undefined &&
-                this.configuration.show_ticket_80 !== null
-            ) {
-                return this.configuration.show_ticket_80;
-            }
-            return false;
+        ShowTicket80() {
+            const value =
+                this.config &&
+                this.config.show_ticket_80 !== undefined &&
+                this.config.show_ticket_80 !== null
+                    ? this.config.show_ticket_80
+                    : false;
+            console.log("ShowTicket80:", value);
+            return value;
         },
-        ShowTicket50: function() {
-            if (this.configuration === undefined) return false;
-            if (this.configuration == null) return false;
-            if (this.configuration.show_ticket_50 === undefined) return false;
-            if (this.configuration.show_ticket_50 == null) return false;
-            if (
-                this.configuration.show_ticket_50 !== undefined &&
-                this.configuration.show_ticket_50 !== null
-            ) {
-                return this.configuration.show_ticket_50;
-            }
-            return false;
+        ShowTicket50() {
+            const value =
+                this.config &&
+                this.config.show_ticket_50 !== undefined &&
+                this.config.show_ticket_50 !== null
+                    ? this.config.show_ticket_50
+                    : false;
+            console.log("ShowTicket50:", value);
+            return value;
         }
     },
     methods: {
@@ -391,42 +410,13 @@ export default {
             if (!this.form.customer_telephone) {
                 return this.$message.error("El número es obligatorio");
             }
-            if (!this.wsp.ws_api_token) {
-                return this.$message.error(
-                    "No se ha configurado el token de la API de Whatsapp"
-                );
-            }
-            const url = this.form.download_pdf;
 
-            if (!url) {
-                return this.$message.error(
-                    "No se encontró una URL en el mensaje"
-                );
-            }
-
-            const payload = {
-                api_key: this.wsp.ws_api_token,
-                receiver: `51${this.form.customer_telephone}`,
-                data: {
-                    url: url,
-                    media_type: "file",
-                    caption: this.form.message_text
-                }
-            };
-
-            this.$http
-                .post("https://whatsapp.siapol.site/api/send-media", payload)
-                .then(response => {
-                    if (response.data.success) {
-                        this.$message.success("Mensaje enviado correctamente");
-                        form.customer_telephone = null;
-                    } else {
-                        this.$message.error("Error al enviar el mensaje");
-                    }
-                })
-                .catch(error => {
-                    this.$message.error("Error al enviar el mensaje");
-                });
+            window.open(
+                `https://wa.me/51${this.form.customer_telephone}?text=${
+                    this.form.message_text
+                }`,
+                "_blank"
+            );
         }
     }
 };

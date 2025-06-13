@@ -32,7 +32,7 @@ class CategoryController extends Controller
     public function records(Request $request)
     {
         $records = Category::where($request->column, 'like', "%{$request->value}%")
-            ->latest();
+                            ->latest();
 
         return new CategoryCollection($records->paginate(config('tenant.items_per_page')));
     }
@@ -59,15 +59,15 @@ class CategoryController extends Controller
         $name = $request->input('name');
         $error = null;
         $category = null;
-        if (!empty($name)) {
+        if(!empty($name)){
             $category = Category::where('name', $name);
-            if (empty($id)) {
-                $category = $category->first();
+            if(empty($id)) {
+                $category= $category->first();
                 if (!empty($category)) {
                     $error = 'El nombre de categoría ya existe';
                 }
-            } else {
-                $category = $category->where('id', '!=', $id)->first();
+            }else{
+                $category = $category->where('id','!=',$id)->first();
                 if (!empty($category)) {
                     $error = 'El nombre de categoría ya existe para otro registro';
                 }
@@ -78,24 +78,25 @@ class CategoryController extends Controller
             'message' => $error,
             'data' => $category
         ];
-        if (empty($error)) {
+        if(empty($error)){
             $category = Category::firstOrNew(['id' => $id]);
             $category->fill($request->all());
 
             $temp_path = $request->input('temp_path');
-            if ($temp_path) {
+            if($temp_path) {
 
                 UploadFileHelper::checkIfValidFile($request->input('image'), $temp_path, true);
 
-                $directory = 'public' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'categories' . DIRECTORY_SEPARATOR;
+                $directory = 'public'.DIRECTORY_SEPARATOR.'uploads'.DIRECTORY_SEPARATOR.'categories'.DIRECTORY_SEPARATOR;
                 $file_name_old = $request->input('image');
                 $file_name_old_array = explode('.', $file_name_old);
                 $file_content = file_get_contents($temp_path);
                 $datenow = date('YmdHis');
-                $file_name = Str::slug($category->name) . '-' . $datenow . '.' . $file_name_old_array[1];
-                Storage::put($directory . $file_name, $file_content);
+                $file_name = Str::slug($category->name).'-'.$datenow.'.'.$file_name_old_array[1];
+                Storage::put($directory.$file_name, $file_content);
                 $category->image = $file_name;
-            } else if (!$request->input('image') && !$request->input('temp_path') && !$request->input('image_url')) {
+
+            }else if(!$request->input('image') && !$request->input('temp_path') && !$request->input('image_url')){
                 $category->image = 'imagen-no-disponible.jpg';
             }
 
@@ -103,11 +104,12 @@ class CategoryController extends Controller
 
             $data = [
                 'success' => true,
-                'message' => ($id) ? 'Categoría editada con éxito' : 'Categoría registrada con éxito',
+                'message' => ($id)?'Categoría editada con éxito':'Categoría registrada con éxito',
                 'data' => $category
             ];
         }
         return $data;
+
     }
 
     public function destroy($id)
@@ -121,13 +123,16 @@ class CategoryController extends Controller
                 'success' => true,
                 'message' => 'Categoría eliminada con éxito'
             ];
+
         } catch (Exception $e) {
 
-            return ($e->getCode() == '23000') ? ['success' => false, 'message' => "La categoría esta siendo usada por otros registros, no puede eliminar"] : ['success' => false, 'message' => "Error inesperado, no se pudo eliminar la categoría"];
+            return ($e->getCode() == '23000') ? ['success' => false,'message' => "La categoría esta siendo usada por otros registros, no puede eliminar"] : ['success' => false,'message' => "Error inesperado, no se pudo eliminar la categoría"];
+
         }
+
     }
 
-
+    
     /**
      *
      * @param  Request $request
@@ -137,12 +142,15 @@ class CategoryController extends Controller
     {
         $input = $request->input ?? null;
         $records = Category::query();
-
-        if ($input) {
+        
+        if($input)
+        {
             $records->where('name', 'like', "%{$input}%")
-                ->filterForTables()
-                ->take(100);
-        } else {
+                    ->filterForTables()
+                    ->take(100);
+        }
+        else
+        {
             $records->take(10);
         }
 
@@ -151,10 +159,10 @@ class CategoryController extends Controller
 
     public function upload(Request $request)
     {
-
+        
         $validate_upload = UploadFileHelper::validateUploadFile($request, 'file', 'jpg,jpeg,png,gif,svg');
-
-        if (!$validate_upload['success']) {
+        
+        if(!$validate_upload['success']){
             return $validate_upload;
         }
 
@@ -192,4 +200,5 @@ class CategoryController extends Controller
             ]
         ];
     }
+
 }

@@ -391,7 +391,7 @@ class DocumentController extends Controller
                 ->whereIsEnabled()
                 ->whereFilterCustomerBySeller('customers')
                 ->orderBy('name')
-                ->take(5)
+                ->take(20)
                 ->get()->transform(function ($row) {
                     /** @var Person $row */
                     return $row->getCollectionData();
@@ -584,6 +584,14 @@ class DocumentController extends Controller
     public function store(DocumentRequest $request)
     {
         try {
+            // Validar restricciones de plan ANTES de crear el documento
+            $exceed_limit = (new DocumentHelper)->exceedLimitDocuments();
+            if ($exceed_limit['success']) {
+                return [
+                    'success' => false,
+                    'message' => $exceed_limit['message']
+                ];
+            }
             $validate = $this->validateDocument($request);
             if (!$validate['success']) return $validate;
 

@@ -23,7 +23,7 @@
           <tr slot="heading">
             <!-- <th>#</th> -->
             <th class="text-left">F. Emisión</th>
-            <th class="text-center">F. Vencimiento</th>
+            <th class="text-left">F. Vencimiento</th>
             <th>Proveedor</th>
             <!-- <th>Estado</th> -->
             <th>O. Compra</th>
@@ -45,7 +45,7 @@
           <tr slot-scope="{ index, row }">
             <!-- <td>{{ index }}</td> -->
             <td class="text-left">{{ row.date_of_issue }}</td>
-            <td class="text-center">{{ row.date_of_due }}</td>
+            <td class="text-left">{{ row.date_of_due }}</td>
             <td>
               {{ row.supplier_name }}
               <br />
@@ -74,10 +74,10 @@
             <!-- <td class="text-right">{{ row.total_free }}</td>
             <td class="text-right">{{ row.total_unaffected }}</td>
             <td class="text-right">{{ row.total_exonerated }}</td> -->
-            <td class="text-right">{{ row.total_taxed }}</td>
-            <td class="text-right">{{ row.total_igv }}</td>
+            <td class="text-right">{{row.currency_type_id === 'PEN' ? 'S/.' : '$'}} {{ row.total_taxed }}</td>
+            <td class="text-right">{{row.currency_type_id === 'PEN' ? 'S/.' : '$'}} {{ row.total_igv }}</td>
             <!-- <td class="text-right">{{ row.total_perception ? row.total_perception : 0 }}</td> -->
-            <td class="text-right">{{ row.total }}</td>
+            <td class="text-right">{{row.currency_type_id === 'PEN' ? 'S/.' : '$'}} {{ row.total }}</td>
 
                         <td class="text-center">
 
@@ -132,7 +132,18 @@
     </div>
   </div>
 </template>
-
+<style>
+@media only screen and (max-width: 485px){
+  .filter-container{
+    margin-top: 0px;
+    & .btn-filter-content, .btn-container-mobile{
+      display: flex;
+      align-items: center;
+      justify-content: start;
+    }
+  }
+}
+</style>
 <script>
     // import DocumentGenerate from "./partials/document_generate.vue";
     // import DocumentOptions from './partials/document_options.vue'

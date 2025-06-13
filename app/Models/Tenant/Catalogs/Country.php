@@ -2,11 +2,11 @@
 
 namespace App\Models\Tenant\Catalogs;
 
-use App\Models\Tenant\Catalogs\ModelCatalog;
+use Hyn\Tenancy\Traits\UsesTenantConnection;
 
 class Country extends ModelCatalog
 {
-
+    use UsesTenantConnection;
 
     public $incrementing = false;
     public $timestamps = false;

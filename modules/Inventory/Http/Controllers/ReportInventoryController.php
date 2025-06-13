@@ -36,12 +36,12 @@ class ReportInventoryController extends Controller
 
     public function index()
     {
-//        $warehouse_id = $request->input('warehouse_id');
-//        $reports = $this->getRecords($warehouse_id)->paginate(config('tenant.items_per_page'));
-//
-//        $warehouses = Warehouse::query()->select('id', 'description')->get();
-//
-//        return view('inventory::reports.inventory.index', compact('reports', 'warehouses'));
+        //        $warehouse_id = $request->input('warehouse_id');
+        //        $reports = $this->getRecords($warehouse_id)->paginate(config('tenant.items_per_page'));
+        //
+        //        $warehouses = Warehouse::query()->select('id', 'description')->get();
+        //
+        //        return view('inventory::reports.inventory.index', compact('reports', 'warehouses'));
         return view('inventory::reports.inventory.index');
     }
 
@@ -57,7 +57,6 @@ class ReportInventoryController extends Controller
         $records = $this->getRecords($warehouse_id, $filter, $request);
 
         return new ReportInventoryCollection($records->paginate(50), $filter);
-
     }
 
     /**
@@ -67,23 +66,32 @@ class ReportInventoryController extends Controller
      */
     private function getRecords($warehouse_id = 0, $filter, $request)
     {
-        $query = ItemWarehouse::with(['warehouse', 'item'=> function ($query){
-                                $query->select('id', 'barcode', 'internal_id', 'description', 'name', 'category_id', 'brand_id','stock_min', 'sale_unit_price', 'purchase_unit_price', 'model', 'date_of_due', 'currency_type_id' );
-                                $query->with(['category', 'brand', 'currency_type']);
-                                $query->without(['item_type', 'unit_type', 'warehouses', 'item_unit_types', 'tags']);
-                               }])
-                              ->whereHas('item', function ($q) {
-                                  $q->where([
-                                                ['item_type_id', '01'],
-                                                ['unit_type_id', '!=', 'ZZ'],
-                                            ])
-                                    ->whereNotIsSet();
-                              });
+        $query = ItemWarehouse::with(['warehouse', 'item' => function ($query) {
+            $query->select('id', 'barcode', 'internal_id', 'description', 'name', 'category_id', 'brand_id', 'stock_min', 'sale_unit_price', 'purchase_unit_price', 'model', 'date_of_due', 'currency_type_id');
+            $query->with(['category', 'brand', 'currency_type']);
+            $query->without(['item_type', 'unit_type', 'warehouses', 'item_unit_types', 'tags']);
+        }])
+            ->whereHas('item', function ($q) use ($request) {
+                $q->where([
+                    ['item_type_id', '01'],
+                    ['unit_type_id', '!=', 'ZZ'],
+                ]);
+                if (!is_null($request->active)) {
+                    $q->where('active', $request->active == '01' ? true : false);
+                }
+                if ($request->has('date_start') && !empty($request->date_start)) {
+                    $q->where('date_of_due', '>=', $request->date_start);
+                }
+
+                if ($request->has('date_end') && !empty($request->date_end)) {
+                    $q->where('date_of_due', '<=', $request->date_end);
+                }
+                $q->whereNotIsSet();
+            });
 
         if ($filter === '02') {
             //$add = ($stock < 0);
             $query->where('stock', '<=', 0);
-
         }
 
         if ($filter === '03') {
@@ -95,44 +103,44 @@ class ReportInventoryController extends Controller
             //$add = ($stock > 0 && $stock <= $item->stock_min);
             //$query->where('stock', 0);
 
-            $query = ItemWarehouse::with(['warehouse', 'item'=> function ($query){
-                $query->select('id', 'barcode', 'internal_id', 'description', 'category_id', 'brand_id','stock_min', 'sale_unit_price', 'purchase_unit_price', 'model', 'date_of_due', 'currency_type_id' );
+            $query = ItemWarehouse::with(['warehouse', 'item' => function ($query) {
+                $query->select('id', 'barcode', 'internal_id', 'description', 'category_id', 'brand_id', 'stock_min', 'sale_unit_price', 'purchase_unit_price', 'model', 'date_of_due', 'currency_type_id');
                 $query->with(['category', 'brand', 'currency_type']);
                 $query->without(['item_type', 'unit_type', 'warehouses', 'item_unit_types', 'tags']);
-               }])
-              ->whereHas('item', function ($q) {
-                  $q->where([
-                                ['item_type_id', '01'],
-                                ['unit_type_id', '!=', 'ZZ'],
-                            ])
-                    ->whereNotIsSet()
-                    ->whereStockMin();
-              })->where('stock', '>', 0);
-
+            }])
+                ->whereHas('item', function ($q) {
+                    $q->where([
+                        ['item_type_id', '01'],
+                        ['unit_type_id', '!=', 'ZZ'],
+                    ]);
+                    $q->where('stock', '>', 0);
+                    $q->whereColumn('items.stock_min', '>=', 'item_warehouse.stock');
+                    $q->whereNotIsSet();
+                })->where('stock', '>', 0);
         }
 
 
         if ($filter === '05') {
             //$add = ($stock > $item->stock_min);
 
-            $query = ItemWarehouse::with(['warehouse', 'item'=> function ($query){
-                $query->select('id', 'barcode', 'internal_id', 'description', 'category_id', 'brand_id','stock_min', 'sale_unit_price', 'purchase_unit_price', 'model', 'date_of_due', 'currency_type_id' );
+            $query = ItemWarehouse::with(['warehouse', 'item' => function ($query) {
+                $query->select('id', 'barcode', 'internal_id', 'description', 'category_id', 'brand_id', 'stock_min', 'sale_unit_price', 'purchase_unit_price', 'model', 'date_of_due', 'currency_type_id');
                 $query->with(['category', 'brand', 'currency_type']);
                 $query->without(['item_type', 'unit_type', 'warehouses', 'item_unit_types', 'tags']);
-               }])
-              ->whereHas('item', function ($q) {
-                  $q->where([
-                                ['item_type_id', '01'],
-                                ['unit_type_id', '!=', 'ZZ'],
-                            ])
-                    ->whereNotIsSet()
-                    ->whereStockMinValidate();
-              });
+            }])
+                ->whereHas('item', function ($q) {
+                    $q->where([
+                        ['item_type_id', '01'],
+                        ['unit_type_id', '!=', 'ZZ'],
+                    ])
+                        ->whereNotIsSet()
+                        ->whereStockMinValidate();
+                });
         }
 
         if ($filter === '06') {
             $query->where('stock', '>', 0);
-        }  
+        }
 
         if ($warehouse_id != 0) {
             $query->where('item_warehouse.warehouse_id', $warehouse_id);
@@ -143,10 +151,10 @@ class ReportInventoryController extends Controller
         if ($request->brand_id) $query->whereItemBrand($request->brand_id);
 
         return $query;
-
     }
 
-    public function downLoadTrayReport(Request $request){
+    public function downLoadTrayReport(Request $request)
+    {
         $tray = DownloadTray::create([
             'user_id' => auth()->user()->id,
             'module' => 'INVENTORY',
@@ -178,16 +186,16 @@ class ReportInventoryController extends Controller
             'type' => 'Reporte Inventario'
         ]);
         $trayId = $tray->id;
-        $hostname = Hostname::where('fqdn',$host)->first();
-        if(empty($hostname)) {
+        $hostname = Hostname::where('fqdn', $host)->first();
+        if (empty($hostname)) {
             $company = Company::active();
             $number = $company->number;
             $client = Client::where('number', $number)->first();
             $website_id = $client->hostname->website_id;
-        }else{
+        } else {
             $website_id = $hostname->website_id;
         }
-        ProcessInventoryReport::dispatch($website_id,$trayId, ($request->warehouse_id == 'all' ? 0 :  $request->warehouse_id), $request->input('filter'), $request->all() );
+        ProcessInventoryReport::dispatch($website_id, $trayId, ($request->warehouse_id == 'all' ? 0 :  $request->warehouse_id), $request->input('filter'), $request->all());
 
         return  [
             'success' => true,
@@ -260,13 +268,11 @@ class ReportInventoryController extends Controller
                 $q->where([['item_type_id', '01'], ['unit_type_id', '!=', 'ZZ']]);
                 $q->whereNotIsSet();
             })->latest()->get();
-
         } else {
             $records = ItemWarehouse::with(['item', 'item.brand'])->whereHas('item', function ($q) {
                 $q->where([['item_type_id', '01'], ['unit_type_id', '!=', 'ZZ']]);
                 $q->whereNotIsSet();
             })->latest()->get();
-
         }
 
 

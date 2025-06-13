@@ -72,7 +72,10 @@
                             <div class="col-md-4">
                                 <div class="form-group" :class="{'has-danger': errors.telephone}">
                                     <label class="control-label">Teléfono</label>
-                                    <el-input v-model="form.telephone"></el-input>
+                                    <el-input 
+                                        v-model="form.telephone" 
+                                        @input="validateNumericInput('telephone')">
+                                    </el-input>
                                     <small class="form-control-feedback" v-if="errors.telephone" v-text="errors.telephone[0]"></small>
                                 </div>
                             </div>
@@ -253,10 +256,13 @@
                 preview: null,
                 activeName: 'first',
                 locations: [],
+                codeExists: false,
+                existingCodes: [],
             }
         },
         async created() {
             await this.initForm()
+            await this.loadExistingCodes()
             await this.$http.get(`/${this.resource}/tables`)
                 .then(response => {
                     this.countries = response.data.countries
@@ -347,7 +353,40 @@
                         })
                 }
             },
+            async loadExistingCodes() {
+                await this.$http.get(`/${this.resource}/codes`)
+                    .then(response => {
+                        this.existingCodes = response.data;
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar códigos existentes:', error);
+                    });
+            },
+            validateCodeUniqueness() {
+                if (!this.form.code) return;
+                
+                this.codeExists = false;
+                
+                const exists = this.existingCodes.find(item => 
+                    item.code === this.form.code && item.id !== this.form.id
+                );
+                
+                this.codeExists = !!exists;
+            },
             submit() {
+
+                if (this.form.telephone && !/^\d+$/.test(this.form.telephone)) {
+                    this.$message.error('El campo teléfono solo debe contener números');
+                    return;
+                }
+
+                this.validateCodeUniqueness();
+                
+                if (this.codeExists) {
+                    this.$message.error('El código de domicilio fiscal ingresado ya existe. Por favor ingrese uno nuevo');
+                    return;
+                }
+
                 const data = new FormData();
                 for (var key in this.form) {
                     const value = this.form[key];
@@ -365,9 +404,7 @@
                             }
                         });
                     } else {
-                        if (value) {
-                            data.append(key, value);
-                        }
+                        data.append(key, value === null ? '' : value);
                     }
                 }
                 if (this.file) {
@@ -432,6 +469,12 @@
             },
             clickRemoveAddress(index) {
                 this.form.addresses.splice(index, 1);
+            },
+            validateNumericInput(field) {
+                
+                if (this.form[field]) {
+                    this.form[field] = this.form[field].replace(/\D/g, '');
+                }
             },
 
         }

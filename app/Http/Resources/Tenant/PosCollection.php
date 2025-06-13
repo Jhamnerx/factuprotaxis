@@ -23,12 +23,15 @@ class PosCollection extends ResourceCollection
             $sale_unit_price = $this->getSaleUnitPrice($row, $configuration);
 
             $currency = $row->currency_type;
-            if(empty($currency )){
+            if (empty($currency)) {
                 Log::info("----ITEM-ARRAY-COLLECTION START----");
                 Log::info($row);
                 $currency = CurrencyType::first();
                 Log::info("----ITEM-ARRAY-COLLECTION END----");
             }
+
+            $defaultImage = $configuration->product_default_image ?? 'imagen-no-disponible.jpg';
+            $defaultImagePath = asset('storage/defaults/' . $defaultImage);
 
             return [
                 'stock' => $row->getStockByWarehouse(),
@@ -37,7 +40,7 @@ class PosCollection extends ResourceCollection
                 'full_description' => ($row->internal_id) ? $row->internal_id . ' - ' . $row->description : $row->description,
                 'name' => $row->name,
                 'second_name' => $row->second_name,
-                'description' => ($row->brand->name) ? $row->description.' - '.$row->brand->name : $row->description,
+                'description' => ($row->brand->name) ? $row->description . ' - ' . $row->brand->name : $row->description,
                 'currency_type_id' => $row->currency_type_id,
                 'internal_id' => $row->internal_id,
                 'currency_type_symbol' => $currency->symbol,
@@ -55,7 +58,9 @@ class PosCollection extends ResourceCollection
                 'aux_quantity' => 1,
                 'edit_sale_unit_price' => $sale_unit_price,
                 'aux_sale_unit_price' => $sale_unit_price,
-                'image_url' => ($row->image !== 'imagen-no-disponible.jpg') ? asset('storage' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'items' . DIRECTORY_SEPARATOR . $row->image) : asset("/logo/{$row->image}"),
+                'image_url' => ($row->image && $row->image !== 'imagen-no-disponible.jpg')
+                    ? asset('storage/uploads/items/' . $row->image)
+                    : $defaultImagePath,
                 'warehouses' => collect($row->warehouses)->transform(function ($row) {
                     return [
                         'warehouse_description' => $row->warehouse->description,
@@ -79,7 +84,7 @@ class PosCollection extends ResourceCollection
                 'has_isc' => (bool)$row->has_isc,
                 'system_isc_type_id' => $row->system_isc_type_id,
                 'percentage_isc' => $row->percentage_isc,
-                
+
                 'exchange_points' => $row->exchange_points,
                 'quantity_of_points' => $row->quantity_of_points,
                 'exchanged_for_points' => false, //para determinar si desea canjear el producto
@@ -90,30 +95,27 @@ class PosCollection extends ResourceCollection
         });
     }
 
-    
-    private function getSaleUnitPrice($row, $configuration){
+
+    private function getSaleUnitPrice($row, $configuration)
+    {
 
         $sale_unit_price = number_format($row->sale_unit_price, $configuration->decimal_quantity, ".", "");
-        
-        if($configuration->active_warehouse_prices){
+
+        if ($configuration->active_warehouse_prices) {
 
             $warehouse_price = $row->warehousePrices()->where('warehouse_id', auth()->user()->establishment->warehouse->id)->first();
 
-            if($warehouse_price){
+            if ($warehouse_price) {
 
                 $sale_unit_price = number_format($warehouse_price->price, $configuration->decimal_quantity, ".", "");
+            } else {
 
-            }else{
-
-                if($row->warehousePrices()->count() > 0){
+                if ($row->warehousePrices()->count() > 0) {
                     $sale_unit_price = number_format($row->warehousePrices()->first()->price, $configuration->decimal_quantity, ".", "");
                 }
-
             }
-
         }
 
         return $sale_unit_price;
     }
-    
 }

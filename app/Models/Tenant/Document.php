@@ -676,6 +676,11 @@ class Document extends ModelTenant
         return $this->hasOne(DocumentTransport::class);
     }
 
+    public function cash_document()
+    {
+        return $this->hasOne(CashDocument::class, 'document_id');
+    }
+
     /**
      * @return string
      */

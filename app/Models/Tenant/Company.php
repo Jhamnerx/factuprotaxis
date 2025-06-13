@@ -32,6 +32,7 @@ class Company extends ModelTenant
         'private_certificate_qztray',
         'certificate_due',
         'logo',
+        'logo_dark',
         'detraction_account',
         'operation_amazonia',
         'img_firm',
@@ -259,5 +260,10 @@ class Company extends ModelTenant
     public function soap_type()
     {
         return $this->belongsTo(SoapType::class);
+    }
+
+    public function scopeGetInformationCompany($query)
+    {
+        return $query->select('number', 'name')->first();
     }
 }

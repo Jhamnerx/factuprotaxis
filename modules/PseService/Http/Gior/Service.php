@@ -60,11 +60,10 @@ final class Service
             'body' => json_encode($body),
             'verify' => false,
         ]);
-
         $statusCode = $response->getStatusCode();
         $data = json_decode($response->getBody(), true);
 
-        if ($statusCode !== 200) {
+        if($statusCode !== 200) {
             return [
                 'success' => false,
                 'code' => $statusCode,
@@ -72,7 +71,7 @@ final class Service
             ];
         }
 
-        if ($statusCode === 200) {
+        if($statusCode === 200) {
             return [
                 'success' => true,
                 'code' => $statusCode,
@@ -110,22 +109,22 @@ final class Service
         $statusCode = $response->getStatusCode();
         $data = json_decode($response->getBody(), true);
 
-        if ($statusCode !== 200) {
+        if($statusCode !== 200) {
             // dd($body);
-            // dd($response->object());
+        // dd($response->object());
             $error = Errors::getMessage($statusCode);
             $errors = $this->validateObject($data, 'errores');
             // retorna error pero permite almacenar la data del documento
             // y continuar para ser enviado en otro momento
             return [
                 'success' => false,
-                'message' => $error . ' | Detalles: ' . json_encode($errors),
+                'message' => $error . ' | Detalles: '.json_encode($errors),
                 'code' => $data['estado'],
             ];
         }
 
-        if ($statusCode == 200) {
-            if ($statusCode == $data['estado']) {
+        if($statusCode == 200) {
+            if($statusCode == $data['estado']) {
                 return [
                     'success' => true,
                     'code' => $data['estado'],
@@ -160,13 +159,7 @@ final class Service
         $statusCode = $response->getStatusCode();
         $data = json_decode($response->getBody(), true);
 
-        // dd($response,$statusCode,$data);
-        Log::info("---PSE sendXmlSigned---");
-        Log::info($statusCode);
-        Log::info($data);
-        Log::info("---END PSE sendXmlSigned---");
-
-        if ($statusCode !== 200) {
+        if($statusCode !== 200) {
             $error = Errors::getMessage($statusCode);
             $errors = $this->validateObject($data, 'errores');
             return [
@@ -177,13 +170,13 @@ final class Service
             ];
         }
 
-        if ($statusCode == 200) {
-            if ($statusCode == $data['estado']) {
+        if($statusCode == 200) {
+            if($statusCode == $data['estado']) {
                 $mensaje = $this->validateObject($data, 'mensaje');
                 $rechazado = $this->validateObject($data, 'rechazado');
                 $errors = $this->validateObject($data, 'errores');
 
-                if ($hasSummary) {
+                if($hasSummary) {
                     $ticket = $this->validateObject($data, 'ticket');
                     return [
                         'success' => true,
@@ -244,7 +237,7 @@ final class Service
 
         $response = [
             'code' => $responseCode,
-            'description' => 'PSE - ' . $description,
+            'description' => 'PSE - '.$description,
             'notes' => $notes,
         ];
 
@@ -254,51 +247,73 @@ final class Service
 
     public function querySummary($filename)
     {
-        $company = $this->company();
-        $url = $company->soap_type_id == 02 ? Endpoints::QUERY : Endpoints::BETA_QUERY;
-        $token = $this->getToken();
+        try {
+            $company = $this->company();
+            $url = $company->soap_type_id == 02 ? Endpoints::QUERY : Endpoints::BETA_QUERY;
+            $token = $this->getToken();
 
-        $client = new Client();
-        $response = $client->request('GET', $url . '/' . $filename, [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token['token'],
-                'Content-Type' => 'application/json',
-            ],
-            'verify' => false,
-        ]);
+            $client = new Client();
+            $response = $client->request('GET', $url.'/'.$filename, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token['token'],
+                    'Content-Type' => 'application/json',
+                ],
+                'verify' => false,
+            ]);
 
-        $statusCode = $response->getStatusCode();
-        $data = json_decode($response->getBody(), true);
+            $statusCode = $response->getStatusCode();
+            $data = json_decode($response->getBody(), true);
 
-        if ($statusCode !== 200) {
-            // dd($body);
-            // dd($response->object());
-            $error = Errors::getMessage($response->status());
-            $errors = $this->validateObject($data, 'errores');
-            return [
-                'success' => false,
-                'message' => $error . ' | Detalles: ' . json_encode($errors),
-                'code' => $statusCode,
-            ];
-        }
-
-        if ($statusCode == 200) {
-            if ($data['estado'] == $statusCode) {
-                $mensaje = $this->validateObject($data, 'mensaje');
-                $rechazado = $this->validateObject($data, 'rechazado');
+            if($statusCode !== 200) {
+                // dd($body);
+                // dd($response->object());
+                $error = Errors::getMessage($response->status());
                 $errors = $this->validateObject($data, 'errores');
-                $observaciones = $this->validateObject($data, 'observaciones');
-                $cdr = $this->validateObject($data, 'cdr');
                 return [
-                    'success' => true,
-                    'code' => $data['estado'],
-                    'message' => $mensaje,
-                    'observations' => $observaciones,
-                    'cdr' => $cdr,
-                    'rejected' => $rechazado,
-                    'errors' => $errors,
+                    'success' => false,
+                    'message' => $error . ' | Detalles: '.json_encode($errors),
+                    'code' => $statusCode,
                 ];
             }
+
+            if($statusCode == 200) {
+                if($data['estado'] == $statusCode) {
+                    $mensaje = $this->validateObject($data, 'mensaje');
+                    $rechazado = $this->validateObject($data, 'rechazado');
+                    $errors = $this->validateObject($data, 'errores');
+                    $observaciones = $this->validateObject($data, 'observaciones');
+                    $cdr = $this->validateObject($data, 'cdr');
+                    return [
+                        'success' => true,
+                        'code' => $data['estado'],
+                        'message' => $mensaje,
+                        'observations' => $observaciones,
+                        'cdr' => $cdr,
+                        'rejected' => $rechazado,
+                        'errors' => $errors,
+                    ];
+                }
+            }
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            
+            $response = $e->getResponse();
+            $data = json_decode($response->getBody(), true);
+            $rechazado = $this->validateObject($data, 'rechazado');
+            return [
+                'success' => true,
+                'message' => 'Error en consulta: ' . json_encode($data),
+                'code' => $response->getStatusCode(),
+                'rejected' => $rechazado,
+                'cdr' => null,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Excepción: ' . $e->getMessage(),
+                'code' => 500,
+            ];
         }
     }
+
 }

@@ -146,7 +146,8 @@ class ServiceDispatchController extends Controller
                         $has_cdr = true;
                         $download_external_cdr = $dispatch->download_external_cdr;
                         $this->uploadStorage($dispatch->filename, $response['cdr'], 'cdr_b64');
-                        $file_content_cdr = (new CdrRead())->getCrdContent($response['cdr']);
+                        // $file_content_cdr = (new CdrRead())->getCrdContent($response['cdr']);
+                        $file_content_cdr = base64_decode($response['cdr']);
                         $storage->uploadCdr($dispatch->filename, $file_content_cdr);
                         $cdr_content = $storage->getCdr($dispatch->filename);
                         $res['cdr_data'] = (new CdrRead())->getCdrData($cdr_content);
@@ -346,6 +347,10 @@ class ServiceDispatchController extends Controller
             'secondary_drivers' => $record->secondary_drivers,
             'related_number' => optional($record->related)->number,
             'related_document_type_id' => optional($record->related)->document_type_id,
+            'has_transport_driver_01' => $record->has_transport_driver_01,
+            'is_transport_m1l' => $record->is_transport_m1l ? $record->is_transport_m1l : false,
+            'license_plate_m1l' => $record->license_plate_m1l ? $record->license_plate_m1l : null,
+            'reference_documents' => $record->reference_documents,
         ];
     }
 
@@ -406,6 +411,7 @@ class ServiceDispatchController extends Controller
             'items' => $items,
             'secondary_transports' => $record->secondary_transports,
             'secondary_drivers' => $record->secondary_drivers,
+            'reference_documents' => $record->reference_documents,
         ];
     }
 }

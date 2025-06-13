@@ -145,6 +145,9 @@ if ($hostname) {
             Route::get('certificates-qztray/record', 'Tenant\CertificateQzTrayController@record');
             Route::post('certificates-qztray/uploads', 'Tenant\CertificateQzTrayController@uploadFileQzTray');
             Route::delete('certificates-qztray', 'Tenant\CertificateQzTrayController@destroy');
+            Route::get('certificates-qztray/private', 'Tenant\CertificateQzTrayController@private');
+            Route::get('certificates-qztray/digital', 'Tenant\CertificateQzTrayController@digital');
+            Route::get('certificates-qztray/download', 'Tenant\CertificateQzTrayController@download');
 
             //Establishments
             Route::get('establishments', 'Tenant\EstablishmentController@index')->name('tenant.establishments.index');
@@ -154,6 +157,8 @@ if ($hostname) {
             Route::post('establishments', 'Tenant\EstablishmentController@store');
             Route::get('establishments/records', 'Tenant\EstablishmentController@records');
             Route::delete('establishments/{establishment}', 'Tenant\EstablishmentController@destroy');
+            Route::get('establishments/getEstablishmentActive', 'Tenant\EstablishmentController@getEstablishmentActive');
+            Route::get('establishments/codes', 'Tenant\EstablishmentController@getCodes');
 
             //Bank Accounts
             Route::get('bank_accounts', 'Tenant\BankAccountController@index')->name('tenant.bank_accounts.index');
@@ -952,6 +957,15 @@ if ($hostname) {
             Route::get('plans/record/{plan}', 'System\PlanController@record');
             Route::post('plans', 'System\PlanController@store');
             Route::delete('plans/{plan}', 'System\PlanController@destroy');
+
+            //Massive Invoice
+            Route::get('massive-invoice', 'System\MassiveInvoiceController@index')->name('system.massive-invoice.index');
+            Route::get('massive-invoice/download-format', 'System\MassiveInvoiceController@downloadFormat')->name('system.massive-invoice.download');
+            Route::post('massive-invoice/upload', 'System\MassiveInvoiceController@upload')->name('system.massive-invoice.upload');
+            Route::post('massive-invoice/process', 'System\MassiveInvoiceController@process')->name('system.massive-invoice.process');
+            Route::get('massive-invoice/config', 'System\MassiveInvoiceController@config');
+            Route::get('massive-invoice/records', 'System\MassiveInvoiceController@records');
+            Route::get('massive-invoice/download/{id}/{type}', 'System\MassiveInvoiceController@downloadFile');
 
             //Users
             Route::get('users/create', 'System\UserController@create')->name('system.users.create');

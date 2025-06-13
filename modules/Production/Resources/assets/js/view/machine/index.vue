@@ -50,7 +50,7 @@
                         <td>{{ row.brand }}</td>
                         <td>{{ row.model }}</td>
                         <td>{{ row.closing_force }}</td>
-                        <td>
+                        <td class="text-right">
                             <button
                                 class="btn waves-effect waves-light btn-xs btn-info"
                                 type="button"
@@ -79,7 +79,18 @@
     </div>
 
 </template>
-
+<style>
+@media only screen and (max-width: 485px){
+    .filter-container{
+      margin-top: 0px;
+      & .btn-filter-content, .btn-container-mobile{
+        display: flex;
+        align-items: center;
+        justify-content: start;
+      }
+    }
+  }
+</style>
 <script>
 
 import DataTable from '@components/DataTable.vue'

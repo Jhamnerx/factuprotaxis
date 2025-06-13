@@ -42,12 +42,12 @@
                         <th>Codigo de Pedido</th>
                         <th>Cliente</th>
                         <th class="text-center">Detalle Productos</th>
-                        <th>Total</th>
+                        <th class="text-right">Total</th>
                         <th>Fecha Emision</th>
                         <th>Medio Pago</th>
                         <th>Estatus del Pedido</th>
                         <th class="text-center">Documento</th>
-                        <th class="text-center">Opciones</th>
+                        <th class="text-right">Opciones</th>
                     </tr>
                     <tr></tr>
                     <tr slot-scope="{ index, row }">
@@ -151,8 +151,8 @@
                                 </el-popover>
                             </template>
                         </td>
-                        <td>S/ {{ row.total }}</td>
-                        <td>{{ row.created_at }}</td>
+                        <td class="text-right">S/ {{ row.total }}</td>
+                        <td>{{ formatDate(row.created_at) }}</td>
                         <td>{{ row.reference_payment }}</td>
                         <td>
                             <el-select
@@ -177,7 +177,7 @@
                                 {{ row.number_document }}
                             </template>
                         </td>
-                        <td class="text-center">
+                        <td class="text-right">
                             <template v-if="row.document_type_id == '80'">
                                 <el-button
                                     v-if="row.sale_note_id"
@@ -269,7 +269,9 @@
                 </div>
             </div>
             <div class="form-actions text-right pt-2">
-                <el-button @click="close">Cerrar</el-button>
+                <el-button class="second-buton" @click="close"
+                    >Cerrar</el-button
+                >
                 <el-button type="primary" @click="save">Guardar</el-button>
             </div>
         </el-dialog>
@@ -297,6 +299,19 @@
         </sale-note-form>
     </div>
 </template>
+<style>
+@media only screen and (max-width: 485px) {
+    .filter-container {
+        margin-top: 0px;
+        & .btn-filter-content,
+        .btn-container-mobile {
+            display: flex;
+            align-items: center;
+            justify-content: start;
+        }
+    }
+}
+</style>
 <script>
 import DataTable from "../../../components/DataTable.vue";
 import queryString from "query-string";
@@ -342,6 +357,13 @@ export default {
     },
     computed: {},
     methods: {
+        formatDate(date) {
+            if (!date) return null;
+            const parsedDate = moment(date);
+            return parsedDate.isValid()
+                ? parsedDate.format("DD-MM-YYYY h:mmA")
+                : null;
+        },
         clickOptions(recordId) {
             this.documentNewId = recordId;
             this.statusDocument.send = "";

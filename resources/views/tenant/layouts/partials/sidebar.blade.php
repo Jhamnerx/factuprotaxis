@@ -15,9 +15,15 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
     <div class="sidebar-header sidebar-header-desktop">
         <a href="{{ route('tenant.dashboard.index') }}" class="logo pt-2 pt-md-0">
             @if ($vc_company->logo)
-                <img src="{{ asset('storage/uploads/logos/' . $vc_company->logo) }}" alt="Logo" />
+                <img src="{{ asset('storage/uploads/logos/' . $vc_company->logo) }}" alt="Logo" class="logo-light"
+                    style="{{ $vc_company->logo_dark ? '' : '--show-light-logo: block;' }}" />
             @else
                 <img src="{{ asset('logo/tulogo.png') }}" alt="Logo" />
+            @endif
+
+            @if ($vc_company->logo_dark)
+                <img src="{{ asset('storage/uploads/logos/' . $vc_company->logo_dark) }}" alt="Logo"
+                    class="logo-dark" />
             @endif
         </a>
         <div class="d-md-none toggle-sidebar-left" data-toggle-class="sidebar-left-opened" data-target="html"
@@ -29,9 +35,15 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
         <div class="sidebar-header sidebar-header-mobile">
             <a href="{{ route('tenant.dashboard.index') }}" class="logo pt-2 pt-md-0 logo-container-sidebar">
                 @if ($vc_company->logo)
-                    <img src="{{ asset('storage/uploads/logos/' . $vc_company->logo) }}" alt="Logo" />
+                    <img src="{{ asset('storage/uploads/logos/' . $vc_company->logo) }}" alt="Logo"
+                        class="logo-light" style="{{ $vc_company->logo_dark ? '' : '--show-light-logo: block;' }}" />
                 @else
                     <img src="{{ asset('logo/tulogo.png') }}" alt="Logo" />
+                @endif
+
+                @if ($vc_company->logo_dark)
+                    <img src="{{ asset('storage/uploads/logos/' . $vc_company->logo_dark) }}" alt="Logo"
+                        class="logo-dark" />
                 @endif
             </a>
             <div class="d-md-none toggle-sidebar-left" data-toggle-class="sidebar-left-opened" data-target="html"
@@ -44,7 +56,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                 <ul class="nav nav-main nav-main-mobile">
                     @if (in_array('dashboard', $vc_modules))
                         <li class="{{ $firstLevel === 'dashboard' ? 'nav-active' : '' }}">
-                            <a class="nav-link" href="{{ route('tenant.dashboard.index') }}">
+                            <a class="nav-link dashboard-link" href="{{ route('tenant.dashboard.index') }}">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                     stroke-linecap="round" stroke-linejoin="round"
@@ -63,14 +75,14 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                     @if (in_array('preventa', $vc_modules))
                         <li
                             class="
-                                                                                                                    nav-parent
-                                                                                                                    {{ $firstLevel === 'quotations' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'order-notes' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'sale-opportunities' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'contracts' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'production-orders' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'technical-services' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                        ">
+                                                                                                                                            nav-parent
+                                                                                                                                            {{ $firstLevel === 'quotations' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'order-notes' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'sale-opportunities' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'contracts' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'production-orders' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'technical-services' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                ">
                             <a class="nav-link" href="#">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -131,13 +143,13 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                     @if (in_array('documents', $vc_modules))
                         <li
                             class="
-                                                                                                                    nav-parent
-                                                                                                                    {{ $firstLevel === 'documents' && $secondLevel !== 'create' && $secondLevel !== 'not-sent' && $secondLevel !== 'regularize-shipping' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'documents' && $secondLevel === 'create' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'sale-notes' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'regularize-shipping' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'pos' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                        ">
+                                                                                                                                            nav-parent
+                                                                                                                                            {{ $firstLevel === 'documents' && $secondLevel !== 'create' && $secondLevel !== 'not-sent' && $secondLevel !== 'regularize-shipping' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'documents' && $secondLevel === 'create' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'sale-notes' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'regularize-shipping' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'pos' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                ">
                             <a class="nav-link" href="#">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -205,16 +217,16 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                         @if (in_array('purchases', $vc_modules))
                             <li
                                 class="
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            nav-parent
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'purchases' ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ($firstLevel === 'persons' && $secondLevel === 'suppliers') ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            $firstLevel === 'expenses' ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            $firstLevel === 'purchase-quotations' ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            $firstLevel === 'purchase-orders' ||
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            $firstLevel === 'fixed-asset'
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ? 'nav-active nav-expanded'
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            nav-parent
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'purchases' ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ($firstLevel === 'persons' && $secondLevel === 'suppliers') ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            $firstLevel === 'expenses' ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            $firstLevel === 'purchase-quotations' ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            $firstLevel === 'purchase-orders' ||
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            $firstLevel === 'fixed-asset'
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ? 'nav-active nav-expanded'
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ">
                                 <a class="nav-link" href="#">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -296,10 +308,10 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                         @if (in_array('persons', $vc_modules))
                             <li
                                 class="nav-parent
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $firstLevel === 'persons' && $secondLevel === 'customers' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $firstLevel === 'person-types' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $firstLevel === 'agents' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'persons' && $secondLevel === 'customers' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'person-types' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'agents' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ">
                                 <a class="nav-link" href="#">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -340,76 +352,6 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                             </li>
                         @endif
 
-
-
-                        {{-- Productos --}}
-                        @if (in_array('items', $vc_modules))
-                            <li
-                                class="nav-parent
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $firstLevel === 'items' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $firstLevel === 'services' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $firstLevel === 'categories' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $firstLevel === 'brands' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $firstLevel === 'item-lots' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $firstLevel === 'item-sets' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ">
-                                <a class="nav-link" href="#">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round"
-                                        class="icon icon-tabler icons-tabler-outline icon-tabler-category-2">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                        <path d="M14 4h6v6h-6z" />
-                                        <path d="M4 14h6v6h-6z" />
-                                        <path d="M17 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
-                                        <path d="M7 7m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
-                                    </svg>
-                                    <span>Productos/Servicios</span>
-                                </a>
-                                <ul class="nav nav-children">
-                                    @if (in_array('items', $vc_module_levels))
-                                        <li class="{{ $firstLevel === 'items' ? 'nav-active' : '' }}">
-                                            <a class="nav-link"
-                                                href="{{ route('tenant.items.index') }}">Productos</a>
-                                        </li>
-                                    @endif
-                                    @if (in_array('items_packs', $vc_module_levels))
-                                        <li class="{{ $firstLevel === 'item-sets' ? 'nav-active' : '' }}">
-                                            <a class="nav-link"
-                                                href="{{ route('tenant.item_sets.index') }}">Conjuntos/Packs/Promociones</a>
-                                        </li>
-                                    @endif
-                                    @if (in_array('items_services', $vc_module_levels))
-                                        <li class="{{ $firstLevel === 'services' ? 'nav-active' : '' }}">
-                                            <a class="nav-link" href="{{ route('tenant.services') }}">Servicios</a>
-                                        </li>
-                                    @endif
-                                    @if (in_array('items_categories', $vc_module_levels))
-                                        <li class="{{ $firstLevel === 'categories' ? 'nav-active' : '' }}">
-                                            <a class="nav-link"
-                                                href="{{ route('tenant.categories.index') }}">Categorías</a>
-                                        </li>
-                                    @endif
-                                    @if (in_array('items_brands', $vc_module_levels))
-                                        <li class="{{ $firstLevel === 'brands' ? 'nav-active' : '' }}">
-                                            <a class="nav-link" href="{{ route('tenant.brands.index') }}">Marcas</a>
-                                        </li>
-                                    @endif
-                                    @if (in_array('items_lots', $vc_module_levels))
-                                        <li class="{{ $firstLevel === 'item-lots' ? 'nav-active' : '' }}">
-                                            <a class="nav-link"
-                                                href="{{ route('tenant.item-lots.index') }}">Series</a>
-                                        </li>
-                                    @endif
-
-                                    <!-- <li class="{{ $firstLevel === 'zones' ? 'nav-active' : '' }}">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <a class="nav-link"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                href="{{ route('tenant.zone.index') }}">Zonas</a>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </li> -->
-
-                                </ul>
-                            </li>
-                        @endif
                         <li
                             class="nav-parent {{ in_array($firstLevel, ['unidades', 'propietarios', 'marcas', 'modelos', 'planes', 'condiciones', 'solicitudes', 'pagos', 'permisos', 'constancias', 'declaraciones']) ? 'nav-active nav-expanded' : '' }}">
                             <a class="nav-link" href="#">
@@ -500,12 +442,83 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                             </ul>
                         </li>
 
+
+                        {{-- Productos --}}
+                        @if (in_array('items', $vc_modules))
+                            <li
+                                class="nav-parent
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'items' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'services' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'categories' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'brands' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'item-lots' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'item-sets' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ">
+                                <a class="nav-link" href="#">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round"
+                                        class="icon icon-tabler icons-tabler-outline icon-tabler-category-2">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M14 4h6v6h-6z" />
+                                        <path d="M4 14h6v6h-6z" />
+                                        <path d="M17 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                                        <path d="M7 7m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                                    </svg>
+                                    <span>Productos/Servicios</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    @if (in_array('items', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'items' ? 'nav-active' : '' }}">
+                                            <a class="nav-link"
+                                                href="{{ route('tenant.items.index') }}">Productos</a>
+                                        </li>
+                                    @endif
+                                    @if (in_array('items_packs', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'item-sets' ? 'nav-active' : '' }}">
+                                            <a class="nav-link"
+                                                href="{{ route('tenant.item_sets.index') }}">Conjuntos/Packs/Promociones</a>
+                                        </li>
+                                    @endif
+                                    @if (in_array('items_services', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'services' ? 'nav-active' : '' }}">
+                                            <a class="nav-link" href="{{ route('tenant.services') }}">Servicios</a>
+                                        </li>
+                                    @endif
+                                    @if (in_array('items_categories', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'categories' ? 'nav-active' : '' }}">
+                                            <a class="nav-link"
+                                                href="{{ route('tenant.categories.index') }}">Categorías</a>
+                                        </li>
+                                    @endif
+                                    @if (in_array('items_brands', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'brands' ? 'nav-active' : '' }}">
+                                            <a class="nav-link" href="{{ route('tenant.brands.index') }}">Marcas</a>
+                                        </li>
+                                    @endif
+                                    @if (in_array('items_lots', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'item-lots' ? 'nav-active' : '' }}">
+                                            <a class="nav-link"
+                                                href="{{ route('tenant.item-lots.index') }}">Series</a>
+                                        </li>
+                                    @endif
+
+                                    <!-- <li class="{{ $firstLevel === 'zones' ? 'nav-active' : '' }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <a class="nav-link"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        href="{{ route('tenant.zone.index') }}">Zonas</a>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </li> -->
+
+                                </ul>
+                            </li>
+                        @endif
+
+
                         {{-- Inventario --}}
                         @if (in_array('inventory', $vc_modules))
                             <li
                                 class="nav-parent
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {{ in_array($firstLevel, ['inventory', 'moves', 'transfers', 'devolutions', 'extra_info_items', 'inventory-review']) | ($firstLevel === 'reports' && in_array($secondLevel, ['kardex', 'inventory', 'valued-kardex'])) ? 'nav-active nav-expanded' : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {{ in_array($firstLevel, ['inventory', 'moves', 'transfers', 'devolutions', 'extra_info_items', 'inventory-review']) | ($firstLevel === 'reports' && in_array($secondLevel, ['kardex', 'inventory', 'valued-kardex'])) ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ">
                                 <a class="nav-link" href="#">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -597,8 +610,8 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                             ])
                                 ? 'nav-active nav-expanded'
                                 : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'cash' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            {{ $firstLevel === 'bank_loan' ? 'nav-active nav-expanded' : '' }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $firstLevel === 'cash' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $firstLevel === 'bank_loan' ? 'nav-active nav-expanded' : '' }}">
                             <a class="nav-link" href="#">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -697,12 +710,12 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                     @if (in_array('guia', $vc_modules) && $vc_company->soap_type_id != '03')
                         <li
                             class="nav-parent
-                                                                                                                            {{ $firstLevel === 'dispatches' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                            {{ $firstLevel === 'drivers' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                            {{ $firstLevel === 'dispatchers' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                            {{ $firstLevel === 'transports' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                            {{ $firstLevel === 'dispatch_carrier' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                            {{ $firstLevel === 'dispatch_addresses' ? 'nav-active nav-expanded' : '' }}">
+                                                                                                                                                    {{ $firstLevel === 'dispatches' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                    {{ $firstLevel === 'drivers' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                    {{ $firstLevel === 'dispatchers' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                    {{ $firstLevel === 'transports' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                    {{ $firstLevel === 'dispatch_carrier' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                                    {{ $firstLevel === 'dispatch_addresses' ? 'nav-active nav-expanded' : '' }}">
                             <a class="nav-link" href="#">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -766,10 +779,10 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                     @if (in_array('comprobante', $vc_modules))
                         <li
                             class="nav-parent
-                                                                                                                    {{ $secondLevel === 'not-sent' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $secondLevel === 'regularize-shipping' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'summaries' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'voided' ? 'nav-active nav-expanded' : '' }}">
+                                                                                                                                            {{ $secondLevel === 'not-sent' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $secondLevel === 'regularize-shipping' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'summaries' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'voided' ? 'nav-active nav-expanded' : '' }}">
                             <a class="nav-link" href="#">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -824,11 +837,11 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                     @if (in_array('advanced', $vc_modules) && $vc_company->soap_type_id != '03')
                         <li
                             class="nav-parent
-                                                                                                                    {{ $firstLevel === 'retentions' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'perceptions' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'order-forms' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'contingencies' ? 'nav-active nav-expanded' : '' }}
-                                                                                                                    {{ $firstLevel === 'purchase-settlements' ? 'nav-active nav-expanded' : '' }}">
+                                                                                                                                            {{ $firstLevel === 'retentions' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'perceptions' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'order-forms' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'contingencies' ? 'nav-active nav-expanded' : '' }}
+                                                                                                                                            {{ $firstLevel === 'purchase-settlements' ? 'nav-active nav-expanded' : '' }}">
                             <a class="nav-link" href="#">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -981,7 +994,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                     @if (in_array('ecommerce', $vc_modules))
                         <li
                             class="nav-parent
-                                                                                                                    {{ in_array($firstLevel, ['ecommerce', 'items_ecommerce', 'tags', 'promotions', 'orders', 'configuration']) ? 'nav-active nav-expanded' : '' }}">
+                                                                                                                                            {{ in_array($firstLevel, ['ecommerce', 'items_ecommerce', 'tags', 'promotions', 'orders', 'configuration']) ? 'nav-active nav-expanded' : '' }}">
                             <a class="nav-link" href="#">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -1060,7 +1073,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                             <ul class="nav nav-children">
                                 {{-- <li
                                     class="nav-parent
-                                                                                                                            {{ ($secondLevel != null && $secondLevel == 'cash' && $thridLevel == 'pos')?'nav-active nav-expanded':'' }}">
+                                                                                                                                                    {{ ($secondLevel != null && $secondLevel == 'cash' && $thridLevel == 'pos')?'nav-active nav-expanded':'' }}">
                                     <a class="nav-link" href="#">
                                         POS
                                     </a>
@@ -1097,7 +1110,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
 
                                 <li
                                     class="nav-parent
-                                                                                                                            {{ ($secondLevel != null && $secondLevel == 'promotions') || ($secondLevel != null && $secondLevel == 'orders') ? 'nav-active nav-expanded' : '' }}">
+                                                                                                                                                    {{ ($secondLevel != null && $secondLevel == 'promotions') || ($secondLevel != null && $secondLevel == 'orders') ? 'nav-active nav-expanded' : '' }}">
                                     <a class="nav-link" href="#">
                                         Pedidos Delivery
                                     </a>
@@ -1207,8 +1220,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                                     <path d="M9 15l0 .01" />
                                     <path d="M9 18l0 .01" />
                                 </svg>
-                                <span>Hoteles <sup
-                                        style="background: #ffc300;padding: 0px 3px;border-radius: 4px;">Beta</sup></span>
+                                <span>Hoteles</span>
                             </a>
                             <ul class="nav nav-children">
                                 @if (in_array('hotels_reception', $vc_module_levels))
@@ -1324,7 +1336,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                                 {{-- @if (in_array('suscription_app_client', $vc_module_levels)) --}}
                                 <li
                                     class="nav-parent {{ $firstLevel === 'suscription' && $secondLevel === 'client' ? ' nav-active nav-expanded ' : '' }}
-                                                                                                                                ">
+                                                                                                                                                        ">
 
                                     <a class="nav-link" href="#">
                                         Clientes

@@ -60,9 +60,9 @@ class ConfigurationController extends Controller
             $pdf = new Mpdf([
                 'fontDir' => array_merge($fontDirs, [
                     app_path('CoreFacturalo' . DIRECTORY_SEPARATOR . 'Templates' .
-                                             DIRECTORY_SEPARATOR . 'pdf' .
-                                             DIRECTORY_SEPARATOR . $base_pdf_template .
-                                             DIRECTORY_SEPARATOR . 'font')
+                        DIRECTORY_SEPARATOR . 'pdf' .
+                        DIRECTORY_SEPARATOR . $base_pdf_template .
+                        DIRECTORY_SEPARATOR . 'font')
                 ]),
                 'fontdata' => $fontData + [
                     'custom_bold' => [
@@ -86,9 +86,9 @@ class ConfigurationController extends Controller
             ]);
         }
         $path_css = app_path('CoreFacturalo' . DIRECTORY_SEPARATOR . 'Templates' .
-                                             DIRECTORY_SEPARATOR . 'preprinted_pdf' .
-                                             DIRECTORY_SEPARATOR . $request->base_pdf_template .
-                                             DIRECTORY_SEPARATOR . 'style.css');
+            DIRECTORY_SEPARATOR . 'preprinted_pdf' .
+            DIRECTORY_SEPARATOR . $request->base_pdf_template .
+            DIRECTORY_SEPARATOR . 'style.css');
 
         $stylesheet = file_get_contents($path_css);
 
@@ -143,8 +143,8 @@ class ConfigurationController extends Controller
     public function addSeeder()
     {
         $reiniciar = DB::connection('tenant')
-                        ->table('format_templates')
-                        ->truncate();
+            ->table('format_templates')
+            ->truncate();
         $archivos = Storage::disk('core')->allDirectories('Templates/pdf');
         $collection = [];
         $valor = [];
@@ -157,19 +157,20 @@ class ConfigurationController extends Controller
 
         foreach ($collection as $insertar) {
             $urls = [
-                'guide' => \File::exists(public_path('templates/pdf/'.$insertar[2].'/image_guide.png')) ? 'templates/pdf/'.$insertar[2].'/image_guide.png' : '',
-                'invoice' => \File::exists(public_path('templates/pdf/'.$insertar[2].'/image.png')) ? 'templates/pdf/'.$insertar[2].'/image.png' : 'templates/pdf/default/image.png',
-                'ticket' => \File::exists(public_path('templates/pdf/'.$insertar[2].'/ticket.png')) ? 'templates/pdf/'.$insertar[2].'/ticket.png' : '',
+                'guide' => \File::exists(public_path('templates/pdf/' . $insertar[2] . '/image_guide.png')) ? 'templates/pdf/' . $insertar[2] . '/image_guide.png' : '',
+                'invoice' => \File::exists(public_path('templates/pdf/' . $insertar[2] . '/image.png')) ? 'templates/pdf/' . $insertar[2] . '/image.png' : 'templates/pdf/default/image.png',
+                'ticket' => \File::exists(public_path('templates/pdf/' . $insertar[2] . '/ticket.png')) ? 'templates/pdf/' . $insertar[2] . '/ticket.png' : '',
             ];
 
             $insertar = DB::connection('tenant')
-            ->table('format_templates')
-            ->insert([
-                [
-                    'formats' => $insertar[2],
-                    'urls' => json_encode($urls),
-                    'is_custom_ticket' => \File::exists(public_path('templates/pdf/'.$insertar[2].'/ticket.png')) ? 1 : 0 ]
-            ]);
+                ->table('format_templates')
+                ->insert([
+                    [
+                        'formats' => $insertar[2],
+                        'urls' => json_encode($urls),
+                        'is_custom_ticket' => \File::exists(public_path('templates/pdf/' . $insertar[2] . '/ticket.png')) ? 1 : 0
+                    ]
+                ]);
         }
 
         // revisión custom //obsoleto
@@ -198,8 +199,8 @@ class ConfigurationController extends Controller
 
     public function getTicketFormats()
     {
-        $formats = FormatTemplate::where('is_custom_ticket', true)->get()->transform(function($row) {
-                return $row->getCollectionData();
+        $formats = FormatTemplate::where('is_custom_ticket', true)->get()->transform(function ($row) {
+            return $row->getCollectionData();
         });
 
         return compact('formats');
@@ -208,8 +209,8 @@ class ConfigurationController extends Controller
     public function addPreprintedSeeder()
     {
         $reiniciar = DB::connection('tenant')
-                        ->table('preprinted_format_templates')
-                        ->truncate();
+            ->table('preprinted_format_templates')
+            ->truncate();
         $archivos = Storage::disk('core')->allDirectories('Templates/preprinted_pdf');
         $colection = [];
         $valor = [];
@@ -222,8 +223,8 @@ class ConfigurationController extends Controller
 
         foreach ($colection as $insertar) {
             $insertar = DB::connection('tenant')
-            ->table('preprinted_format_templates')
-            ->insert(['formats' => $insertar[2]]);
+                ->table('preprinted_format_templates')
+                ->insert(['formats' => $insertar[2]]);
         }
 
         // revisión custom
@@ -270,8 +271,8 @@ class ConfigurationController extends Controller
 
     public function getFormats()
     {
-        $formats = FormatTemplate::get()->transform(function($row) {
-                return $row->getCollectionData();
+        $formats = FormatTemplate::get()->transform(function ($row) {
+            return $row->getCollectionData();
         });
 
         return compact('formats');
@@ -288,13 +289,13 @@ class ConfigurationController extends Controller
 
     public function pdfTemplates()
     {
-        $establishments = Establishment::select(['id','description','template_pdf'])->get();
+        $establishments = Establishment::select(['id', 'description', 'template_pdf'])->get();
         return view('tenant.advanced.pdf_templates')->with('establishments', $establishments);
     }
 
     public function pdfTicketTemplates()
     {
-        $establishments = Establishment::select(['id','description','template_ticket_pdf'])->get();
+        $establishments = Establishment::select(['id', 'description', 'template_ticket_pdf'])->get();
         return view('tenant.advanced.pdf_ticket_templates')->with('establishments', $establishments);
     }
 
@@ -311,7 +312,12 @@ class ConfigurationController extends Controller
     public function record()
     {
         $configuration = Configuration::first();
-        return ['data'=>$configuration->getCollectionData()];
+        return [
+            'data' => array_merge(
+                $configuration->getCollectionData(),
+                ['default_image' => $configuration->product_default_image]
+            )
+        ];
         $record = new ConfigurationResource($configuration);
 
         return  $record;
@@ -344,10 +350,10 @@ class ConfigurationController extends Controller
      *
      * @return array
      */
-    public function storeApiRuc( Request  $request)
+    public function storeApiRuc(Request  $request)
     {
         $configuration = Configuration::first();
-        if(empty($configuration)){
+        if (empty($configuration)) {
             $configuration = new Configuration();
         }
         $configuration->token_apiruc = $request->token_apiruc;
@@ -510,7 +516,8 @@ class ConfigurationController extends Controller
         ];
     }
 
-    private function getMenu() {
+    private function getMenu()
+    {
         $configuration = Configuration::first();
         return $menus = [
             'top_menu_a' => $configuration->top_menu_a_id ? $configuration->top_menu_a : '',
@@ -522,7 +529,7 @@ class ConfigurationController extends Controller
 
     public function visualGetMenu()
     {
-        $modules = ModuleLevel::where([['route_name', '!=', null],['label_menu', '!=', null]])->get();
+        $modules = ModuleLevel::where([['route_name', '!=', null], ['label_menu', '!=', null]])->get();
 
         return [
             'modules' => $modules,
@@ -554,7 +561,7 @@ class ConfigurationController extends Controller
                 'message' =>  'Tipo de archivo no permitido',
             ];
         }
-        if (Storage::disk('public')->exists('skins'.DIRECTORY_SEPARATOR.$request->file->getClientOriginalName())) {
+        if (Storage::disk('public')->exists('skins' . DIRECTORY_SEPARATOR . $request->file->getClientOriginalName())) {
             return [
                 'success' => false,
                 'message' =>  'Archivo ya existe',
@@ -570,7 +577,7 @@ class ConfigurationController extends Controller
 
             UploadFileHelper::checkIfValidCssFile($filename, $file->getPathName(), 'css', ['text/css', 'text/plain']);
 
-            Storage::disk('public')->put('skins'.DIRECTORY_SEPARATOR.$filename, $file_content);
+            Storage::disk('public')->put('skins' . DIRECTORY_SEPARATOR . $filename, $file_content);
 
             $skin = new Skin;
             $skin->filename = $filename;
@@ -593,7 +600,7 @@ class ConfigurationController extends Controller
     public function visualDeleteSkin(Request $request)
     {
         $config = Configuration::first();
-        if($config->skin_id == $request->id) {
+        if ($config->skin_id == $request->id) {
             return [
                 'success' => false,
                 'message' => 'No se puede eliminar el Tema actual'
@@ -602,7 +609,7 @@ class ConfigurationController extends Controller
 
 
         $skin = Skin::find($request->id);
-        Storage::disk('public')->delete('skins'.DIRECTORY_SEPARATOR.$skin->filename);
+        Storage::disk('public')->delete('skins' . DIRECTORY_SEPARATOR . $skin->filename);
         $skin->delete();
 
         $skins = Skin::all();
@@ -641,26 +648,21 @@ class ConfigurationController extends Controller
         $configuration = Configuration::first();
         $folder = 'pdf_footer_images';
 
-        foreach ($images as $index => $image)
-        {
+        foreach ($images as $index => $image) {
             $temp_path = $image['temp_path'] ?? null;
 
-            if($temp_path)
-            {
+            if ($temp_path) {
                 $old_filename = $image['filename'];
                 UploadFileHelper::checkIfValidFile($old_filename, $temp_path, true);
                 $first_old_filename = explode('.', $old_filename)[0];
-                $filename = UploadFileHelper:: uploadImageFromTempFile($folder, $old_filename, $temp_path, "{$first_old_filename}_{$index}_", true);
-            }
-            else
-            {
+                $filename = UploadFileHelper::uploadImageFromTempFile($folder, $old_filename, $temp_path, "{$first_old_filename}_{$index}_", true);
+            } else {
                 $filename = $image['name'];
             }
 
-            $data [] = [
+            $data[] = [
                 'filename' => $filename,
             ];
-
         }
 
         $configuration->pdf_footer_images = $data;
@@ -668,5 +670,4 @@ class ConfigurationController extends Controller
 
         return $this->generalResponse(true, 'Proceso realizado correctamente.');
     }
-
 }

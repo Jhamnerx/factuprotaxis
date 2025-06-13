@@ -31,7 +31,7 @@
     
                     </div>
                     <div class="card-body">
-                        <div class="row m-b-10">
+                        <div class="row m-b-10 mt-3">
                             <div class="col-md-4 mb-3 form-modern">
                                 <label class="control-label">Almacen</label>
                                 <el-select v-model="form.warehouse_id"
@@ -446,6 +446,7 @@ export default {
                     'warehouse_id': this.form.warehouse_id,
                     brand_id: this.form.brand_id,
                     category_id: this.form.category_id,
+                    active: this.form.active,
                 },
             })
                 .then(response => {

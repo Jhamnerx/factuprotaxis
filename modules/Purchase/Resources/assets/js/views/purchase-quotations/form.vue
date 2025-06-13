@@ -8,7 +8,10 @@
                 <header class="clearfix clearfix-default p-2">
                     <div class="row">
                         <div class="col-sm-2 text-center mt-3 mb-0">
-                            <logo url="/" :path_logo="(company.logo != null) ? `/storage/uploads/logos/${company.logo}` : ''" ></logo>
+                            <logo 
+                                url="/"
+                                :path_logo="getCurrentLogo"
+                            ></logo>
                         </div>
                         <div class="col-sm-10 text-left mt-3 mb-0">
                             <address class="ib mr-2" >
@@ -83,7 +86,7 @@
                                     <table class="table">
                                         <thead>
                                             <tr width="100%" class="table-titles-default">
-                                                <th width="5%">#</th>
+                                                <!-- <th width="5%">#</th> -->
                                                 <th width="50%" class="font-weight-bold">Descripción</th>
                                                 <th width="15%" class="text-center font-weight-bold">Unidad</th>
                                                 <th width="15%" class="text-right font-weight-bold">Cantidad</th> 
@@ -92,7 +95,7 @@
                                         </thead>
                                         <tbody v-if="form.items.length > 0">
                                             <tr v-for="(row, index) in form.items" :key="index" width="100%">
-                                                <td width="5%">{{index + 1}}</td>
+                                                <!-- <td width="5%">{{index + 1}}</td> -->
                                                 <td width="50%">{{row.item.description}}</td>
                                                 <td width="15%" class="text-center">{{row.item.unit_type_id}}</td>
                                                 <td width="15%" class="text-right">{{row.quantity}}</td> 
@@ -100,14 +103,17 @@
                                                     <button type="button" class="btn waves-effect waves-light btn-xs btn-danger" @click.prevent="clickRemoveItem(index)">x</button>
                                                 </td>
                                             </tr>
-                                            <tr><td colspan="8"></td></tr>
+                                            <!-- <tr><td colspan="8"></td></tr> -->
                                         </tbody>
-                                    </table>
+                                    </table>                                    
                                 </div>
                             </div>
-                            <div class="col-lg-12 col-md-6 d-flex align-items-end">
-                                <div class="form-group">
+                            <div class="col-lg-12 col-md-6 d-flex flex-column align-items-start mt-0">
+                                <div class="pb-2">
                                     <button type="button" class="btn waves-effect waves-light btn-primary" @click.prevent="showDialogAddItem = true">+ Agregar Producto</button>
+                                </div>
+                                <div v-if="form.items.length > 0" class="total-rows">
+                                    <span>Total de ítems: {{ form.items.length }}</span>
                                 </div>
                             </div>
   
@@ -151,6 +157,19 @@
     export default {
         props: ['id'],
         components: {QuotationFormItem, PersonForm, PurchaseQuotationOptions, Logo},
+        computed: {
+            getCurrentLogo() {
+                const isDarkMode = document.documentElement.classList.contains('dark');
+        
+                if (isDarkMode && this.company.logo_dark) {
+                    return `/storage/uploads/logos/${this.company.logo_dark}`;
+                }
+                if (this.company.logo) {
+                    return `/storage/uploads/logos/${this.company.logo}`;
+                }
+                return '';
+            }
+        },
         data() {
             return {
                 resource: 'purchase-quotations',

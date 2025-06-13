@@ -380,19 +380,12 @@ export default {
             show_input_email: false,
             form_utilities: {},
             headers: headers_token,
-            fileList: [],
-            wsp: {}
+            fileList: []
         };
     },
     async created() {
         await this.initForm();
         await this.getConfiguration();
-        this.initForm();
-        await this.$http.get(`/companies/record`).then(response => {
-            if (response.data !== "") {
-                this.wsp = response.data.data;
-            }
-        });
     },
     methods: {
         errorUpload(error) {
@@ -486,45 +479,17 @@ export default {
             if (!this.form_utilities.customer_telephone) {
                 return this.$message.error("El número es obligatorio");
             }
-            if (!this.wsp.ws_api_token) {
-                return this.$message.error(
-                    "No se ha configurado el token de la API de Whatsapp"
-                );
-            }
+
             const text = `Su link de pago ha sido generado correctamente, puede revisarlo en: ${
                 this.form.user_payment_link
             }`;
-            const url = this.form.download_external_pdf;
 
-            if (!url) {
-                return this.$message.error(
-                    "No se encontró una URL en el mensaje"
-                );
-            }
-
-            const payload = {
-                api_key: this.wsp.ws_api_token,
-                receiver: `51${this.form_utilities.customer_telephone}`,
-                data: {
-                    url: url,
-                    media_type: "file",
-                    caption: text
-                }
-            };
-
-            this.$http
-                .post("https://whatsapp.siapol.site/api/send-media", payload)
-                .then(response => {
-                    if (response.status === 200) {
-                        this.$message.success("Mensaje enviado correctamente");
-                        form.customer_telephone = null;
-                    } else {
-                        this.$message.error("Error al enviar el mensaje");
-                    }
-                })
-                .catch(error => {
-                    this.$message.error("Error al enviar el mensaje");
-                });
+            window.open(
+                `https://wa.me/51${
+                    this.form_utilities.customer_telephone
+                }?text=${text}`,
+                "_blank"
+            );
         },
         showInputEmail() {
             this.show_input_email = !this.show_input_email;

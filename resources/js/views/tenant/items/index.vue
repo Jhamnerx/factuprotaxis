@@ -174,6 +174,7 @@
                                         column.visible !== undefined
                                 "
                                 v-model="column.visible"
+                                @change="saveColumnVisibility"
                                 >{{ column.title }}
                             </el-checkbox>
                         </el-dropdown-item>
@@ -181,19 +182,51 @@
                 </el-dropdown>
             </div>
             <div class="card-body">
-                <data-table :productType="type" :resource="resource">
-                    <tr slot="heading" width="100%">
+                <data-table
+                    :productType="type"
+                    :resource="resource"
+                    :sort-field="sortField"
+                    :sort-direction="sortDirection"
+                    @sort-change="handleSortChange"
+                >
+                    <tr slot="heading" width="100%" slot-scope="{ sort }">
                         <!-- <th>#</th> -->
-                        <th>ID</th>
-                        <th>Cód. Interno</th>
+                        <th class="text-right" style="max-width: 83px;">ID</th>
+                        <th class="text-right">Cód. Interno</th>
                         <th>Unidad</th>
                         <th>Imagen</th>
-                        <th>Nombre</th>
+                        <th>
+                            <a
+                                href="#"
+                                @click.prevent="sort('description')"
+                                style="color: inherit; text-decoration: none;"
+                            >
+                                Nombre
+                                <i
+                                    class="fas"
+                                    :class="{
+                                        'fa-sort-up':
+                                            sortField === 'description' &&
+                                            sortDirection === 'asc',
+                                        'fa-sort-down':
+                                            sortField === 'description' &&
+                                            sortDirection === 'desc',
+                                        'fa-sort':
+                                            sortField !== 'description' ||
+                                            (sortField === 'description' &&
+                                                sortDirection === 'default')
+                                    }"
+                                ></i>
+                            </a>
+                        </th>
                         <th v-if="columns.description.visible">Descripción</th>
                         <th v-if="columns.model.visible">Modelo</th>
                         <th v-if="columns.brand.visible">Marca</th>
-                        <th v-if="columns.item_code.visible">Cód. SUNAT</th>
+                        <th class="text-right" v-if="columns.item_code.visible">
+                            Cód. SUNAT
+                        </th>
                         <th
+                            class="text-right"
                             v-if="
                                 columns.sanitary !== undefined &&
                                     columns.sanitary.visible === true
@@ -234,14 +267,14 @@
                         </th>
                         <th
                             v-if="columns.real_unit_price.visible"
-                            class="text-center"
+                            class="text-right"
                         >
                             P. venta
                         </th>
-                        <th class="text-center">Tiene Igv (Venta)</th>
+                        <th class="text-left">Tiene Igv (Venta)</th>
                         <th
                             v-if="columns.purchase_has_igv_description.visible"
-                            class="text-center"
+                            class="text-left"
                         >
                             Tiene Igv (Compra)
                         </th>
@@ -254,8 +287,8 @@
                         :class="{ disable_color: !row.active }"
                     >
                         <!-- <td>{{ index }}</td> -->
-                        <td>{{ row.id }}</td>
-                        <td>{{ row.internal_id }}</td>
+                        <td class="text-right">{{ row.id }}</td>
+                        <td class="text-right">{{ row.internal_id }}</td>
                         <td>{{ row.unit_type_id }}</td>
                         <td>
                             <img
@@ -267,12 +300,12 @@
                             />
                         </td>
                         <td>{{ row.description }}</td>
-                        <td v-if="columns.model.visible">{{ row.model }}</td>
-                        <td v-if="columns.brand.visible">{{ row.brand }}</td>
                         <td v-if="columns.description.visible">
                             {{ row.name }}
                         </td>
-                        <td v-if="columns.item_code.visible">
+                        <td v-if="columns.model.visible">{{ row.model }}</td>
+                        <td v-if="columns.brand.visible">{{ row.brand }}</td>
+                        <td class="text-right" v-if="columns.item_code.visible">
                             {{ row.item_code }}
                         </td>
                         <td
@@ -284,6 +317,7 @@
                             {{ row.sanitary }}
                         </td>
                         <td
+                            class="text-right"
                             v-if="
                                 columns.cod_digemid !== undefined &&
                                     columns.cod_digemid.visible === true
@@ -305,7 +339,12 @@
                         </template>
 
                         <td>
-                            <div v-if="config.product_only_location == true">
+                            <div
+                                v-if="config.product_only_location == true"
+                                :class="{
+                                    'text-danger': row.stock < row.stock_min
+                                }"
+                            >
                                 {{ row.stock }}
                             </div>
                             <div v-else>
@@ -314,7 +353,13 @@
                                         typeUser == 'seller' &&
                                             row.unit_type_id != 'ZZ'
                                     "
-                                    >{{ row.stock }}
+                                    ><span
+                                        :class="{
+                                            'text-danger':
+                                                row.stock < row.stock_min
+                                        }"
+                                        >{{ row.stock }}</span
+                                    >
                                 </template>
                                 <template
                                     v-else-if="
@@ -396,16 +441,16 @@
                         </td>
                         <td
                             v-if="columns.real_unit_price.visible"
-                            class="text-center"
+                            class="text-right"
                         >
                             {{ row.sale_unit_price_with_igv }}
                         </td>
-                        <td class="text-center">
+                        <td class="text-left">
                             {{ row.has_igv_description }}
                         </td>
                         <td
                             v-if="columns.purchase_has_igv_description.visible"
-                            class="text-center"
+                            class="text-left"
                         >
                             {{ row.purchase_has_igv_description }}
                         </td>
@@ -666,10 +711,13 @@ export default {
             titleTopBar: "",
             title: "",
             showDialogHistory: false,
-            showDialogItemStock: false
+            showDialogItemStock: false,
+            sortField: localStorage.getItem("itemSortField") || "id",
+            sortDirection: localStorage.getItem("itemSortDirection") || "desc"
         };
     },
     created() {
+        this.loadColumnVisibility();
         this.$store.commit("setConfiguration", this.configuration);
         this.loadConfiguration();
 
@@ -715,6 +763,34 @@ export default {
         }
     },
     methods: {
+        handleSortChange(sort) {
+            if (
+                this.sortField === sort.field &&
+                this.sortDirection === "desc" &&
+                sort.field === "description"
+            ) {
+                this.sortField = "id";
+                this.sortDirection = "desc";
+            } else {
+                this.sortField = sort.field;
+                this.sortDirection = sort.direction;
+            }
+
+            localStorage.setItem("itemSortField", this.sortField);
+            localStorage.setItem("itemSortDirection", this.sortDirection);
+        },
+        saveColumnVisibility() {
+            localStorage.setItem(
+                "columnVisibilityItems",
+                JSON.stringify(this.columns)
+            );
+        },
+        loadColumnVisibility() {
+            const savedColumns = localStorage.getItem("columnVisibilityItems");
+            if (savedColumns) {
+                this.columns = JSON.parse(savedColumns);
+            }
+        },
         ...mapActions(["loadConfiguration"]),
         clickHistory(recordId) {
             this.recordId = recordId;

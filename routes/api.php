@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\Tenant\ConfigurationImageController;
+
 Route::get('generate_token', 'Tenant\Api\MobileController@getSeries');
 
 $hostname = app(Hyn\Tenancy\Contracts\CurrentHostname::class);
 if ($hostname) {
     Route::domain($hostname->fqdn)->group(function () {
-
+        Route::post('configurations/default-image', [ConfigurationImageController::class, 'upload']);
         Route::post('login', 'Tenant\Api\MobileController@login');
 
         Route::middleware(['auth:api', 'locked.tenant'])->group(function () {
@@ -52,6 +54,7 @@ if ($hostname) {
             Route::post('dispatches/send', 'Tenant\Api\DispatchController@send');
             Route::post('dispatches/status_ticket', 'Tenant\Api\DispatchController@statusTicket');
             Route::get('dispatches/tables', 'Tenant\Api\DispatchController@tables');
+            Route::get('dispatches/records', 'Tenant\Api\DispatchController@records');
 
             Route::post('documents_server', 'Tenant\Api\DocumentController@storeServer');
             Route::get('document_check_server/{external_id}', 'Tenant\Api\DocumentController@documentCheckServer');

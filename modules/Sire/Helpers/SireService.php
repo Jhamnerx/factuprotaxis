@@ -45,14 +45,12 @@ class SireService
 
     public function getToken($force = false)
     {
-        if ($force || !($token = Cache::get('sire_token'))) {
-            $queryToken = $this->queryToken();
-            if (!$queryToken['success']) {
-                return $queryToken;
-            }
-            $token = $queryToken['access_token'];
-        }
+        $queryToken = $this->queryToken();
 
+        if (!$queryToken['success']) {
+            return $queryToken;
+        }
+        $token = $queryToken['access_token'];
         return [
             'success' => true,
             'token' => $token
@@ -92,7 +90,7 @@ class SireService
         }
 
         if ($statusCode === 200) {
-            $this->updateToken($data['access_token'], $data['expires_in']);
+
             return [
                 'success' => true,
                 'code' => $statusCode,
@@ -117,7 +115,7 @@ class SireService
                 break;
         }
         $get_token = $this->getToken();
-        $token = $get_token['token'];
+        $token = ($get_token['success']) ? $get_token['token'] : null;
 
         $url_base = self::$PERIODS;
         $url = str_replace('COD_LIBRO', $cod_libro, $url_base);
@@ -152,16 +150,16 @@ class SireService
     public function getTicket($type, $period)
     {
         $get_token = $this->getToken();
-        $token = $get_token['token'];
+        $token = ($get_token['success']) ? $get_token['token'] : null;
 
         switch ($type) {
             case 'sale':
                 $suffix = 'exportapropuesta?codTipoArchivo=0';
-                $url = str_replace(['TYPE','PERIOD','SUFFIX'], ['rvie', $period, $suffix], self::$PROPOSAL);
+                $url = str_replace(['TYPE', 'PERIOD', 'SUFFIX'], ['rvie', $period, $suffix], self::$PROPOSAL);
                 break;
             case 'purchase':
                 $suffix = 'exportacioncomprobantepropuesta?codTipoArchivo=0&codOrigenEnvio=1';
-                $url = str_replace(['TYPE','PERIOD','SUFFIX'], ['rce', $period, $suffix], self::$PROPOSAL);
+                $url = str_replace(['TYPE', 'PERIOD', 'SUFFIX'], ['rce', $period, $suffix], self::$PROPOSAL);
                 break;
         }
 
@@ -196,9 +194,9 @@ class SireService
     public function queryTicket($page, $period, $ticket, $type)
     {
         $get_token = $this->getToken();
-        $token = $get_token['token'];
+        $token = ($get_token['success']) ? $get_token['token'] : null;
 
-        $url = str_replace(['NUM_PAGE','PERIOD','NUM_TICKET'], [$page, $period, $ticket], self::$QUERY);
+        $url = str_replace(['NUM_PAGE', 'PERIOD', 'NUM_TICKET'], [$page, $period, $ticket], self::$QUERY);
 
         $client = new Client();
         $response = $client->request('GET', $url, [
@@ -228,7 +226,7 @@ class SireService
 
                 $documents = null;
                 if ($status_code == '06' && $filename != null) {
-                    $documents = $this->queryFile($filename, $type);
+                    $documents = $this->queryFile($filename, $type, $period, $ticket);
                 }
                 return [
                     'success' => true,
@@ -249,23 +247,24 @@ class SireService
         }
     }
 
-    function validateAndGetValue($object, $key) {
+    function validateAndGetValue($object, $key)
+    {
         return isset($object[$key]) ? $object[$key] : null;
     }
 
-    public function queryFile($filename, $type)
+    public function queryFile($filename, $type, $period, $ticket)
     {
         $get_token = $this->getToken();
-        $token = $get_token['token'];
+        $token = ($get_token['success']) ? $get_token['token'] : null;
 
         switch ($type) {
             case 'sale':
-                $suffix = '&codLibro=140000';
-                $url = str_replace(['FILENAME','SUFFIX'], [$filename, $suffix], self::$DOWNLOAD);
+                $suffix = '&codLibro=140000&perTributario=' . $period . '&codProceso=10&numTicket=' . $ticket;
+                $url = str_replace(['FILENAME', 'SUFFIX'], [$filename, $suffix], self::$DOWNLOAD);
                 break;
             case 'purchase':
-                $suffix = '';
-                $url = str_replace(['FILENAME','SUFFIX'], [$filename, $suffix], self::$DOWNLOAD);
+                $suffix = '&perTributario=' . $period . '&codProceso=10&numTicket=' . $ticket;
+                $url = str_replace(['FILENAME', 'SUFFIX'], [$filename, $suffix], self::$DOWNLOAD);
                 break;
         }
 
@@ -310,18 +309,18 @@ class SireService
                     $lines = file($path_txt, FILE_IGNORE_NEW_LINES); // Storage no funcionó
                     array_shift($lines); // Eliminando cabeceras
                     $dataCollection = new Collection();
-                    if($type == 'sale'){
+                    if ($type == 'sale') {
                         foreach ($lines as $line) {
                             $values = explode('|', $line);
-                            $serie = $values[3];
-                            $number = (int) $values[4];
+                            $serie = $values[7];
+                            $number = (int) $values[8];
                             $dataCollection->push([
                                 'service' => 'SUNAT',
-                                'date' => $values[0], // 2023/05/01
-                                'document_type' => $values[2],
+                                'date' => $values[4], // 2023/05/01
+                                'document_type' => $values[6],
                                 'serie' => $serie,
                                 'number' => $number,
-                                'total' => $values[21]
+                                'total' => $values[25]
                             ]);
 
                             $document = Document::where('series', $serie)
@@ -353,9 +352,9 @@ class SireService
                             ]);
 
                             $purchase = Purchase::where('series', $serie)
-                                            ->where('number', $number)
-                                            ->first();
-                            if($purchase) {
+                                ->where('number', $number)
+                                ->first();
+                            if ($purchase) {
                                 $dataCollection->push([
                                     'service' => 'PRO-5',
                                     'date' => $purchase->date_of_issue->format('d/m/Y'),
@@ -392,7 +391,7 @@ class SireService
     public function sendAccept($period)
     {
         $get_token = $this->getToken();
-        $token = $get_token['token'];
+        $token = ($get_token['success']) ? $get_token['token'] : null;
 
         $url = str_replace('PERIOD', $period, self::$ACCEPT);
 

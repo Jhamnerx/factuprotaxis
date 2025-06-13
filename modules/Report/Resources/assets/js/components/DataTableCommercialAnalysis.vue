@@ -5,14 +5,14 @@
             <div class="col-md-12 col-lg-12 col-xl-12 ">
                   <div class="row">
                     <div class="col-lg-8 col-md-8 mb-2">
-                        <div class="form-group"> 
+                        <div class="form-group filter-content"> 
                             <el-button
                                 type="primary"
                                 class="btn-show-filter mb-2"
                                 :class="{ shift: see_more }"
                                 @click="clickSeeMore"
                             >
-                                {{ see_more ? "Ocultar filtros de búsqueda" : "Mostrar filtros de búsqueda" }}
+                                {{ see_more ? "Ocultar filtros" : "Mostrar filtros" }}
                         </el-button>
                         </div>
                     </div> 

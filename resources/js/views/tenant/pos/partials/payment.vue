@@ -239,97 +239,98 @@
                         <div class="card-body text-center">
 
                             <div class="row col-lg-12">
-                                <div class="col-lg-6">
-                                    <div class="form-group">
-                                        <label class="control-label">Ingrese monto</label>
+                                <div class="col-lg-4">
+                                    <span slot="prepend" class="currency-symbol-span">{{ currencyTypeActive.symbol }}</span>
+                                    <div class="form-group amount-container">
+                                        <label class="control-label text-left w-100">Ingrese monto</label>
                                         <el-input ref="enter_amount"
                                                   v-model="enter_amount"
                                                   @input="enterAmount()"
-                                                  @keyup.enter.native="keyupEnterAmount()">
-                                            <template slot="prepend">{{ currencyTypeActive.symbol }}</template>
+                                                  @keyup.enter.native="keyupEnterAmount()">                                            
                                         </el-input>
 
                                     </div>
                                 </div>
-
-                                <div class="col-lg-6">
+                                <div class="col-lg-4 descount-container">
+                                    <h2 class="m-0 d-flex align-items-center justify-content-center switch-wrapper">
+                                        <el-switch v-model="enabled_discount"
+                                                   active-text="Descuento"
+                                                   class="control-label font-weight-semibold m-0 text-center m-b-0"
+                                                   @change="changeEnabledDiscount"></el-switch>
+                                    </h2>
+                                    <div v-if="enabled_discount">
+                                        <span slot="prepend" class="currency-symbol-span" v-if="is_discount_amount">{{ currencyTypeActive.symbol }}</span>
+                                        <span slot="append" class="currency-symbol-span" v-else>%</span>
+                                        <div class="form-group amount-container">
+                                            <label class="control-label text-left w-100">
+    
+                                                <template>{{ (is_discount_amount) ? 'Monto' : 'Porcentaje'}} descuento</template>
+    
+                                                <el-tooltip class="item"
+                                                            v-if="global_discount_type && global_discount_type.description"
+                                                            :content="global_discount_type.description"
+                                                            effect="dark"
+                                                            placement="top">
+                                                    <i class="fa fa-info-circle"></i>
+                                                </el-tooltip>
+    
+                                            </label>
+                                            <el-input v-model="discount_amount"
+                                                      :disabled="!enabled_discount"
+                                                      @change="inputDiscountAmount()"
+                                                      >
+                                            </el-input>
+                                            <label class="text-left w-100">
+                                                <el-checkbox v-model="is_discount_amount"
+                                                    class="ml-0 mr-1"
+                                                    @change="changeTypeDiscount">
+                                                    Aplicar como Monto
+                                                </el-checkbox>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
                                     <div :class="{'has-danger': difference < 0}"
                                          class="form-group">
-                                        <label class="control-label"
+                                        <div class="turned-container-pos" style="margin-top: 19px;">
+                                            <label class="control-label mt-1"
                                                v-text="(difference <0) ? 'Faltante' :'Vuelto'"></label>
-                                        <!-- <el-input v-model="difference" :disabled="true">
-                                            <template slot="prepend">{{currencyTypeActive.symbol}}</template>
-                                        </el-input> -->
-                                        <h4 class="control-label font-weight-semibold m-0 text-center m-b-0">
-                                            {{ currencyTypeActive.symbol }} {{ difference }}</h4>
+                                            <!-- <el-input v-model="difference" :disabled="true">
+                                                <template slot="prepend">{{currencyTypeActive.symbol}}</template>
+                                            </el-input> -->
+                                            <h4 class="control-label font-weight-semibold m-0 text-center m-b-0">
+                                                {{ currencyTypeActive.symbol }} {{ difference }}</h4>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-8">
-                    <div class="card card-default">
-
-                        <div class="card-body text-center">
-
-                            <div class="row col-lg-12">
-                                <div class="col-lg-6">
-                                    <div class="form-group">
-                                        <h2>
-                                            <el-switch v-model="enabled_discount"
-                                                       active-text="Aplicar descuento"
-                                                       class="control-label font-weight-semibold m-0 text-center m-b-0"
-                                                       @change="changeEnabledDiscount"></el-switch>
-                                        </h2>
+                            <div v-if="form_payment.payment_method_type_id=='01'"
+                                     class="col-lg-12 mt-3">
+                                    <div class="row">
+                                        <div class="col-lg-3">
+                                            <button class="btn btn-block btn-secondary"
+                                                    @click="setAmountCash(10)">{{ currencyTypeActive.symbol }}10
+                                            </button>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <button class="btn btn-block btn-secondary"
+                                                    @click="setAmountCash(20)">{{ currencyTypeActive.symbol }}20
+                                            </button>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <button class="btn btn-block btn-secondary"
+                                                    @click="setAmountCash(50)">{{ currencyTypeActive.symbol }}50
+                                            </button>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <button class="btn btn-block btn-secondary"
+                                                    @click="setAmountCash(100)">{{ currencyTypeActive.symbol }}100
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="form-group">
-                                        <label class="control-label">
-
-                                            <el-checkbox v-model="is_discount_amount"
-                                                            class="ml-1 mr-1"
-                                                            @change="changeTypeDiscount"></el-checkbox>
-
-                                            <template>{{ (is_discount_amount) ? 'Monto' : 'Porcentaje'}} descuento</template>
-
-                                            <el-tooltip class="item"
-                                                        v-if="global_discount_type && global_discount_type.description"
-                                                        :content="global_discount_type.description"
-                                                        effect="dark"
-                                                        placement="top">
-                                                <i class="fa fa-info-circle"></i>
-                                            </el-tooltip>
-
-                                        </label>
-                                        <el-input v-model="discount_amount"
-                                                  :disabled="!enabled_discount"
-                                                  @change="inputDiscountAmount()"
-                                                  >
-
-                                            <template slot="prepend" v-if="is_discount_amount">{{ currencyTypeActive.symbol }}</template>
-                                            <template slot="append" v-else>%</template>
-
-                                        </el-input>
-                                    </div>
-                                </div>
                             </div>
-
-                            <div v-if="businessTurns.active"
-                                 class="row col-md-12 col-lg-12">
-                                <div class="col-md-6 col-lg-6"></div>
-                                <div class="col-md-6 col-lg-6">
-                                    <div class="form-group">
-                                        <label class="control-label">N° Placa</label>
-                                        <el-input v-model="form.plate_number"
-                                                  type="textarea"></el-input>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
                     </div>
                 </div>
@@ -388,9 +389,9 @@
                                         <div class="col-lg-1">
                                         </div>
                                         <div class="col-lg-5">
-                                            <button class="btn btn-sm btn-block btn-primary"
+                                            <el-button class="btn-primary w-100"
                                                     @click="clickAddPayment()"><i class="fas fa-plus"></i> Agregar
-                                            </button>
+                                            </el-button>
 
                                         </div>
                                     </div>
@@ -448,33 +449,7 @@
                                             </el-input>
                                         </div>
                                     </div>
-                                </div>-->
-                                <div v-if="form_payment.payment_method_type_id=='01'"
-                                     class="col-lg-12">
-                                    <div class="row">
-                                        <div class="col-lg-3">
-                                            <button class="btn btn-block btn-secondary"
-                                                    @click="setAmountCash(10)">{{ currencyTypeActive.symbol }}10
-                                            </button>
-                                        </div>
-                                        <div class="col-lg-3">
-                                            <button class="btn btn-block btn-secondary"
-                                                    @click="setAmountCash(20)">{{ currencyTypeActive.symbol }}20
-                                            </button>
-                                        </div>
-                                        <div class="col-lg-3">
-                                            <button class="btn btn-block btn-secondary"
-                                                    @click="setAmountCash(50)">{{ currencyTypeActive.symbol }}50
-                                            </button>
-                                        </div>
-                                        <div class="col-lg-3">
-                                            <button class="btn btn-block btn-secondary"
-                                                    @click="setAmountCash(100)">{{ currencyTypeActive.symbol }}100
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
+                                </div>-->                        
                             </div>
                         </div>
                     </div>
@@ -482,21 +457,30 @@
                 <div class="col-lg-8">
                     <div class="card card-default">
                         <div class="card-body">
-                            <div class="row col-lg-12">
-
+                            <div class="row col-lg-12 m-auto px-0">
                                 <div class="col-md-12 col-lg-12 mb-1" v-if="configuration.enabled_sales_agents">
                                     <search-agent @changeAgent="changeAgent"></search-agent>
                                 </div>
-
-                                <div class="col-md-12 col-lg-12">
+                            
+                                <div 
+                                    :class="{
+                                        'col-md-8 col-lg-8': businessTurns.active,
+                                        'col-md-12 col-lg-12': !businessTurns.active
+                                    }"
+                                >
                                     <div class="form-group">
                                         <label class="control-label">Datos de referencia</label>
-                                        <el-input v-model="form.reference_data"
-                                                  type="textarea"></el-input>
+                                        <el-input v-model="form.reference_data" type="textarea"></el-input>
                                     </div>
                                 </div>
-
-                            </div>
+                            
+                                <div class="col-md-4 col-lg-4" v-if="businessTurns.active">
+                                    <div class="form-group">
+                                        <label class="control-label">N° Placa</label>
+                                        <el-input v-model="form.plate_number" type="text"></el-input>
+                                    </div>
+                                </div>
+                            </div>                            
                         </div>
                     </div>
                 </div>
@@ -546,6 +530,25 @@
 }
 .card-body {
     padding: 10px;
+}
+.switch-wrapper .el-switch{
+    position: absolute;
+    top: 35px;
+    transition: 0.2;
+}
+.switch-wrapper .el-switch.is-checked{
+    position: absolute;
+    top: -6px !important;
+    left: 50%;
+    transform: translateX(-50%);
+}
+@media only screen and (max-width: 991px){
+    .descount-container{
+        margin-top: 1.8rem !important;
+    }
+    .switch-wrapper .el-switch{
+        top: -12px !important;
+    }
 }
 </style>
 
@@ -677,6 +680,10 @@ export default {
 
             return false
         },
+        disabledDiscountForSeller()
+        {
+            return this.configuration.restrict_seller_discount && this.typeUser === 'seller';
+        }
     },
     methods:
     {
@@ -817,12 +824,13 @@ export default {
             // let percentage_igv = 18
             // let amount = parseFloat(this.discount_amount)
             
-            let input_global_discount;
-            if ( (this.configuration.global_discount_type_id === "02") && this.configuration.exact_discount) {
-                input_global_discount = parseFloat(this.discount_amount / 1.18) //input se usa para monto y porcentaje
-            } else {
-                input_global_discount = parseFloat(this.discount_amount) //input se usa para monto y porcentaje
+            let input_global_discount = parseFloat(this.discount_amount);
+            if(this.is_discount_amount) {
+                if ( (this.configuration.global_discount_type_id === "02") && this.configuration.exact_discount) {
+                    input_global_discount = parseFloat(this.discount_amount / (1 + this.percentageIgv)) //input se usa para monto y porcentaje
+                }
             }
+
             // let base = (this.globalDiscountTypeId === '02') ? parseFloat(this.form.total_taxed) : parseFloat(this.form.total)
             // let factor = _.round(amount / base, 5)
 
@@ -832,7 +840,9 @@ export default {
             if (input_global_discount > 0 && !discount)
             {
                 const percentage_igv = this.percentageIgv * 100
-                let base = (this.isGlobalDiscountBase) ? parseFloat(ctx.total_taxed) : parseFloat(ctx.total)
+                let base = (this.isGlobalDiscountBase && ctx.total_taxed) 
+                    ? parseFloat(ctx.total_taxed) 
+                    : parseFloat(ctx.total || this.form.total)
                 let amount = 0
                 let factor = 0
 
@@ -877,7 +887,8 @@ export default {
                 
                 this.form.total_discount = _.round(amount, 2)
                 this.setGlobalDiscount(factor, _.round(amount,2), _.round(base,2))
-                this.enter_amount = _.round(total - this.discount_amount,2)
+                let discount_inner = this.is_discount_amount ? this.discount_amount :  (total * this.discount_amount / 100) 
+                this.enter_amount = _.round(total - discount_inner,2)
 
             } else {
                 

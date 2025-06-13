@@ -30,7 +30,7 @@ class DocumentTransform
             'purchase_order' => Functions::valueKeyInArray($inputs, 'numero_orden_de_compra'),
             'plate_number' => Functions::valueKeyInArray($inputs, 'numero_de_placa'),
             'folio' => Functions::valueKeyInArray($inputs, 'folio'),
-//            'establishment' => EstablishmentTransform::transform($inputs['datos_del_emisor']),
+            //            'establishment' => EstablishmentTransform::transform($inputs['datos_del_emisor']),
             'customer' => PersonTransform::transform($inputs['datos_del_cliente_o_receptor']),
             'total_prepayment' => Functions::valueKeyInArray($totals, 'total_anticipos'),
             'total_discount' => Functions::valueKeyInArray($totals, 'total_descuentos'),
@@ -53,7 +53,7 @@ class DocumentTransform
             'total' => Functions::valueKeyInArray($totals, 'total_venta'),
             'total_pending_payment' => Functions::valueKeyInArray($totals, 'total_pendiente_pago'),
             // 'pending_amount_detraction' => Functions::valueKeyInArray($totals, 'total_pendiente_detraccion'),
-            'has_prepayment' => Functions::valueKeyInArray($inputs, 'pago_anticipado',0),
+            'has_prepayment' => Functions::valueKeyInArray($inputs, 'pago_anticipado', 0),
             'items' => self::items($inputs),
             'charges' => self::charges($inputs),
             'discounts' => self::discounts($inputs),
@@ -67,14 +67,15 @@ class DocumentTransform
             'additional_information' => Functions::valueKeyInArray($inputs, 'informacion_adicional'),
             'additional_data' => Functions::valueKeyInArray($inputs, 'dato_adicional'),
             'actions' => ActionTransform::transform($inputs),
-            'hotel' => Functions::valueKeyInArray($inputs, 'hotel',[]),
-            'transport' => Functions::valueKeyInArray($inputs, 'transport',[]),
+            'hotel' => Functions::valueKeyInArray($inputs, 'hotel', []),
+            'transport' => Functions::valueKeyInArray($inputs, 'transport', []),
             'payments' => self::payments($inputs),
             'data_json' => $inputs,
             'fee' => self::fee($inputs),
             'payment_condition_id' => Functions::valueKeyInArray($inputs, 'codigo_condicion_de_pago', '01'),
             'sale_note_id' => Functions::valueKeyInArray($inputs, 'codigo_nota_venta'),
             'seller_id' => Functions::valueKeyInArray($inputs, 'codigo_vendedor'),
+            'terms_condition' => Functions::valueKeyInArray($inputs, 'terminos_condiciones'),
         ];
 
         $inputs_transform = self::invoice($inputs_transform, $inputs);
@@ -86,11 +87,11 @@ class DocumentTransform
 
     private static function items($inputs)
     {
-        if(key_exists('items', $inputs)) {
+        if (key_exists('items', $inputs)) {
             $items = [];
             foreach ($inputs['items'] as $row) {
                 $items[] = [
-                    'internal_id' => isset($row['codigo_interno']) ? $row['codigo_interno']:'',
+                    'internal_id' => isset($row['codigo_interno']) ? $row['codigo_interno'] : '',
                     'description' => $row['descripcion'],
                     'name' => Functions::valueKeyInArray($row, 'nombre'),
                     'second_name' => Functions::valueKeyInArray($row, 'nombre_secundario'),
@@ -145,10 +146,9 @@ class DocumentTransform
 
     private static function attributes($inputs)
     {
-        if(key_exists('datos_adicionales', $inputs)) {
+        if (key_exists('datos_adicionales', $inputs)) {
             $attributes = [];
-            foreach ($inputs['datos_adicionales'] as $row)
-            {
+            foreach ($inputs['datos_adicionales'] as $row) {
                 $attributes[] = [
                     'attribute_type_id' => $row['codigo'],
                     'description' => $row['descripcion'],
@@ -166,10 +166,9 @@ class DocumentTransform
 
     private static function charges($inputs)
     {
-        if(key_exists('cargos', $inputs)) {
+        if (key_exists('cargos', $inputs)) {
             $charges = [];
-            foreach ($inputs['cargos'] as $row)
-            {
+            foreach ($inputs['cargos'] as $row) {
                 $charges[] = [
                     'charge_type_id' => $row['codigo'],
                     'description' => $row['descripcion'],
@@ -186,7 +185,7 @@ class DocumentTransform
 
     private static function discounts($inputs)
     {
-        if(key_exists('descuentos', $inputs)) {
+        if (key_exists('descuentos', $inputs)) {
             $discounts = [];
             foreach ($inputs['descuentos'] as $row) {
                 $discounts[] = [
@@ -205,7 +204,7 @@ class DocumentTransform
 
     private static function detraction($inputs)
     {
-        if(key_exists('detraccion', $inputs)) {
+        if (key_exists('detraccion', $inputs)) {
 
             $detraction = $inputs['detraccion'];
 
@@ -234,8 +233,8 @@ class DocumentTransform
 
     private static function parseLocation($district_id)
     {
-        $province_id = $district_id ? substr($district_id, 0 ,4) : null;
-        $department_id = $district_id ? substr($district_id, 0 ,2) : null;
+        $province_id = $district_id ? substr($district_id, 0, 4) : null;
+        $department_id = $district_id ? substr($district_id, 0, 2) : null;
 
         return [
             $department_id,
@@ -246,7 +245,7 @@ class DocumentTransform
 
     private static function perception($inputs)
     {
-        if(key_exists('percepcion', $inputs)) {
+        if (key_exists('percepcion', $inputs)) {
             $perception = $inputs['percepcion'];
 
             return [
@@ -262,7 +261,7 @@ class DocumentTransform
     private static function retention($inputs)
     {
         // dd($inputs);
-        if(key_exists('retencion', $inputs)) {
+        if (key_exists('retencion', $inputs)) {
 
             $retention = $inputs['retencion'];
             $additional_data_retention = self::additionalDataRetention($inputs, $retention);
@@ -277,7 +276,6 @@ class DocumentTransform
                 'amount_pen' => $additional_data_retention['amount_pen'],
                 'amount_usd' => $additional_data_retention['amount_usd']
             ];
-
         }
 
         return null;
@@ -298,13 +296,10 @@ class DocumentTransform
         $exchange_rate = Functions::valueKeyInArray($inputs, 'factor_tipo_de_cambio', 1);
         $retention_amount = $retention['monto'];
 
-        if($currency_type_id === 'USD')
-        {
+        if ($currency_type_id === 'USD') {
             $amount_usd = $retention_amount;
             $amount_pen = $retention_amount * $exchange_rate;
-        }
-        else
-        {
+        } else {
             $amount_pen = $retention_amount;
             $amount_usd = $retention_amount / $exchange_rate;
         }
@@ -320,10 +315,9 @@ class DocumentTransform
 
     private static function prepayments($inputs)
     {
-        if(key_exists('anticipos', $inputs)) {
+        if (key_exists('anticipos', $inputs)) {
             $prepayments = [];
-            foreach ($inputs['anticipos'] as $row)
-            {
+            foreach ($inputs['anticipos'] as $row) {
                 $prepayments[] = [
                     'number' => $row['numero'],
                     'document_type_id' => $row['codigo_tipo_documento'],
@@ -339,10 +333,9 @@ class DocumentTransform
 
     private static function guides($inputs)
     {
-        if(key_exists('guias', $inputs)) {
+        if (key_exists('guias', $inputs)) {
             $guides = [];
-            foreach ($inputs['guias'] as $row)
-            {
+            foreach ($inputs['guias'] as $row) {
                 $guides[] = [
                     'number' => $row['numero'],
                     'document_type_id' => $row['codigo_tipo_documento'],
@@ -356,10 +349,9 @@ class DocumentTransform
 
     private static function related($inputs)
     {
-        if(key_exists('relacionados', $inputs)) {
+        if (key_exists('relacionados', $inputs)) {
             $related = [];
-            foreach ($inputs['relacionados'] as $row)
-            {
+            foreach ($inputs['relacionados'] as $row) {
                 $related[] = [
                     'number' => $row['numero'],
                     'document_type_id' => $row['codigo_tipo_documento'],
@@ -374,7 +366,7 @@ class DocumentTransform
 
     private static function invoice($inputs_transform, $inputs)
     {
-        if(in_array($inputs['codigo_tipo_documento'], ['01', '03'])) {
+        if (in_array($inputs['codigo_tipo_documento'], ['01', '03'])) {
             $inputs_transform['operation_type_id'] = Functions::valueKeyInArray($inputs, 'codigo_tipo_operacion');
             $inputs_transform['date_of_due'] = Functions::valueKeyInArray($inputs, 'fecha_de_vencimiento');
         }
@@ -383,12 +375,12 @@ class DocumentTransform
 
     private static function note($inputs_transform, $inputs)
     {
-        if(in_array($inputs['codigo_tipo_documento'], ['07', '08'])) {
+        if (in_array($inputs['codigo_tipo_documento'], ['07', '08'])) {
             $inputs_transform['note_credit_or_debit_type_id'] = Functions::valueKeyInArray($inputs, 'codigo_tipo_nota');
             $inputs_transform['note_description'] = Functions::valueKeyInArray($inputs, 'motivo_o_sustento_de_nota');
             $inputs_transform['affected_document_external_id'] = Functions::valueKeyInArray($inputs['documento_afectado'], 'external_id');
 
-            if(!$inputs_transform['affected_document_external_id']){
+            if (!$inputs_transform['affected_document_external_id']) {
 
 
                 $inputs_transform['data_affected_document']['number'] = Functions::valueKeyInArray($inputs['documento_afectado'], 'numero_documento');
@@ -404,11 +396,11 @@ class DocumentTransform
 
     private static function payments($inputs)
     {
-        if(in_array($inputs['codigo_tipo_documento'], ['01', '03'])) {
+        if (in_array($inputs['codigo_tipo_documento'], ['01', '03'])) {
 
             $payments = [];
 
-            if(key_exists('pagos', $inputs)) {
+            if (key_exists('pagos', $inputs)) {
 
                 foreach ($inputs['pagos'] as $row) {
                     $payments[] = [
@@ -420,11 +412,9 @@ class DocumentTransform
                         'payment_received' => Functions::valueKeyInArray($row, 'pago_recibido'),
                     ];
                 }
-
             }
 
             return $payments;
-
         }
 
         return [];

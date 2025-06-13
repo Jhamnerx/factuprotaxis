@@ -15,39 +15,37 @@ class TenantCommand extends Command
      * @var string
      */
     protected $signature = 'tenant:run';
-    
+
     /**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'Execute the scheduled tasks of the tenants';
-    
+
     /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
     }
-    
+
     /**
      * Execute the console command.
      *
      * @return mixed
      */
-    public function handle() {
-        foreach (Task::where('execution_time', Carbon::now()->format('H:i').':00')->get() as $task) {
+    public function handle()
+    {
+        foreach (Task::where('execution_time', Carbon::now()->format('H:i') . ':00')->get() as $task) {
             try {
-                Artisan::call($task->class,[
-                    'type' => 'todos'
-                ]);
-                
+                Artisan::call($task->class);
                 $task->output = Artisan::output();
                 $task->save();
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 $task->output = $e->getMessage();
                 $task->save();
             }

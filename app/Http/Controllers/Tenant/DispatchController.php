@@ -45,6 +45,7 @@ use Modules\Order\Mail\DispatchEmail;
 use Modules\Order\Models\OrderNote;
 use App\Models\Tenant\PaymentCondition;
 use App\Models\Tenant\Catalogs\RelatedDocumentType;
+use Modules\Purchase\Models\Purchase;
 
 
 /**
@@ -132,7 +133,6 @@ class DispatchController extends Controller
         $series = Series::where('document_type_id', '09')->get();
 
         return compact('customers', 'series');
-
     }
 
 
@@ -176,6 +176,7 @@ class DispatchController extends Controller
         $reference_sale_note_id = null;
         $reference_order_form_id = null;
         $reference_order_note_id = null;
+        $reference_purchase_id = null;
 
         if ($parentTable === 'document') {
             $reference_document_id = $parentId;
@@ -191,7 +192,11 @@ class DispatchController extends Controller
             $query = OrderNote::query();
         } elseif ($parentTable === 'dispatch') {
             $query = Dispatch::query();
+        } elseif ($parentTable === 'purchases') {
+            $query = Purchase::query();
+            $reference_purchase_id = $parentId;
         }
+
         $document = $query->find($parentId);
         $configuration = Configuration::query()->first();
         $items = [];
@@ -205,7 +210,7 @@ class DispatchController extends Controller
                 'item_id' => $item->item_id,
                 'item' => $item,
                 'quantity' => $item->quantity,
-                'description' => $description.' '.$presentation,
+                'description' => $description . ' ' . $presentation,
                 'unit_type_id' => $unit_type,
                 'name_product_pdf' => $name_product_pdf,
                 'IdLoteSelected' => $IdLoteSelected,
@@ -235,7 +240,15 @@ class DispatchController extends Controller
                 'transport_id' => $document->transport_id,
                 'origin_address_id' => $document->origin_address_id,
                 'delivery_address_id' => $document->delivery_address_id,
-                'date_delivery_to_transport' => $document->date_delivery_to_transport?$document->date_delivery_to_transport->format('Y-m-d'):null,
+                'date_delivery_to_transport' => $document->date_delivery_to_transport ? $document->date_delivery_to_transport->format('Y-m-d') : null,
+                'reference_document_id' => $document->reference_document_id,
+                'reference_quotation_id' => $document->reference_quotation_id,
+                'reference_sale_note_id' => $document->reference_sale_note_id,
+                'reference_order_form_id' => $document->reference_order_form_id,
+                'reference_order_note_id' => $document->reference_order_note_id,
+                'reference_purchase_id' => $document->reference_purchase_id,
+                'document_data' => $document->reference_documents,
+                'reference_documents' => $document->reference_documents,
             ];
         } else {
             $data = [
@@ -247,6 +260,14 @@ class DispatchController extends Controller
                 'reference_sale_note_id' => $reference_sale_note_id,
                 'reference_order_form_id' => $reference_order_form_id,
                 'reference_order_note_id' => $reference_order_note_id,
+                'reference_purchase_id' => $reference_purchase_id,
+                'document_data' => [
+                    'document_type_id' => $document->document_type_id,
+                    'serie' => $document->series,
+                    'number' => $document->number,
+                    'customer' => $parentTable == 'purchases' ? $document->supplier->number : $document->customer->number,
+                    'name' => $parentTable == 'purchases' ? $document->supplier->name : $document->customer->name
+                ]
             ];
         }
 
@@ -322,9 +343,9 @@ class DispatchController extends Controller
             });
 
             $document = $fact->getDocument();
-//            if ($company->soap_type_id === '02') {
-//                $res = ((new ServiceDispatchController())->send($document->external_id));
-//            }
+            //            if ($company->soap_type_id === '02') {
+            //                $res = ((new ServiceDispatchController())->send($document->external_id));
+            //            }
             // $response = $fact->getResponse();
         } else {
             /** @var Facturalo $fact */
@@ -680,7 +701,6 @@ class DispatchController extends Controller
             'affectation_igv_types' => $affectation_igv_types,
             'payment_conditions' => $payment_conditions,
         ], 200);
-
     }
 
 
@@ -730,13 +750,21 @@ class DispatchController extends Controller
                 'message' => 'Ocurrió un error al asociar la guía con el comprobante. Detalles: ' . $th->getMessage()
             ], 500);
         }
-
     }
 
     public function dispatchesByClient($clientId)
     {
-        $records = Dispatch::without(['user', 'soap_type', 'state_type', 'document_type', 'unit_type', 'transport_mode_type',
-            'transfer_reason_type', 'items', 'reference_document'])
+        $records = Dispatch::without([
+            'user',
+            'soap_type',
+            'state_type',
+            'document_type',
+            'unit_type',
+            'transport_mode_type',
+            'transfer_reason_type',
+            'items',
+            'reference_document'
+        ])
             ->select('series', 'number', 'id', 'date_of_issue', 'soap_shipping_response')
             ->where('customer_id', $clientId)
             ->whereNull('reference_document_id')
@@ -805,7 +833,7 @@ class DispatchController extends Controller
 
         $origin_addresses = OriginAddress::query()
             ->where('is_active', true)
-            ->where('establishment_id',$id)
+            ->where('establishment_id', $id)
             ->get();
         foreach ($origin_addresses as $row) {
             $records[] = [
@@ -837,7 +865,7 @@ class DispatchController extends Controller
                 'address' => $establishment->address,
             ];
         }
-        
+
         $origin_addresses = OriginAddress::query()
             ->where('is_active', true)
             ->where('establishment_id', '!=', $id)
@@ -862,7 +890,7 @@ class DispatchController extends Controller
     {
         $records = [];
         $record = Person::query()
-//            ->with('person_addresses')
+            //            ->with('person_addresses')
             ->find($id);
         $records[] = [
             'id' => 0,
@@ -873,17 +901,17 @@ class DispatchController extends Controller
             ],
             'address' => $record->address,
         ];
-//        foreach ($record->person_addresses as $row) {
-//            $records[] = [
-//                'id' => $row->id,
-//                'location_id' => [
-//                    $row->department_id,
-//                    $row->province_id,
-//                    $row->district_id,
-//                ],
-//                'address' => $row->address,
-//            ];
-//        }
+        //        foreach ($record->person_addresses as $row) {
+        //            $records[] = [
+        //                'id' => $row->id,
+        //                'location_id' => [
+        //                    $row->department_id,
+        //                    $row->province_id,
+        //                    $row->district_id,
+        //                ],
+        //                'address' => $row->address,
+        //            ];
+        //        }
 
         $delivery_addresses = DeliveryAddress::query()
             ->where('person_id', $id)

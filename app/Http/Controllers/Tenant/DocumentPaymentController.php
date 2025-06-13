@@ -65,7 +65,6 @@ class DocumentPaymentController extends Controller
             'credit_notes_total' => $credit_notes_total,
             'external_id' => $document->external_id,
         ];
-
     }
 
     public function store(DocumentPaymentRequest $request)
@@ -81,7 +80,7 @@ class DocumentPaymentController extends Controller
             $record->save();
             $this->createGlobalPayment($record, $request->all());
             $this->saveFiles($record, $request, 'documents');
-
+            $this->createCashDocumentPayment($record, true);
             return $record;
         });
 
@@ -105,15 +104,14 @@ class DocumentPaymentController extends Controller
                 $credit->cash_id_processed = $cash->id;
                 $credit->save();
 
-                $req = [
-                    'document_id' => $request->document_id,
-                    'sale_note_id' => null
-                ];
+                // $req = [
+                //     'document_id' => $request->document_id,
+                //     'sale_note_id' => null
+                // ];
 
-                $cash->cash_documents()->updateOrCreate($req);
+                // $cash->cash_documents()->updateOrCreate($req);
 
             }
-
         }
 
         return [
@@ -127,6 +125,7 @@ class DocumentPaymentController extends Controller
     public function destroy($id)
     {
         $item = DocumentPayment::findOrFail($id);
+        $item->cashDocumentPayments()->delete();
         $item->delete();
 
         return [
@@ -152,15 +151,12 @@ class DocumentPaymentController extends Controller
 
                     $document->total_canceled = true;
                     $document->update();
-
                 } else {
 
                     $document->total_canceled = false;
                     $document->update();
                 }
-
             }
-
         });
 
         return [
@@ -205,7 +201,5 @@ class DocumentPaymentController extends Controller
                 ->records($records)
                 ->download($filename . Carbon::now() . '.xlsx');
         }
-
     }
-
 }

@@ -92,12 +92,14 @@
                         <el-dropdown-item
                             v-for="(column, index) in columns"
                             :key="index"
+                            v-if="column.title !== 'Zona'"
                         >
                             <el-checkbox
                                 @change="getColumnsToShow(1)"
                                 v-model="column.visible"
-                                >{{ column.title }}</el-checkbox
                             >
+                                {{ column.title }}
+                            </el-checkbox>
                         </el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>
@@ -106,9 +108,10 @@
                 <data-table :resource="resource + `/${this.type}`">
                     <tr slot="heading">
                         <!-- <th>#</th> -->
+                        <th>ID</th>
                         <th>Nombre</th>
-                        <th>Cód interno</th>
-                        <th class="text-right">Tipo de documento</th>
+                        <th class="text-right">Cód interno</th>
+                        <th class="text-left">Tipo de documento</th>
                         <th class="text-right">Número</th>
                         <th
                             v-if="columns.person_type.visible === true"
@@ -118,61 +121,61 @@
                         </th>
                         <th
                             v-if="columns.observation.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             Observaciones
                         </th>
                         <th
                             v-if="columns.zone.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             Zona
                         </th>
                         <th
                             v-if="columns.website.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             WebSite
                         </th>
                         <th
                             v-if="columns.credit_days.visible === true"
-                            class="text-center"
+                            class="text-right"
                         >
                             Días de crédito
                         </th>
                         <th
                             v-if="columns.seller.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             Vendedor asignado
                         </th>
                         <th
                             v-if="columns.email.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             Correo
                         </th>
                         <th
                             v-if="columns.telephone.visible === true"
-                            class="text-center"
+                            class="text-right"
                         >
                             Telefono
                         </th>
                         <th
                             v-if="columns.department.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             Departamento
                         </th>
                         <th
                             v-if="columns.province.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             Provincia
                         </th>
                         <th
                             v-if="columns.district.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             Distrito
                         </th>
@@ -190,9 +193,10 @@
                         :class="{ disable_color: !row.enabled }"
                     >
                         <!-- <td>{{ index }}</td> -->
+                        <td>{{ row.id }}</td>
                         <td>{{ row.name }}</td>
-                        <td>{{ row.internal_code }}</td>
-                        <td class="text-right">{{ row.document_type }}</td>
+                        <td class="text-right">{{ row.internal_code }}</td>
+                        <td class="text-left">{{ row.document_type }}</td>
                         <td class="text-right">{{ row.number }}</td>
                         <td
                             v-if="columns.person_type.visible === true"
@@ -220,13 +224,13 @@
                         </td>
                         <td
                             v-if="columns.credit_days.visible === true"
-                            class="text-center"
+                            class="text-right"
                         >
                             {{ row.credit_days }}
                         </td>
                         <td
                             v-if="columns.seller.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             {{
                                 row.seller && row.seller.name
@@ -236,19 +240,19 @@
                         </td>
                         <td
                             v-if="columns.email.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             {{ row.email }}
                         </td>
                         <td
                             v-if="columns.telephone.visible === true"
-                            class="text-center"
+                            class="text-right"
                         >
                             {{ row.telephone ? row.telephone : "" }}
                         </td>
                         <td
                             v-if="columns.department.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             {{
                                 row.department ? row.department.description : ""
@@ -256,13 +260,13 @@
                         </td>
                         <td
                             v-if="columns.province.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             {{ row.province ? row.province.description : "" }}
                         </td>
                         <td
                             v-if="columns.district.visible === true"
-                            class="text-center"
+                            class="text-left"
                         >
                             {{ row.district ? row.district.description : "" }}
                         </td>
@@ -428,6 +432,18 @@ export default {
         };
     },
     created() {
+        const storedColumns = JSON.parse(
+            localStorage.getItem("client_columns")
+        );
+
+        if (storedColumns && storedColumns.zone) {
+            storedColumns.zone.visible = false;
+            localStorage.setItem(
+                "client_columns",
+                JSON.stringify(storedColumns)
+            );
+        }
+
         this.title = this.type === "customers" ? "Clientes" : "Proveedores";
         this.getColumnsToShow();
     },
@@ -453,7 +469,7 @@ export default {
             this.$http
                 .post("/validate_columns", {
                     columns: this.columns,
-                    report: "client_index", // Nombre del reporte.
+                    report: "client_index",
                     updated: updated !== undefined
                 })
                 .then(response => {
@@ -461,6 +477,10 @@ export default {
                         let currentCols = response.data.columns;
                         if (currentCols !== undefined) {
                             this.columns = currentCols;
+
+                            if (this.columns.zone) {
+                                this.columns.zone.visible = false;
+                            }
                         }
                     }
                 })

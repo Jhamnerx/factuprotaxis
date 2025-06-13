@@ -35,6 +35,7 @@
                                 placeholder="Escriba el nombre o número de documento del cliente"
                                 popper-class="el-select-customers"
                                 remote
+                                @change="changeCustomer"
                             >
                                 <el-option
                                     v-for="option in customers"
@@ -295,7 +296,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="control-label">
+                                    <label class="">
                                         Notas
                                         <a
                                             class="text-center font-weight-bold text-info"
@@ -565,6 +566,7 @@
                     :loading="loading_submit"
                     native-type="submit"
                     type="primary"
+                    @click.prevent="submit"
                     >Guardar
                 </el-button>
             </div>
@@ -572,6 +574,7 @@
 
         <tenant-documents-items-list
             :config="config"
+            :configuration="configuration"
             :currency-type-id-active="form.currency_type_id"
             :displayDiscount="false"
             :editNameProduct="config.edit_name_product"
@@ -607,7 +610,7 @@ import {
 } from "../../../../../../../resources/js/mixins/functions";
 
 export default {
-    props: ["showDialog", "recordId"],
+    props: ["showDialog", "recordId", "configuration"],
     computed: {
         ...mapState(["exchange_rate", "config", "currency_types"])
     },
@@ -739,8 +742,6 @@ export default {
                     this.operation_types.length > 0
                         ? this.operation_types[0].id
                         : null;
-                console.log(this.form.operation_type_id);
-
                 this.form.seller_id =
                     this.sellers.length > 0 ? this.idUser : null;
                 this.affectation_igv_types =
@@ -932,14 +933,17 @@ export default {
         },
         calculateTotal() {
             /* Extraido de resources/js/views/tenant/documents/invoice.vue */
+            // Dos variables para tener el igv y el total_taxed del servicio, necesario para el xml
+            let base = this.form.cost > 0 ?  this.form.cost / (1 + this.percentage_igv) : 0 // Calcula la base del igv
+            let igv = this.form.cost > 0 ?  this.form.cost - base : 0 // Igv del servicio
             let total_discount = 0;
             let total_charge = 0;
             let total_exportation = 0;
-            let total_taxed = 0;
+            let total_taxed = base;
             let total_exonerated = 0;
             let total_unaffected = 0;
             let total_free = 0;
-            let total_igv = 0;
+            let total_igv = igv;
             let total_value = 0;
             let total = 0;
             let total_plastic_bag_taxes = 0;
@@ -1286,7 +1290,7 @@ export default {
                 });
             }
 
-            if (this.form.discounts.length) {
+            if (this.form.discounts && this.form.discounts.length) {
                 this.form.total_discount = _.round(amount, 2);
                 this.form.total_value = _.round(base - amount, 2);
                 this.form.total_igv = _.round(
@@ -1577,13 +1581,29 @@ export default {
                 this.load_record = false;
             }
         },
+        ensureFormArraysExist() {
+            const simpleArrays = ['items', 'discounts', 'charges', 'prepayments', 'guides'];
+            simpleArrays.forEach(key => {
+                if (!this.form[key]) this.form[key] = [];
+            });
+
+            if (!this.form.payments && this.form.payment_condition_id === '01') 
+                this.form.payments = [];
+  
+            if (!this.form.fee && ['02', '03'].includes(this.form.payment_condition_id)) 
+                this.form.fee = [];
+            },
         submit() {
+
+            this.ensureFormArraysExist();
+            
             if (parseFloat(this.form.prepayment) > parseFloat(this.form.cost)) {
                 return this.$message.error(
                     "Pago adelantado no puede ser mayor al costo"
                 );
             }
 
+            this.calculateTotal() // Hace un recalculo
             this.loading_submit = true;
             this.$http
                 .post(`/${this.resource}`, this.form)
@@ -2621,12 +2641,18 @@ export default {
             let customer = _.find(this.customers, {
                 id: this.form.customer_id
             });
-            this.customer_addresses = customer.addresses;
-            if (customer.address) {
-                this.customer_addresses.unshift({
-                    id: null,
-                    address: customer.address
-                });
+
+            if (customer) {
+                // Asignar el teléfono del cliente al campo cellphone del formulario
+                this.form.cellphone = customer.telephone || '';
+        
+                this.customer_addresses = customer.addresses;
+                if (customer.address) {
+                    this.customer_addresses.unshift({
+                        id: null,
+                        address: customer.address
+                    });
+                }
             }
 
             /*if(this.customer_addresses.length > 0) {

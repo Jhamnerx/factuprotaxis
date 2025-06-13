@@ -56,7 +56,7 @@ class StoreController extends Controller
         $rec['date_of_issue'] = now()->format('Y-m-d');
         $rec['fee'] = [];
         $rec['charges'] = [];
-        $rec['discounts'] = [];
+        $rec['discounts'] = $record->discounts;
         $rec['payments'] = [];
         $rec['guides'] = [];
         $rec['payment_condition_id'] = '01';
@@ -101,7 +101,10 @@ class StoreController extends Controller
     }
 
 
-    public function getItems() {}
+    public function getItems()
+    {
+
+    }
 
     public function getItemSeries(Request $request)
     {
@@ -122,48 +125,48 @@ class StoreController extends Controller
             ->where('has_sale', false)
             ->where('warehouse_id', $warehouse->id)
             ->latest();
-        //             ->transform(function ($row) {
-        //                 return [
-        //                     'id' => $row->id,
-        //                     'series' => $row->series,
-        //                     'date' => $row->date,
-        // //                    'item_id'      => $row->item_id,
-        // //                    'warehouse_id' => $row->warehouse_id,
-        //                     'has_sale' => $row->has_sale,
-        // //                    'lot_code'     => ($row->item_loteable_type) ? $lot_code : null,
-        //                 ];
-        //             });
+//             ->transform(function ($row) {
+//                 return [
+//                     'id' => $row->id,
+//                     'series' => $row->series,
+//                     'date' => $row->date,
+// //                    'item_id'      => $row->item_id,
+// //                    'warehouse_id' => $row->warehouse_id,
+//                     'has_sale' => $row->has_sale,
+// //                    'lot_code'     => ($row->item_loteable_type) ? $lot_code : null,
+//                 ];
+//             });
 
-        //        $sale_note_item_id = $request->has('sale_note_item_id') ? $request->sale_note_item_id : null;
-        //
-        //        if ($request->document_item_id)
-        //        {
-        //            //proccess credit note
-        //            $document_item = DocumentItem::query()
-        //                ->findOrFail($request->document_item_id);
-        //            /** @var array $lots */
-        //            $lots = $document_item->item->lots;
-        //            $records
-        //                ->whereIn('id', collect($lots)->pluck('id')->toArray())
-        //                ->where('has_sale', true)
-        //                ->latest();
-        //
-        //        }
-        //        else if($sale_note_item_id)
-        //        {
-        //            $records = $this->getRecordsForSaleNoteItem($records, $sale_note_item_id, $request);
-        //        }
-        //        else
-        //        {
-        //
-        //            $records
-        //                ->where('item_id', $request->item_id)
-        //                ->where('has_sale', false)
-        //                ->where('warehouse_id', $warehouse->id)
-        //                ->latest();
-        //        }
+//        $sale_note_item_id = $request->has('sale_note_item_id') ? $request->sale_note_item_id : null;
+//
+//        if ($request->document_item_id)
+//        {
+//            //proccess credit note
+//            $document_item = DocumentItem::query()
+//                ->findOrFail($request->document_item_id);
+//            /** @var array $lots */
+//            $lots = $document_item->item->lots;
+//            $records
+//                ->whereIn('id', collect($lots)->pluck('id')->toArray())
+//                ->where('has_sale', true)
+//                ->latest();
+//
+//        }
+//        else if($sale_note_item_id)
+//        {
+//            $records = $this->getRecordsForSaleNoteItem($records, $sale_note_item_id, $request);
+//        }
+//        else
+//        {
+//
+//            $records
+//                ->where('item_id', $request->item_id)
+//                ->where('has_sale', false)
+//                ->where('warehouse_id', $warehouse->id)
+//                ->latest();
+//        }
 
-        return new ItemLotCollection($records->paginate(config('tenant.items_per_page')));
+       return new ItemLotCollection($records->paginate(config('tenant.items_per_page')));
     }
 
     public function getIgv(Request $request)

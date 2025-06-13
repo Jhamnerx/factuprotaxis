@@ -79,53 +79,23 @@ export default {
             loading: false,
             errors: {},
             form: {},
-            loading_submit: false,
-            wsp: {},
-            pdf_a4_filename: null
+            loading_submit: false
         };
     },
-    async created() {
+    created() {
         this.initForm();
-        await this.$http.get(`/companies/record`).then(response => {
-            if (response.data !== "") {
-                this.wsp = response.data.data;
-            }
-        });
     },
     methods: {
         clickSendWhatsapp() {
             if (!this.form.customer_telephone) {
                 return this.$message.error("El número es obligatorio");
             }
-            if (!this.wsp.ws_api_token) {
-                return this.$message.error(
-                    "No se ha configurado el token de la API de Whatsapp"
-                );
-            }
-
-            const payload = {
-                api_key: this.wsp.ws_api_token,
-                receiver: `51${this.form.customer_telephone}`,
-                data: {
-                    url: this.form.pdf_a4_filename,
-                    media_type: "file",
-                    caption: this.form.message_text
-                }
-            };
-
-            this.$http
-                .post("https://whatsapp.siapol.site/api/send-media", payload)
-                .then(response => {
-                    if (response.status === 200) {
-                        this.$message.success("Mensaje enviado correctamente");
-                        form.customer_telephone = null;
-                    } else {
-                        this.$message.error("Error al enviar el mensaje");
-                    }
-                })
-                .catch(error => {
-                    this.$message.error("Error al enviar el mensaje");
-                });
+            window.open(
+                `https://wa.me/51${this.form.customer_telephone}?text=${
+                    this.form.message_text
+                }`,
+                "_blank"
+            );
         },
         initForm() {
             this.errors = {};
@@ -136,8 +106,7 @@ export default {
                 customer_email: null,
                 customer_telephone: null,
                 customer_id: null,
-                message_text: null,
-                pdf_a4_filename: null
+                message_text: null
             };
         },
         async create() {
@@ -157,7 +126,6 @@ export default {
             this.form.customer_telephone = data.customer_telephone;
             this.form.customer_id = data.customer_id;
             this.form.message_text = data.message_text;
-            this.form.pdf_a4_filename = data.pdf_a4_filename;
 
             this.titleDialog = `Documento: ` + this.form.number_full;
         },

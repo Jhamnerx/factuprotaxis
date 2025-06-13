@@ -156,6 +156,45 @@
                         </div>
                         <hr>
                         <div class="row">
+                            <div class="col-12">
+                                <button class="btn waves-effect waves-light btn-sm btn-primary"
+                                    type="button"
+                                    @click.prevent="openDialogReferenceDocument()">
+                                    Documento relacionado
+                                </button>
+                            </div>
+                            <div class="col-12" v-if="form.reference_documents.length > 0">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th class="font-weight-bold">Tipo de Documento</th>
+                                                <th class="font-weight-bold">Número</th>
+                                                <th class="font-weight-bold">Emisor</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(row, index) in form.reference_documents" :key="index">
+                                                <td>{{ index + 1 }}</td>
+                                                <td>{{ row.document_type.description }}</td>
+                                                <td>{{ row.number }}</td>
+                                                <td>{{ row.customer }}</td>
+                                                <td class="text-end">
+                                                    <button class="btn waves-effect waves-light btn-xs btn-danger"
+                                                        type="button"
+                                                        @click.prevent="clickRemoveReferenceDocument(index)">x
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
                             <div class="col-12 col-md-4">
                                 <div :class="{'has-danger': errors.sender_id}"
                                      class="form-group">
@@ -648,6 +687,14 @@
                 :lotsGroupSelected="lotsGroupSelected"
             >
             </list-lots-group>
+
+            <DialogReferenceDocument
+            dispatch_type_id="31"
+            :document_data="{}"
+            :showDialog.sync="showDialogReferenceDocumentForm"
+            @addReferenceDocument="addReferenceDocument"
+            :supplierData="supplier_data"
+            ></DialogReferenceDocument>
     
         </div>
     </div>
@@ -670,6 +717,7 @@ import DispatchFinish from '../partials/finish'
 import {mapActions, mapState} from "vuex/dist/vuex.mjs";
 import WarehousesDetail from '@components/WarehousesDetail.vue'
 import {setDefaultSeriesByMultipleDocumentTypes} from '@mixins/functions'
+import DialogReferenceDocument from './partials/DialogReferenceDocument.vue'
 
 export default {
     props: [
@@ -695,7 +743,8 @@ export default {
         SenderAddressForm,
         ReceiverAddressForm,
         SelectLotsForm,
-        ListLotsGroup
+        ListLotsGroup,
+        DialogReferenceDocument
     },
     mixins: [setDefaultSeriesByMultipleDocumentTypes],
     computed: {
@@ -720,6 +769,7 @@ export default {
     },
     data() {
         return {
+            showDialogReferenceDocumentForm: false,
             can_add_new_product: false,
             showDialogNewItem: false,
             showDialogAddItems: false,
@@ -823,7 +873,11 @@ export default {
             await this.searchRemoteSenders('')
             await this.searchRemoteReceivers('')
             if (this.establishments.length > 0) {
-                this.form.establishment_id = _.head(this.establishments).id;
+                if (this.config.establishment && this.config.establishment.id) {
+                    this.form.establishment_id = this.config.establishment.id;
+                } else {
+                    this.form.establishment_id = _.head(this.establishments).id;
+                }
             }
             await this.changeEstablishment()
             this.setDefaults();
@@ -836,6 +890,15 @@ export default {
         });
     },
     methods: {
+        addReferenceDocument(row) {
+            this.form.reference_documents.push(JSON.parse(JSON.stringify(row)))
+        },
+        clickRemoveReferenceDocument(index) {
+            this.form.reference_documents.splice(index, 1)
+        },
+        openDialogReferenceDocument() {
+            this.showDialogReferenceDocumentForm = true
+        },
         ...mapActions([
             'loadItems',
             'loadConfiguration',
@@ -887,6 +950,7 @@ export default {
                 receiver_address_data: {},
                 secondary_transports:null,
                 secondary_drivers:null,
+                reference_documents: [],
                 payer: {
                     identity_document_type_id: null,
                     identity_document_type_description: null,
@@ -1070,8 +1134,20 @@ export default {
                     'establishment_id': this.form.establishment_id,
                     'document_type_id': this.form.document_type_id
                 });
-                if(this.series.length > 0) {
-                    this.form.series = this.series[0].number;
+                const serieExists = this.series.find(s => s.number === this.form.series);
+                if (!serieExists) {
+                    this.form.series = null;
+            
+                    if (this.config.user && this.config.user.serie) {
+                        const defaultSeries = this.series.find(s => s.number === this.config.user.serie);
+                        if (defaultSeries) {
+                            this.form.series = defaultSeries.number;
+                        } else {
+                            this.setDefaultSeries();
+                        }
+                    } else {
+                        this.setDefaultSeries();
+                    }
                 }
             }
         },
@@ -1331,6 +1407,7 @@ export default {
                     this.senders = response.data;
                 });
             await this.successSenderAddress(data['address_id'])
+            await this.changeSender();
         },
         async successReceiver(data) {
             this.form.receiver_id = data['person_id'];
@@ -1463,6 +1540,27 @@ export default {
 
             this.loading_search = false
         },
-    }
+        setDefaultSeries() {
+            if (this.series.length > 0) {
+                const defaultSeries = this.series.find(s => s.is_default === true);
+        
+                this.form.series = defaultSeries ? defaultSeries.number : this.series[0].number;
+        
+            } else {
+                this.form.series = null;
+            }
+        },
+    },
+    watch: {
+        'config.establishment.id': {
+            handler: function(newVal, oldVal) {
+                if (newVal && newVal !== oldVal) {
+                    this.form.establishment_id = newVal;
+                    this.changeEstablishment();
+                }
+            },
+            deep: true
+        }
+    },
 }
 </script>

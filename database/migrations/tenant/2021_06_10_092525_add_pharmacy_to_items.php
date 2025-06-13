@@ -30,8 +30,6 @@ class AddPharmacyToItems extends Migration
         });
         Schema::table('configurations', function (Blueprint $table) {
             //
-
-
             $table
                 ->boolean('is_pharmacy')
                 ->default(0)

@@ -256,22 +256,7 @@
                             </div>
 
 
-                            <div class="col-md-6 mt-4">
-                                <label class="control-label">Mostrar el nombre del PDF
-
-                                    <el-tooltip class="item"
-                                        content="Muestra el nombre del producto que se ingresa en el pdf, en vez del nombre del producto. Disponible para CPE, Cotización, Compra y Nota de venta"
-                                        effect="dark" placement="top-start">
-                                        <i class="fa fa-info-circle"></i>
-                                    </el-tooltip>
-                                </label>
-                                <div :class="{ 'has-danger': errors.show_pdf_name }" class="form-group">
-                                    <el-switch v-model="form.show_pdf_name" active-text="Si" inactive-text="No"
-                                        @change="submit"></el-switch>
-                                    <small v-if="errors.show_pdf_name" class="form-control-feedback"
-                                        v-text="errors.show_pdf_name[0]"></small>
-                                </div>
-                            </div>
+                            
                             <div class="col-md-6 mt-4">
                                 <label class="control-label">Permitir Colocar direccion de llegada en guía
 
@@ -788,6 +773,10 @@
                             </div>
                             <div class="col-md-6 mt-4">
                                 <label class="control-label">Impuesto incluido en registro de productos</label>
+                                <el-tooltip class="item" content="Se asignará automáticamente la opción 'Incluye IGV' al registrar un producto" effect="dark"
+                                        placement="top-start">
+                                        <i class="fa fa-info-circle"></i>
+                                    </el-tooltip>
                                 <div :class="{ 'has-danger': errors.include_igv }" class="form-group">
                                     <el-switch v-model="form.include_igv" active-text="Si" inactive-text="No"
                                         @change="submit"></el-switch>
@@ -1101,6 +1090,20 @@
                                         inactive-text="No" @change="submit"></el-switch>
                                     <small v-if="errors.change_values_preview_document" class="form-control-feedback"
                                         v-text="errors.change_values_preview_document[0]"></small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mt-4">
+                                <label class="control-label">Habilitar venta con detracción para montos inferiores a 700</label>
+                                <div :class="{ 'has-danger': errors.available_detraction_for_amount_minor}" 
+                                        class="form-group">
+                                    <el-switch v-model="form.available_detraction_for_amount_minor" 
+                                            active-text="Si" 
+                                            inactive-text="No" 
+                                            @change="submit"></el-switch>
+                                    <small v-if="errors.available_detraction_for_amount_minor" 
+                                            class="form-control-feedback" 
+                                            v-text="errors.available_detraction_for_amount_minor[0]"></small>
                                 </div>
                             </div>
 
@@ -1457,6 +1460,23 @@
                                             <i class="ml-2 fa fa-info-circle"></i>
                                         </el-tooltip>
                                     </a>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mt-4">
+                                <label class="control-label">Mostrar el nombre del PDF
+
+                                    <el-tooltip class="item"
+                                        content="Muestra el nombre del producto que se ingresa en el pdf, en vez del nombre del producto. Disponible para CPE, Cotización, Guía de Remisión, Compra y Nota de venta"
+                                        effect="dark" placement="top-start">
+                                        <i class="fa fa-info-circle"></i>
+                                    </el-tooltip>
+                                </label>
+                                <div :class="{ 'has-danger': errors.show_pdf_name }" class="form-group">
+                                    <el-switch v-model="form.show_pdf_name" active-text="Si" inactive-text="No"
+                                        @change="submit"></el-switch>
+                                    <small v-if="errors.show_pdf_name" class="form-control-feedback"
+                                        v-text="errors.show_pdf_name[0]"></small>
                                 </div>
                             </div>
 
@@ -2437,6 +2457,7 @@ export default {
                 condition_sale_purchase_price_to_item: false,
                 show_seller_in_pdf: true,
                 show_bank_accounts_in_pdf: true,
+                disable_retention_for_amount: false,
             };
         },
         UpdateFormPurchase(e) {

@@ -28,7 +28,7 @@ class TenantAddPaymentMethodTypeIdToQuotations extends Migration
     {
         Schema::table('quotations', function (Blueprint $table) {
             $table->dropForeign(['payment_method_type_id']);
-            $table->dropColumn('payment_method_type_id');
+            $table->dropColumn('payment_method_type_id');  
         });
     }
 }

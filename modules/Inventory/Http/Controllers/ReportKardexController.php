@@ -112,7 +112,7 @@ class ReportKardexController extends Controller
     {
         $data = $this->getDataRecords($request);
         $balance = 0;
-        if($request->date_start){
+        if ($request->date_start) {
             $balanceRequest = $request->duplicate();
             $dateStartInitial = Carbon::parse($request->date_start)->subDay()->format('Y-m-d');
             $balanceRequest->merge([
@@ -122,22 +122,23 @@ class ReportKardexController extends Controller
             $dataBalance = $this->getDataRecords($balanceRequest);
             $balance = $this->getFirstBalanceKardex($dataBalance["records"]);
         }
-        
+
         TemporaryKardexRecord::truncate();
-        foreach($data["records"] as $row){
-             $rowKardex = $row->getKardexReportCollection($balance);
-             $rowKardex["inventory_kardex_id"] = ($rowKardex["id"])??0;
-             TemporaryKardexRecord::create($rowKardex);
+        foreach ($data["records"] as $row) {
+            $rowKardex = $row->getKardexReportCollection($balance, $request->warehouse_id);
+            $rowKardex["inventory_kardex_id"] = ($rowKardex["id"]) ?? 0;
+            TemporaryKardexRecord::create($rowKardex);
         }
 
         return new ReportTemporaryKardexCollection(TemporaryKardexRecord::paginate(config('tenant.items_per_page')));
     }
 
-    public function getFirstBalanceKardex($records){
+    public function getFirstBalanceKardex($records)
+    {
 
-        $balance = 0 ;
+        $balance = 0;
         $lastRow = null;
-        foreach($records as $row) {
+        foreach ($records as $row) {
             $lastRow = $row->getKardexReportCollection($balance);
             $lastRow["inventory_kardex_id"] = $lastRow["id"] ?? 0;
         }
@@ -148,7 +149,8 @@ class ReportKardexController extends Controller
         return 0;
     }
 
-    public function recordsOld(Request $request){
+    public function recordsOld(Request $request)
+    {
 
         $records = $this->getRecords($request->all());
 
@@ -163,7 +165,6 @@ class ReportKardexController extends Controller
         });
 
         return new ReportKardexLotsCollection($records->paginate(config('tenant.items_per_page')));
-
     }
 
 
@@ -181,7 +182,6 @@ class ReportKardexController extends Controller
         $records = $this->data($item_id, $warehouse_id, $date_start, $date_end);
 
         return $records;
-
     }
 
 
@@ -194,7 +194,7 @@ class ReportKardexController extends Controller
     private function data($item_id, $warehouse_id, $date_start, $date_end)
     {
         $data = InventoryKardex::with(['inventory_kardexable']);
-        if($warehouse_id !== 'all') {
+        if ($warehouse_id !== 'all') {
             $data->where('warehouse_id', $warehouse_id);
         }
         if ($date_start) {
@@ -210,13 +210,12 @@ class ReportKardexController extends Controller
         $data
             ->orderBy('item_id')
             ->orderBy('id')
-            ->get()->transform(function($row) {
+            ->get()->transform(function ($row) {
                 return $row->getCollectionData();
             });
 
         // dd($data->first());
         return $data;
-
     }
 
 
@@ -241,7 +240,7 @@ class ReportKardexController extends Controller
         $query = InventoryKardex::query()
             ->with(['inventory_kardexable']);
 
-        if ($warehouse_id!='all') {
+        if ($warehouse_id != 'all') {
             $query->where('warehouse_id', $warehouse_id);
         }
 
@@ -264,7 +263,6 @@ class ReportKardexController extends Controller
         return [
             'records' => $records
         ];
-    
     }
 
     private function getData($request)
@@ -323,7 +321,7 @@ class ReportKardexController extends Controller
     {
         $data = $this->getData($request);
         $balance = 0;
-        if($request->date_start){
+        if ($request->date_start) {
             $balanceRequest = $request->duplicate();
             $dateStartInitial = Carbon::parse($request->date_start)->subDay()->format('Y-m-d');
             $balanceRequest->merge([
@@ -350,7 +348,7 @@ class ReportKardexController extends Controller
     {
         $data = $this->getData($request);
         $balance = 0;
-        if($request->date_start){
+        if ($request->date_start) {
             $balanceRequest = $request->duplicate();
             $dateStartInitial = Carbon::parse($request->date_start)->subDay()->format('Y-m-d');
             $balanceRequest->merge([
@@ -397,7 +395,6 @@ class ReportKardexController extends Controller
 
             $data = ItemLotsGroup::whereBetween('date_of_due', [$date_start, $date_end])
                 ->orderBy('item_id')->orderBy('id');
-
         } else {
 
             $data = ItemLotsGroup::orderBy('item_id')->orderBy('id');
@@ -408,7 +405,6 @@ class ReportKardexController extends Controller
         }
 
         return $data;
-
     }
 
     public function records_lots_kardex(Request $request)
@@ -416,8 +412,6 @@ class ReportKardexController extends Controller
         $records = $this->getRecords2($request->all());
 
         return new ReportKardexLotsGroupCollection($records->paginate(config('tenant.items_per_page')), $request->warehouse_id);
-
-
     }
 
 
@@ -432,7 +426,6 @@ class ReportKardexController extends Controller
         $records = $this->data3($item_id, $date_start, $date_end, $warehouse_id);
 
         return $records;
-
     }
 
 
@@ -445,7 +438,6 @@ class ReportKardexController extends Controller
 
             $data = ItemLot::whereBetween('date', [$date_start, $date_end])
                 ->orderBy('item_id')->orderBy('id');
-
         } else {
 
             $data = ItemLot::orderBy('item_id')->orderBy('id');
@@ -455,7 +447,7 @@ class ReportKardexController extends Controller
             $data = $data->where('item_id', $item_id);
         }
 
-        if($warehouse_id && $warehouse_id != 'all') {
+        if ($warehouse_id && $warehouse_id != 'all') {
             $data = $data->where('warehouse_id', $warehouse_id);
         }
 
@@ -467,7 +459,6 @@ class ReportKardexController extends Controller
         $records = $this->getRecords3($request->all());
 
         return new ReportKardexItemLotCollection($records->paginate(config('tenant.items_per_page')));
-
     }
 
 
@@ -527,18 +518,18 @@ class ReportKardexController extends Controller
             $is_serie = (bool)$item->item->series_enabled;
             $lots = null;
             $series = null;
-            if($record->inventory_transaction->type == 'input') {
-                if($is_lot_group){
+            if ($record->inventory_transaction->type == 'input') {
+                if ($is_lot_group) {
                     $lots = ItemLotsGroup::where('item_id', $item->item_id)->where('created_at', $record->created_at)->get();
                 }
-                if($is_serie){
+                if ($is_serie) {
                     $series = $item->item->item_lots->where('created_at', $record->created_at)->all();
                 }
             } else {
-                if($is_lot_group){
+                if ($is_lot_group) {
                     $lots = ItemLotsGroup::where('item_id', $item->item_id)->where('updated_at', $record->created_at)->get();
                 }
-                if($is_serie){
+                if ($is_serie) {
                     $series = $item->item->item_lots->where('updated_at', $record->created_at)->all();
                 }
             }
@@ -549,9 +540,9 @@ class ReportKardexController extends Controller
                 'unit_type_id' => $item->item->unit_type_id,
                 'quantity' => $item->quantity,
                 'lot_enabled' => $is_lot_group,
-                'lot' => $is_lot_group?$lots:null,
+                'lot' => $is_lot_group ? $lots : null,
                 'series_enabled' => $is_serie,
-                'series' => $is_serie?$series:null,
+                'series' => $is_serie ? $series : null,
             ];
         }
 

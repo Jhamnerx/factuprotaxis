@@ -1,19 +1,17 @@
 <template>
     <div v-loading="loading_submit">
         <div class="row ">
-            <div class="col-md-8 col-lg-8 col-xl-8">
-                <el-button
-                    type="primary"
-                    class="btn-show-filter mb-2"
-                    :class="{ shift: isVisible }"
-                    @click="toggleInformation"
-                >
-                    {{
-                        isVisible
-                            ? "Ocultar opciones de filtro"
-                            : "Mostrar opciones de filtro"
-                    }}
-                </el-button>
+            <div class="col-md-8 col-lg-8 col-xl-8 filter-container">
+                <div class="btn-filter-content">
+                    <el-button
+                        type="primary"
+                        class="btn-show-filter mb-2"
+                        :class="{ shift: isVisible }"
+                        @click="toggleInformation"
+                    >
+                        {{ isVisible ? "Ocultar filtros" : "Mostrar filtros" }}
+                    </el-button>
+                </div>
                 <div class="row filter-content" v-if="applyFilter && isVisible">
                     <div class="col-lg-6 col-md-6 col-sm-12 pb-2">
                         <div class="d-flex">
@@ -95,7 +93,7 @@
             >
                 <div class="d-flex">
                     <div style="width:160px">
-                        Hacer visiblie todo los productos
+                        Hacer visible todos los productos
                         <el-tooltip
                             class="item"
                             content="Unicamente se hará visiblie si tiene codigo interno"
@@ -117,10 +115,10 @@
             </div>
 
             <div class="col-md-12">
-                <div class="table-responsive">
+                <div class="table-responsive table-responsive-new">
                     <table class="table">
                         <thead>
-                            <slot name="heading"></slot>
+                            <slot name="heading" :sort="handleSort"></slot>
                         </thead>
                         <tbody>
                             <slot
@@ -145,6 +143,7 @@
         </div>
     </div>
 </template>
+<style></style>
 <script>
 import queryString from "query-string";
 
@@ -163,7 +162,15 @@ export default {
         },
         pharmacy: Boolean,
         restaurant: Boolean,
-        ecommerce: Boolean
+        ecommerce: Boolean,
+        sortField: {
+            type: String,
+            default: "id"
+        },
+        sortDirection: {
+            type: String,
+            default: "desc"
+        }
     },
     data() {
         return {
@@ -184,6 +191,10 @@ export default {
                 all: "Todos",
                 visible: "Visibles",
                 hidden: "Ocultos"
+            },
+            currentSort: {
+                field: this.sortField,
+                direction: this.sortDirection
             }
         };
     },
@@ -253,6 +264,8 @@ export default {
                 isPharmacy: this.fromPharmacy,
                 isRestaurant: this.fromRestaurant,
                 isEcommerce: this.fromEcommerce,
+                sort_field: this.currentSort.field,
+                sort_direction: this.currentSort.direction,
                 ...this.search
             });
         },
@@ -270,6 +283,7 @@ export default {
                     resource: this.fromRestaurant ? "restaurant" : "ecommerce"
                 }
             );
+            console.log(response);
 
             if (response.status === 200) {
                 this.$message.success(response.data.message);
@@ -277,6 +291,35 @@ export default {
             } else {
                 this.$message.error(response.data.message);
             }
+        },
+        handleSort(field) {
+            if (this.currentSort.field === field) {
+                if (this.currentSort.direction === "asc") {
+                    this.currentSort.direction = "desc";
+                } else if (
+                    this.currentSort.direction === "desc" &&
+                    field === "description"
+                ) {
+                    this.currentSort.field = "id";
+                    this.currentSort.direction = "desc";
+                } else {
+                    this.currentSort.direction = "asc";
+                }
+            } else {
+                this.currentSort.field = field;
+                this.currentSort.direction = "asc";
+            }
+
+            this.$emit("sort-change", this.currentSort);
+            this.getRecords();
+        }
+    },
+    watch: {
+        sortField(newVal) {
+            this.currentSort.field = newVal;
+        },
+        sortDirection(newVal) {
+            this.currentSort.direction = newVal;
         }
     }
 };

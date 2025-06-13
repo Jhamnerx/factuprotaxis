@@ -35,7 +35,7 @@ class DispatchTransform
             'total_weight' => Functions::valueKeyInArray($inputs, 'peso_total'),
             'packages_number' => Functions::valueKeyInArray($inputs, 'numero_de_bultos'),
             'container_number' => Functions::valueKeyInArray($inputs, 'numero_de_contenedor'),
-//            'license_plate' => Functions::valueKeyInArray($inputs, 'numero_de_placa'),
+            //            'license_plate' => Functions::valueKeyInArray($inputs, 'numero_de_placa'),
             'origin' => self::origin($inputs),
             'delivery' => self::delivery($inputs),
             'dispatcher' => self::dispatcher($inputs),
@@ -59,17 +59,20 @@ class DispatchTransform
             'secondary_transports' => self::secondary_transports($inputs),
             'secondary_drivers' => self::secondary_drivers($inputs),
             'payer' => self::payer($inputs),
+            'reference_documents' => self::documentRelated($inputs),
         ];
         self::AffectedDocument($data, $inputs);
         return $data;
     }
     private static function addressData($inputs, $type)
     {
-        if (key_exists('direccion_remitente_id', $inputs) ||
-            key_exists('direccion_destinatario_id', $inputs)) {
+        if (
+            key_exists('direccion_remitente_id', $inputs) ||
+            key_exists('direccion_destinatario_id', $inputs)
+        ) {
             $key = ($type === 'sender') ? 'direccion_remitente_id' : 'direccion_destinatario_id';
             $dispatchAddress = PersonAddress::find($inputs[$key]);
-            $location_id = [$dispatchAddress->department_id,$dispatchAddress->province_id,$dispatchAddress->district_id];
+            $location_id = [$dispatchAddress->department_id, $dispatchAddress->province_id, $dispatchAddress->district_id];
             return [
                 'address' => $dispatchAddress->address,
                 'location_id' => $location_id,
@@ -79,24 +82,23 @@ class DispatchTransform
             $data = $inputs['direcciones_proveedores'][$key];
 
             $locations = DB::connection('tenant')->table('districts')
-            ->join('provinces', 'districts.province_id', '=', 'provinces.id')
-            ->join('departments', 'provinces.department_id', '=', 'departments.id')
-            ->where('districts.id', '=', $data['ubigeo'])
-            ->select('districts.id as district_id', 'provinces.id as province_id','departments.id as department_id')
-            ->first();
-            
+                ->join('provinces', 'districts.province_id', '=', 'provinces.id')
+                ->join('departments', 'provinces.department_id', '=', 'departments.id')
+                ->where('districts.id', '=', $data['ubigeo'])
+                ->select('districts.id as district_id', 'provinces.id as province_id', 'departments.id as department_id')
+                ->first();
+
             if ($locations) {
                 $locations = (array) $locations;
             }
-            
-            $location_id = [ $locations['department_id'], $locations['province_id'],$locations['district_id']];
+
+            $location_id = [$locations['department_id'], $locations['province_id'], $locations['district_id']];
             return [
                 'address' => $data["direccion"],
                 'location_id' =>  $location_id
             ];
         }
         return null;
-
     }
 
     private static function senderData($inputs)
@@ -141,15 +143,23 @@ class DispatchTransform
     private static function AffectedDocument(&$data, $inputs)
     {
         if (isset($inputs['documento_afectado']) && isset($inputs['documento_afectado']['external_id'])) {
-            $data['affected_document_external_id'] = Functions::valueKeyInArray($inputs['documento_afectado'],
-                'external_id');
+            $data['affected_document_external_id'] = Functions::valueKeyInArray(
+                $inputs['documento_afectado'],
+                'external_id'
+            );
         } elseif (isset($inputs['documento_afectado'])) {
-            $data['data_affected_document']['number'] = Functions::valueKeyInArray($inputs['documento_afectado'],
-                'numero_documento');
-            $data['data_affected_document']['series'] = Functions::valueKeyInArray($inputs['documento_afectado'],
-                'serie_documento');
-            $data['data_affected_document']['document_type_id'] = Functions::valueKeyInArray($inputs['documento_afectado'],
-                'codigo_tipo_documento');
+            $data['data_affected_document']['number'] = Functions::valueKeyInArray(
+                $inputs['documento_afectado'],
+                'numero_documento'
+            );
+            $data['data_affected_document']['series'] = Functions::valueKeyInArray(
+                $inputs['documento_afectado'],
+                'serie_documento'
+            );
+            $data['data_affected_document']['document_type_id'] = Functions::valueKeyInArray(
+                $inputs['documento_afectado'],
+                'codigo_tipo_documento'
+            );
         }
     }
 
@@ -284,7 +294,7 @@ class DispatchTransform
     {
         if (array_key_exists('vehiculo_secundario', $inputs) && isset($inputs['vehiculo_secundario']) && is_array($inputs['vehiculo_secundario'])) {
             $transports = [];
-            foreach (array_slice($inputs['vehiculo_secundario'],0,2) as $row) {
+            foreach (array_slice($inputs['vehiculo_secundario'], 0, 2) as $row) {
 
                 $temp = [
                     'plate_number' => Functions::valueKeyInArray($row, 'numero_de_placa'),
@@ -302,9 +312,9 @@ class DispatchTransform
 
     private static function secondary_drivers($inputs)
     {
-        if (array_key_exists('chofer_secundario', $inputs)&& isset($inputs['chofer_secundario']) && is_array($inputs['chofer_secundario'])) {
+        if (array_key_exists('chofer_secundario', $inputs) && isset($inputs['chofer_secundario']) && is_array($inputs['chofer_secundario'])) {
             $drivers = [];
-            foreach (array_slice($inputs['chofer_secundario'],0,2) as $row) {
+            foreach (array_slice($inputs['chofer_secundario'], 0, 2) as $row) {
                 $temp = [
                     'identity_document_type_id' => Functions::valueKeyInArray($row, 'codigo_tipo_documento_identidad'),
                     'number' => Functions::valueKeyInArray($row, 'numero_documento'),
@@ -325,7 +335,7 @@ class DispatchTransform
         if (key_exists('pagador_flete', $inputs)) {
             $payer = $inputs['pagador_flete'];
 
-            if(!isset($payer['indicador_pagador_flete'])){
+            if (!isset($payer['indicador_pagador_flete'])) {
                 return null;
             }
 
@@ -340,4 +350,32 @@ class DispatchTransform
         return null;
     }
 
+    private static function documentRelated($inputs)
+    {
+        if (key_exists('documento_relacionado', $inputs)) {
+            $documents = [];
+
+            foreach ($inputs['documento_relacionado'] as $row) {
+                $documents[] = [
+                    'number' => Functions::valueKeyInArray($row, 'numero'),
+                    'name' => Functions::valueKeyInArray($row, 'empresa'),
+                    'customer' => Functions::valueKeyInArray($row, 'ruc'),
+                    'document_type' => self::documentType($row['documento']),
+                ];
+            }
+
+            return $documents;
+        }
+        return null;
+    }
+
+    private static function documentType($row)
+    {
+        $document = [
+            'id' => Functions::valueKeyInArray($row, 'id'),
+            'description' => Functions::valueKeyInArray($row, 'descripcion')
+        ];
+
+        return $document;
+    }
 }

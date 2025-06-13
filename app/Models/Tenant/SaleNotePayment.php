@@ -59,7 +59,7 @@ class SaleNotePayment extends ModelTenant
         return $this->belongsTo(SaleNote::class);
     }
 
-    
+
     /**
      * 
      * Filtros para obtener pagos en efectivo y con destino caja
@@ -70,12 +70,12 @@ class SaleNotePayment extends ModelTenant
     public function scopeWhereFilterCashPayment($query)
     {
         return $query->where('payment_method_type_id', PaymentMethodType::CASH_PAYMENT_ID)
-                    ->whereHas('global_payment', function($query){
-                        return $query->where('destination_type', Cash::class);
-                    });
+            ->whereHas('global_payment', function ($query) {
+                return $query->where('destination_type', Cash::class);
+            });
     }
 
-    
+
     /**
      * 
      * Obtener informacion del pago y registro origen relacionado
@@ -111,15 +111,15 @@ class SaleNotePayment extends ModelTenant
     {
         // \Log::info("sln");
         return $query->generalPaymentsWithOutRelations()
-                    ->with([
-                        'payment_method_type' => function($payment_method_type){
-                            $payment_method_type->select('id', 'description');
-                        }, 
-                        'payment_file'
-                    ]);
+            ->with([
+                'payment_method_type' => function ($payment_method_type) {
+                    $payment_method_type->select('id', 'description');
+                },
+                'payment_file'
+            ]);
     }
 
-    
+
     /**
      * 
      * Total de pagos filtrado por id de la nota de venta
@@ -132,7 +132,11 @@ class SaleNotePayment extends ModelTenant
         return self::whereIn('sale_note_id', $sale_notes_id)->sum('payment');
     }
 
-    
+    public function cashDocumentPayments()
+    {
+        return $this->hasMany(CashDocumentPayment::class, 'sale_note_payment_id', 'id');
+    }
+
     /**
      * 
      * Filtros para obtener pagos en efectivo
@@ -144,8 +148,8 @@ class SaleNotePayment extends ModelTenant
     {
         return $query->where('payment_method_type_id', PaymentMethodType::CASH_PAYMENT_ID);
     }
-    
-    
+
+
     /**
      * 
      * Filtros para obtener pagos con transferencia
@@ -158,7 +162,7 @@ class SaleNotePayment extends ModelTenant
         return $query->where('payment_method_type_id', PaymentMethodType::TRANSFER_PAYMENT_ID);
     }
 
-    
+
     /**
      * 
      * Filtros para obtener pagos en efectivo de un registro aceptado
@@ -169,13 +173,13 @@ class SaleNotePayment extends ModelTenant
     public function scopeFilterCashPaymentWithDocument($query)
     {
         return $query->whereHas('associated_record_payment', function ($document) {
-                        $document->whereStateTypeAccepted()
-                                ->whereNotChanged();
-                    })
-                    ->filterCashPaymentWithoutDestination();
+            $document->whereStateTypeAccepted()
+                ->whereNotChanged();
+        })
+            ->filterCashPaymentWithoutDestination();
     }
 
-    
+
     /**
      * 
      * Filtros para obtener pagos al contado de un documento aceptado
@@ -186,10 +190,10 @@ class SaleNotePayment extends ModelTenant
     public function scopeDestinationCashPaymentDocument($query)
     {
         return $query->whereHas('associated_record_payment', function ($document) {
-                        $document->whereStateTypeAccepted()
-                            ->whereNotChanged();
-                    })
-                    ->whereCashPaymentMethodType();
+            $document->whereStateTypeAccepted()
+                ->whereNotChanged();
+        })
+            ->whereCashPaymentMethodType();
     }
 
 
@@ -209,7 +213,7 @@ class SaleNotePayment extends ModelTenant
         return array_merge($this->getRowResourceCashPayment(), $data);
     }
 
-    
+
     /**
      * 
      * Obtener informacion del pago y registro origen relacionado para reporte de ingresos
@@ -223,15 +227,13 @@ class SaleNotePayment extends ModelTenant
         $payment = 0;
         $payment_for_calculate = 0;
 
-        if(!$this->associated_record_payment->isVoidedOrRejected())
-        {
+        if (!$this->associated_record_payment->isVoidedOrRejected()) {
             $total = $this->associated_record_payment->total;
             $change = $this->change ?? 0;
             $payment = $this->payment;
             $payment_for_calculate = $this->payment;
 
-            if(!$this->associated_record_payment->hasNationalCurrency())
-            {
+            if (!$this->associated_record_payment->hasNationalCurrency()) {
                 $payment_for_calculate = $this->associated_record_payment->generalConvertValueToPen($this->payment, $this->associated_record_payment->exchange_rate_sale);
             }
         }
@@ -259,5 +261,4 @@ class SaleNotePayment extends ModelTenant
     {
         return optional($this->payment_file)->getFileUrl('sale_notes');
     }
-
 }

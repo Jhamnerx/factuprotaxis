@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
@@ -22,7 +23,8 @@ use Modules\Order\Models\OrderNote;
 use Modules\Order\Models\OrderForm;
 use Modules\Inventory\Models\{
     ItemWarehouse,
-    InventoryKardex
+    InventoryKardex,
+    DevolutionItem
 };
 use Modules\Sale\Models\SaleOpportunity;
 use Modules\Sale\Models\Contract;
@@ -32,7 +34,8 @@ use App\Models\Tenant\{
     CashDocument,
     ItemMovement,
     Inventory,
-    Item
+    Item,
+    ItemUnitType
 };
 use Modules\Payment\Models\PaymentLink;
 use Modules\MercadoPago\Models\Transaction;
@@ -41,6 +44,10 @@ use Modules\Production\Models\{
     Production,
     Mill,
     Packaging,
+};
+use Modules\Item\Models\{
+    ItemLotsGroup,
+    ItemLot
 };
 use Modules\Purchase\Models\WeightedAverageCost;
 use Illuminate\Support\Facades\DB;
@@ -78,7 +85,7 @@ class OptionController extends Controller
         $this->deleteInventoryKardex(Document::class);
 
         Document::where('soap_type_id', '01')
-        ->whereIn('document_type_id', ['07', '08'])->delete();
+            ->whereIn('document_type_id', ['07', '08'])->delete();
 
         $this->deleteRecordsCash(Document::class);
         // Document::where('soap_type_id', '01')->delete();
@@ -142,8 +149,7 @@ class OptionController extends Controller
     {
         $transactions = Transaction::where('soap_type_id', '01')->get();
 
-        foreach ($transactions as $transaction)
-        {
+        foreach ($transactions as $transaction) {
             $transaction->transaction_queries()->delete();
             $transaction->delete();
         }
@@ -162,12 +168,10 @@ class OptionController extends Controller
     {
         $mills = Mill::where('soap_type_id', '01')->get();
 
-        foreach ($mills as $mill)
-        {
+        foreach ($mills as $mill) {
             $mill->relation_mill_items()->delete();
             $mill->delete();
         }
-
     }
 
     /**
@@ -199,13 +203,24 @@ class OptionController extends Controller
 
         CashDocumentCredit::whereIn($column, $records_id)->delete();
 
+        $document_records = $model::where('soap_type_id', '01')->get();
+
+        $document_records->each(function ($record) {
+            $record->payments()->each(function ($payment) {
+                if (method_exists($payment, 'cashDocumentPayments')) {
+                    $payment->cashDocumentPayments()->delete();
+                }
+            });
+        });
+
         $model::where('soap_type_id', '01')->delete();
     }
 
 
-    private function deleteInventoryKardex($model, $records = null){
+    private function deleteInventoryKardex($model, $records = null)
+    {
 
-        if(!$records){
+        if (!$records) {
             $records = $model::where('soap_type_id', '01')->get();
         }
 
@@ -214,11 +229,11 @@ class OptionController extends Controller
         foreach ($records as $record) {
 
             $record->inventory_kardex()->delete();
-
         }
     }
 
-    private function updateStockAfterDelete(){
+    private function updateStockAfterDelete()
+    {
 
         // if($this->delete_quantity > 0){
 
@@ -238,40 +253,43 @@ class OptionController extends Controller
     }
 
     public function deleteItems(Request $request)
-    {   
+    {
         $id_items_movement = ItemMovement::distinct()->pluck('item_id');
-        $id_items_inventory = Inventory::distinct()->where('description','<>','Stock inicial')->pluck('item_id');
-        $ids_item_merge = $id_items_movement->merge($id_items_inventory)->unique();
+        $id_items_inventory = Inventory::distinct()->where('description', '<>', 'Stock inicial')->pluck('item_id');
+        $id_items_devolution_items = DevolutionItem::distinct()->pluck('item_id');
+        $ids_item_merge = $id_items_movement->merge($id_items_inventory)
+            ->merge($id_items_devolution_items)
+            ->unique();
         $ids_item_merge_array = $ids_item_merge->toArray();
         $deletedItem = 0;
-    
-        try{
-            DB::transaction(function () use ($ids_item_merge_array,&$deletedItem) {
+
+        try {
+            DB::transaction(function () use ($ids_item_merge_array, &$deletedItem) {
                 $ids_item_delete = Item::whereNotIn('id', $ids_item_merge_array)->pluck('id');
                 $ids_item_delete_array = $ids_item_delete->toArray();
-                
+
                 InventoryKardex::whereIn('item_id', $ids_item_delete_array)->delete();
                 Kardex::whereIn('item_id', $ids_item_delete_array)->delete();
-                WeightedAverageCost::whereIn('item_id',$ids_item_delete_array)->delete();
-                Inventory::whereIn('item_id',$ids_item_delete_array)->delete();
-                
+                WeightedAverageCost::whereIn('item_id', $ids_item_delete_array)->delete();
+                Inventory::whereIn('item_id', $ids_item_delete_array)->delete();
+                ItemUnitType::whereIn('item_id', $ids_item_delete_array)->delete();
+                ItemLot::whereIn('item_id', $ids_item_delete_array)->delete();
+                ItemLotsGroup::whereIn('item_id', $ids_item_delete_array)->delete();
+
                 $deletedItem = Item::whereIn('id', $ids_item_delete_array)->delete();
             });
 
             return [
                 'success' => true,
-                'message' => ($deletedItem==1)?$deletedItem.' Producto eliminado':$deletedItem.' Productos eliminados',
+                'message' => ($deletedItem == 1) ? $deletedItem . ' Producto eliminado' : $deletedItem . ' Productos eliminados',
                 'delete_quantity' => $deletedItem,
             ];
-
-        }catch(\Exception $ex){
+        } catch (\Exception $ex) {
             return [
                 'success' => false,
                 'message' => 'Inconvenientes al eliminar',
                 'delete_quantity' => $deletedItem,
             ];
         }
-        
     }
-
 }

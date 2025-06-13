@@ -17,7 +17,7 @@
                     </el-button>
                     <el-dropdown-menu slot="dropdown">
                         <el-dropdown-item v-for="(column, index) in columns" :key="index">
-                            <el-checkbox v-model="column.visible">{{ column.title }}</el-checkbox>
+                            <el-checkbox v-model="column.visible" @change="saveColumnVisibility">{{ column.title }}</el-checkbox>
                         </el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>
@@ -26,7 +26,7 @@
                 <data-table :resource="resource">
                     <tr slot="heading">
                         <!-- <th>#</th> -->
-                        <th class="text-center">Fecha Emisión</th>
+                        <th class="text-left">Fecha Emisión</th>
                         <th v-if="columns.sale.visible">Vendedor</th>
                         <th>Cliente</th>
                         <th>Estado</th>
@@ -46,7 +46,7 @@
                     <tr>
                     <tr slot-scope="{ index, row }" :class="{ anulate_color : row.state_type_id == '11' }">
                         <!-- <td>{{ index }}</td> -->
-                        <td class="text-center">{{ row.date_of_issue }}</td>
+                        <td class="text-left">{{ row.date_of_issue }}</td>
                         <td v-if="columns.sale.visible">{{ row.user_name }}</td>
                         <td>{{ row.customer_name }}<br/><small v-text="row.customer_number"></small></td>
                         <td>{{row.state_type_description}}</td>
@@ -90,12 +90,12 @@
                             </el-popover>
 
                         </td>
-                        <td class="text-right"  v-if="columns.total_exportation.visible" >{{ row.total_exportation }}</td>
-                        <td class="text-right" v-if="columns.total_unaffected.visible">{{ row.total_unaffected }}</td>
-                        <td class="text-right" v-if="columns.total_exonerated.visible">{{ row.total_exonerated }}</td>
-                        <td class="text-right" v-if="columns.total_taxed.visible">{{ row.total_taxed }}</td>
-                        <td class="text-right" v-if="columns.total_igv.visible">{{ row.total_igv }}</td>
-                        <td class="text-right">{{ row.total }}</td>
+                        <td class="text-right"  v-if="columns.total_exportation.visible" >{{row.currency_type_id === 'PEN' ? 'S/.' : '$'}} {{ row.total_exportation }}</td>
+                        <td class="text-right" v-if="columns.total_unaffected.visible">{{row.currency_type_id === 'PEN' ? 'S/.' : '$'}} {{ row.total_unaffected }}</td>
+                        <td class="text-right" v-if="columns.total_exonerated.visible">{{row.currency_type_id === 'PEN' ? 'S/.' : '$'}} {{ row.total_exonerated }}</td>
+                        <td class="text-right" v-if="columns.total_taxed.visible">{{row.currency_type_id === 'PEN' ? 'S/.' : '$'}}{{ row.total_taxed }}</td>
+                        <td class="text-right" v-if="columns.total_igv.visible">{{row.currency_type_id === 'PEN' ? 'S/.' : '$'}} {{ row.total_igv }}</td>
+                        <td class="text-right">{{row.currency_type_id === 'PEN' ? 'S/.' : '$'}} {{ row.total }}</td>
                         <td class="text-right">
 
                             <button type="button" class="btn waves-effect waves-light btn-xs btn-info"
@@ -190,8 +190,18 @@
             }
         },
         created() {
+            this.loadColumnVisibility();
         },
         methods: {
+            saveColumnVisibility() {
+                localStorage.setItem('columnVisibility', JSON.stringify(this.columns));
+            },
+            loadColumnVisibility() {
+                const savedColumns = localStorage.getItem('columnVisibility');
+                if (savedColumns) {
+                    this.columns = JSON.parse(savedColumns);
+                }
+            },
             clickDownloadFile(filename) {
                 window.open(
                     `/${this.resource}/download-file/${filename}`,

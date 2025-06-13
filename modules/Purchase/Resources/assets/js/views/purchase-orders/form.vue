@@ -9,8 +9,10 @@
                     <div class="d-flex head-notes">
                         <div class="row">
                             <div class="mt-3 mb-0">
-                                <logo url="/"
-                                      :path_logo="(company.logo != null) ? `/storage/uploads/logos/${company.logo}` : ''"></logo>
+                                <logo 
+                                    url="/"
+                                    :path_logo="getCurrentLogo"
+                                ></logo>
                             </div>
                             <div class="text-left mt-3 mb-0" style="margin-left: 10%;">
                                 <address class="ib mr-2">
@@ -185,7 +187,7 @@
                                     <table class="table">
                                         <thead>
                                         <tr>
-                                            <th>#</th>
+                                            <!-- <th>#</th> -->
                                             <th>Descripción</th>
                                             <!-- <th>Almacén</th> -->
                                             <th class="text-center">Unidad</th>
@@ -199,7 +201,7 @@
                                         </thead>
                                         <tbody>
                                         <tr v-for="(row, index) in form.items" :key="index">
-                                            <td>{{ index + 1 }}</td>
+                                            <!-- <td>{{ index + 1 }}</td> -->
                                             <td>{{
                                                     row.item.description
                                                 }}<br/><small>{{ row.affectation_igv_type.description }}</small></td>
@@ -232,6 +234,9 @@
                                         </tr>
                                         </tbody>
                                     </table>
+                                    <div v-if="form.items.length > 0" class="total-rows">
+                                        <span>Total de ítems: {{ form.items.length }}</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -375,6 +380,19 @@ import PersonForm from '../../../../../../../resources/js/views/tenant/persons/f
 export default {
     props: ['id', 'saleOpportunity'],
     components: {PurchaseFormItem, PersonForm, PurchaseOptions, Logo},
+    computed: {
+        getCurrentLogo() {
+            const isDarkMode = document.documentElement.classList.contains('dark');
+        
+            if (isDarkMode && this.company.logo_dark) {
+                return `/storage/uploads/logos/${this.company.logo_dark}`;
+            }
+            if (this.company.logo) {
+                return `/storage/uploads/logos/${this.company.logo}`;
+            }
+            return '';
+        }
+    },
     mixins: [functions, exchangeRate],
     data() {
         return {

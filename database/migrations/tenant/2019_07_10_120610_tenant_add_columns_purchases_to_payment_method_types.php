@@ -23,7 +23,6 @@ class TenantAddColumnsPurchasesToPaymentMethodTypes extends Migration
             ['id' => '05', 'description' => 'Factura a 30 días', 'has_card' => false, 'number_days' => 30, 'charge' => null],
             ['id' => '06', 'description' => 'Tarjeta crédito visa', 'has_card' => true, 'number_days' => null, 'charge' => 3.68],
             ['id' => '07', 'description' => 'Contado contraentrega', 'has_card' => false, 'number_days' => null, 'charge' => null],
-
         ]);
     }
 

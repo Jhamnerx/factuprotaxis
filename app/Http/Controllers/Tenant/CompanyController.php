@@ -77,6 +77,12 @@ class CompanyController extends Controller
                 $file->storeAs(($type === 'logo') ? 'public/uploads/logos' : 'certificates', $name);
             }
 
+            if (($type === 'logo_dark')) {
+                $v = request()->validate(['file' => 'required|mimes:jpeg,png,jpg,gif,svg|max:2048']);
+                UploadFileHelper::checkIfValidFile($name, $file->getPathName(), true);
+                $file->storeAs('public/uploads/logos', $name);
+            }
+
             // if (($type === 'logo_store')) {
             //     request()->validate(['file' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048']);
             //     $file->storeAs(($type === 'logo_store') ? 'public/uploads/logos' : 'certificates', $name);
@@ -120,7 +126,7 @@ class CompanyController extends Controller
         }
         return [
             'success' => false,
-            'message' =>  __('app.actions.upload.error'),
+            'message' => __('app.actions.upload.error'),
         ];
     }
 
