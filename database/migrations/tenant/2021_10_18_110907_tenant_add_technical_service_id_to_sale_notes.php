@@ -28,7 +28,7 @@ class TenantAddTechnicalServiceIdToSaleNotes extends Migration
     {
         Schema::table('sale_notes', function (Blueprint $table) {
             $table->dropForeign(['technical_service_id']);
-            $table->dropColumn('technical_service_id'); 
+            $table->dropColumn('technical_service_id');
         });
     }
 }

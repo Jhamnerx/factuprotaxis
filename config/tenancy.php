@@ -26,11 +26,11 @@ return [
 
         // Must implement \Hyn\Tenancy\Contracts\Hostname
         'hostname' => \Hyn\Tenancy\Models\Hostname::class,
-//        'hostname' => \App\Models\System\Hostname::class,
+        //        'hostname' => \App\Models\System\Hostname::class,
 
         // Must implement \Hyn\Tenancy\Contracts\Website
         'website' => \Hyn\Tenancy\Models\Website::class
-//        'website' => \App\Models\System\Website::class
+        //        'website' => \App\Models\System\Website::class
     ],
     /**
      * The package middleware. Removing a middleware here will disable it.
@@ -225,8 +225,8 @@ return [
          *
          * @warn specify a valid fully qualified class name.
          */
-//        'tenant-seed-class' => false,
-//      eg an admin seeder under `app/Seeders/AdminSeeder.php`:
+        //        'tenant-seed-class' => false,
+        //      eg an admin seeder under `app/Seeders/AdminSeeder.php`:
         'tenant-seed-class' => TenancyDatabaseSeeder::class,
 
         /**
@@ -280,10 +280,10 @@ return [
          * @info Useful for overriding the connection of third party packages.
          */
         'force-tenant-connection-of-modelsforce-tenant-connection-of-models' => [
-//            App\User::class
+            //            App\User::class
         ],
         'force-system-connection-of-models' => [
-//            App\User::class
+            //            App\User::class
         ],
     ],
 

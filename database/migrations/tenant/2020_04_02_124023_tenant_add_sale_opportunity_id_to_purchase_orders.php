@@ -28,7 +28,7 @@ class TenantAddSaleOpportunityIdToPurchaseOrders extends Migration
     {
         Schema::table('purchase_orders', function (Blueprint $table) {
             $table->dropForeign(['sale_opportunity_id']);
-            $table->dropColumn('sale_opportunity_id');  
+            $table->dropColumn('sale_opportunity_id');
         });
     }
 }

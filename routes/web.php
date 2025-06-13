@@ -370,6 +370,117 @@ if ($hostname) {
             Route::get('retentions/document/tables', 'Tenant\RetentionController@document_tables');
             Route::get('retentions/table/{table}', 'Tenant\RetentionController@table');
 
+
+            //Taxis           
+            Route::get('propietarios', 'Tenant\PropietariosController@index')->name('tenant.taxi.propietarios');
+            Route::get('propietarios/columns', 'Tenant\PropietariosController@columns');
+            Route::get('propietarios/records', 'Tenant\PropietariosController@records');
+            Route::get('propietarios/record/{id}', 'Tenant\PropietariosController@record');
+            Route::get('propietarios/search', 'Tenant\UnidadesController@searchPropietarios');
+
+            Route::get('propietarios/tables', 'Tenant\PropietariosController@tables');
+            Route::get('propietarios/record/{propietario}', 'Tenant\PropietariosController@record');
+            Route::post('propietarios', 'Tenant\PropietariosController@store');
+            Route::delete('propietarios/{propietario}', 'Tenant\PropietariosController@destroy');
+
+
+            Route::get('unidades', 'Tenant\UnidadesController@index')->name('tenant.taxi.unidades');
+            Route::get('unidades/columns', 'Tenant\UnidadesController@columns');
+            Route::get('unidades/records', 'Tenant\UnidadesController@records');
+            Route::get('unidades/record/{id}', 'Tenant\UnidadesController@record');
+            Route::get('unidades/search', 'Tenant\UnidadesController@searchUnidades');
+            Route::get('unidades/tables', 'Tenant\UnidadesController@tables');
+            Route::post('unidades', 'Tenant\UnidadesController@store');
+            Route::delete('unidades/{unidad}', 'Tenant\UnidadesController@destroy');
+            Route::get('unidades/baja', 'Tenant\UnidadesController@indexBajas')->name('tenant.taxi.unidades.baja');
+
+            Route::get('marcas', 'Tenant\MarcasController@index')->name('tenant.taxi.marcas.index');
+            Route::get('marcas/columns', 'Tenant\MarcasController@columns');
+            Route::get('marcas/records', 'Tenant\MarcasController@records');
+            Route::get('marcas/record/{id}', 'Tenant\MarcasController@record');
+            Route::post('marcas', 'Tenant\MarcasController@store');
+            Route::delete('marcas/{marca}', 'Tenant\MarcasController@destroy');
+            Route::get('modelos', 'Tenant\ModelosController@index')->name('tenant.taxi.modelos.index');
+            Route::get('modelos/columns', 'Tenant\ModelosController@columns');
+            Route::get('modelos/tables', 'Tenant\ModelosController@tables');
+            Route::get('modelos/records', 'Tenant\ModelosController@records');
+            Route::get('modelos/record/{id}', 'Tenant\ModelosController@record');
+            Route::get('modelos/por-marca/{marca_id}', 'Tenant\ModelosController@getModelosByMarca');
+            Route::post('modelos', 'Tenant\ModelosController@store');
+            Route::delete('modelos/{modelo}', 'Tenant\ModelosController@destroy');
+
+
+            Route::get('planes', 'Tenant\PlanesController@index')->name('tenant.taxi.planes.index');
+            Route::get('planes/columns', 'Tenant\PlanesController@columns');
+            Route::get('planes/records', 'Tenant\PlanesController@records');
+            Route::get('planes/record/{id}', 'Tenant\PlanesController@record');
+            Route::post('planes', 'Tenant\PlanesController@store');
+            Route::delete('planes/{plan}', 'Tenant\PlanesController@destroy');
+            Route::get('planes/tables', 'Tenant\PlanesController@tables');
+            Route::get('planes/search/vehiculos', 'Tenant\PlanesController@searchVehiculos');
+            Route::get('planes/search/propietarios', 'Tenant\PlanesController@searchPropietarios');
+
+
+
+            Route::get('condiciones', 'Tenant\CondicionesController@index')->name('tenant.taxi.condiciones.index');
+            Route::get('condiciones/columns', 'Tenant\CondicionesController@columns');
+            Route::get('condiciones/records', 'Tenant\CondicionesController@records');
+            Route::get('condiciones/record/{id}', 'Tenant\CondicionesController@record');
+            Route::post('condiciones', 'Tenant\CondicionesController@store');
+            Route::delete('condiciones/{condicion}', 'Tenant\CondicionesController@destroy');
+
+            Route::get('pagos', 'Tenant\PagosController@index')->name('tenant.taxi.pagos.index');
+
+            Route::get('solicitudes', 'Tenant\SolicitudesController@index')->name('tenant.taxi.solicitudes.index');
+            Route::get('solicitudes/columns', 'Tenant\SolicitudesController@columns');
+            Route::get('solicitudes/tables', 'Tenant\SolicitudesController@tables');
+            Route::post('solicitudes/upload', 'Tenant\SolicitudesController@upload');
+            Route::get('solicitudes/records', 'Tenant\SolicitudesController@records');
+            Route::get('solicitudes/record/{id}', 'Tenant\SolicitudesController@record');
+            Route::post('solicitudes', 'Tenant\\SolicitudesController@store');
+            Route::post('solicitudes/{id}/update', 'Tenant\\SolicitudesController@update');
+            Route::delete('solicitudes/{solicitud}', 'Tenant\SolicitudesController@destroy');
+            Route::post('solicitudes/cambiar-estado/{id}', 'Tenant\SolicitudesController@cambiarEstado');
+            Route::get('solicitudes/download-file/{id}/{index}', 'Tenant\SolicitudesController@downloadFile');
+            Route::post('solicitudes/delete-file/{id}', 'Tenant\SolicitudesController@deleteFile');
+            Route::get('solicitudes/generar-pdf/{id}', 'Tenant\SolicitudesController@generarPDF');
+
+
+
+
+            Route::get('permisos', 'Tenant\PermisosController@index')->name('tenant.taxi.permisos.index');
+            Route::get('permisos/columns', 'Tenant\PermisosController@columns');
+            Route::get('permisos/records', 'Tenant\PermisosController@records');
+            Route::get('permisos/record/{id}', 'Tenant\PermisosController@record');
+            Route::post('permisos', 'Tenant\PermisosController@store');
+            Route::delete('permisos/{permiso}', 'Tenant\PermisosController@destroy');
+            Route::get('permisos/tables', 'Tenant\PermisosController@tables');
+            Route::get('permisos/search/vehiculos', 'Tenant\PermisosController@searchVehiculos');
+
+
+
+
+            Route::get('constancias', 'Tenant\ConstanciasController@index')->name('tenant.taxi.constancias.index');
+            Route::get('constancias/columns', 'Tenant\ConstanciasController@columns');
+            Route::get('constancias/records', 'Tenant\ConstanciasController@records');
+            Route::get('constancias/record/{id}', 'Tenant\ConstanciasController@record');
+            Route::post('constancias', 'Tenant\ConstanciasController@store');
+            Route::delete('constancias/{constancia}', 'Tenant\ConstanciasController@destroy');
+            Route::get('constancias/tables', 'Tenant\ConstanciasController@tables');
+            Route::get('constancias/search/vehiculos', 'Tenant\ConstanciasController@searchVehiculos');
+
+
+
+            Route::get('declaraciones', 'Tenant\DeclaracionesController@index')->name('tenant.taxi.declaraciones.index');
+            Route::get('declaraciones/columns', 'Tenant\DeclaracionesController@columns');
+            Route::get('declaraciones/records', 'Tenant\DeclaracionesController@records');
+            Route::get('declaraciones/record/{id}', 'Tenant\DeclaracionesController@record');
+            Route::post('declaraciones', 'Tenant\DeclaracionesController@store');
+            Route::delete('declaraciones/{declaracion}', 'Tenant\DeclaracionesController@destroy');
+            Route::get('declaraciones/tables', 'Tenant\DeclaracionesController@tables');
+            Route::get('declaraciones/search/vehiculos', 'Tenant\DeclaracionesController@searchVehiculos');
+
+
             /** Dispatches
              * dispatches
              * dispatches/columns

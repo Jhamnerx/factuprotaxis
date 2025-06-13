@@ -16,9 +16,9 @@ class AddSendAutoSunatToDispatches extends Migration
         Schema::table('configurations', function (Blueprint $table) {
             //
             $table->tinyInteger('auto_send_dispatchs_to_sunat')
-                  ->default(1)
-                  ->nullable()
-                  ->comment('define si se mandan las guias automaticamente a sunat');
+                ->default(1)
+                ->nullable()
+                ->comment('define si se mandan las guias automaticamente a sunat');
         });
     }
 

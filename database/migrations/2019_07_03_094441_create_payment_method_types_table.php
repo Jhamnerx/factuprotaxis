@@ -17,17 +17,16 @@ class CreatePaymentMethodTypesTable extends Migration
         Schema::create('payment_method_types', function (Blueprint $table) {
             $table->increments('id');
             $table->string('description');
-            $table->boolean('has_card')->default(false);  
+            $table->boolean('has_card')->default(false);
         });
 
-        
+
         DB::table('payment_method_types')->insert([
-            ['id' => '1', 'description' => 'Efectivo'          , 'has_card' => false],
+            ['id' => '1', 'description' => 'Efectivo', 'has_card' => false],
             ['id' => '2', 'description' => 'Tarjeta de crédito', 'has_card' => true],
             ['id' => '3', 'description' => 'Tarjeta de débito',  'has_card' => true],
             ['id' => '4', 'description' => 'Transferencia',      'has_card' => false],
         ]);
-
     }
 
     /**

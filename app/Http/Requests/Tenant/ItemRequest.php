@@ -27,7 +27,8 @@ class ItemRequest extends FormRequest
                 Rule::unique('tenant.items')->ignore($id),
             ],
             'description' => [
-                'required', 'max:600'
+                'required',
+                'max:600'
             ],
             'name' => [
                 'max:600'
@@ -53,7 +54,8 @@ class ItemRequest extends FormRequest
                 'gt:0'
             ],
             'purchase_unit_price' => [
-                'required', 'numeric'
+                'required',
+                'numeric'
             ],
             'stock' => [
                 'required',
@@ -76,7 +78,7 @@ class ItemRequest extends FormRequest
             //     'required_if:is_set,false',
             // ],
             'model' => 'max:100',
-            
+
             'system_isc_type_id' => [
                 'required_if:has_isc, 1',
             ],

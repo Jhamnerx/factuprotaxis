@@ -1,60 +1,147 @@
 <template>
     <div>
-        <el-dialog :title="titleDialog" :visible="showDialog" @open="create"
-                :close-on-click-modal="false"
-                :close-on-press-escape="false"
-                width="800px"
-                :show-close="false">
-
-                <div class="dialog-close-btn" style="position: absolute; top: 10px; right: 10px;">
-            <el-button @click="clickClose" class="close-btn" type="text" icon="el-icon-close"></el-button>
-        </div>
+        <el-dialog
+            :title="titleDialog"
+            :visible="showDialog"
+            @open="create"
+            :close-on-click-modal="false"
+            :close-on-press-escape="false"
+            width="800px"
+            :show-close="false"
+        >
+            <div
+                class="dialog-close-btn"
+                style="position: absolute; top: 10px; right: 10px;"
+            >
+                <el-button
+                    @click="clickClose"
+                    class="close-btn"
+                    type="text"
+                    icon="el-icon-close"
+                ></el-button>
+            </div>
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12 container-tabs">
                     <el-tabs v-model="activeName">
                         <el-tab-pane label="A4" name="first">
-                            <iframe :src="form.print_a4" type="application/pdf" width="100%" height="400px"/>
+                            <iframe
+                                :src="form.print_a4"
+                                type="application/pdf"
+                                width="100%"
+                                height="400px"
+                            />
                         </el-tab-pane>
-                        <el-tab-pane label="Ticket 80mm" name="fourth" v-if="ShowTicket80">
-                            <iframe :src="form.print_ticket" type="application/pdf" width="100%" height="400px"/>
+                        <el-tab-pane
+                            label="Ticket 80mm"
+                            name="fourth"
+                            v-if="ShowTicket80"
+                        >
+                            <iframe
+                                :src="form.print_ticket"
+                                type="application/pdf"
+                                width="100%"
+                                height="400px"
+                            />
                         </el-tab-pane>
-                        <el-tab-pane label="Ticket 58mm" name="third" v-if="ShowTicket58">
-                            <iframe :src="form.print_ticket_58" type="application/pdf" width="100%" height="400px"/>
+                        <el-tab-pane
+                            label="Ticket 58mm"
+                            name="third"
+                            v-if="ShowTicket58"
+                        >
+                            <iframe
+                                :src="form.print_ticket_58"
+                                type="application/pdf"
+                                width="100%"
+                                height="400px"
+                            />
                         </el-tab-pane>
-                        <el-tab-pane label="Ticket 50mm" name="fifth" v-if="ShowTicket50">
-                            <iframe :src="form.print_ticket_50" type="application/pdf" width="100%" height="400px"/>
+                        <el-tab-pane
+                            label="Ticket 50mm"
+                            name="fifth"
+                            v-if="ShowTicket50"
+                        >
+                            <iframe
+                                :src="form.print_ticket_50"
+                                type="application/pdf"
+                                width="100%"
+                                height="400px"
+                            />
                         </el-tab-pane>
                         <el-tab-pane label="A5" name="second">
-                            <iframe :src="form.print_a5" type="application/pdf" width="100%" height="400px"/>
+                            <iframe
+                                :src="form.print_a5"
+                                type="application/pdf"
+                                width="100%"
+                                height="400px"
+                            />
                         </el-tab-pane>
                     </el-tabs>
-
                 </div>
                 <div class="col-12 container-btns text-center">
-                    <br><br>
-                    <a :href="`https://docs.google.com/viewer?url=${form.print_a4}?format=pdf`" class="btn mx-3 btn-primary btn-lg" target="_BLANK">
+                    <br /><br />
+                    <a
+                        :href="
+                            `https://docs.google.com/viewer?url=${
+                                form.print_a4
+                            }?format=pdf`
+                        "
+                        class="btn mx-3 btn-primary btn-lg"
+                        target="_BLANK"
+                    >
                         <i class="far fa-file-pdf"></i>
-                        <br>
+                        <br />
                         <span>PDF A4</span>
                     </a>
-                    <a :href="`https://docs.google.com/viewer?url=${form.print_a5}?format=pdf`" class="btn btn-primary mx-3 btn-lg" target="_BLANK">
+                    <a
+                        :href="
+                            `https://docs.google.com/viewer?url=${
+                                form.print_a5
+                            }?format=pdf`
+                        "
+                        class="btn btn-primary mx-3 btn-lg"
+                        target="_BLANK"
+                    >
                         <i class="far fa-file-pdf"></i>
-                        <br>
+                        <br />
                         <span>PDF A5</span>
                     </a>
-                    <a :href="`https://docs.google.com/viewer?url=${form.print_ticket_58}?format=pdf`" class="btn mx-3 btn-primary btn-lg" target="_BLANK">
+                    <a
+                        :href="
+                            `https://docs.google.com/viewer?url=${
+                                form.print_ticket_58
+                            }?format=pdf`
+                        "
+                        class="btn mx-3 btn-primary btn-lg"
+                        target="_BLANK"
+                    >
                         <i class="far fa-file-pdf"></i>
-                        <br>
+                        <br />
                         <span>PDF TICKET 58mm</span>
                     </a>
-                    <a :href="`https://docs.google.com/viewer?url=${form.print_ticket_50}?format=pdf`" class="btn mx-3 btn-primary btn-lg" target="_BLANK">
+                    <a
+                        :href="
+                            `https://docs.google.com/viewer?url=${
+                                form.print_ticket_50
+                            }?format=pdf`
+                        "
+                        class="btn mx-3 btn-primary btn-lg"
+                        target="_BLANK"
+                    >
                         <i class="far fa-file-pdf"></i>
-                        <br>
+                        <br />
                         <span>PDF TICKET 50mm</span>
                     </a>
-                    <a :href="`https://docs.google.com/viewer?url=${form.print_ticket}?format=pdf`" class="btn mx-3 btn-primary btn-lg" target="_BLANK">
+                    <a
+                        :href="
+                            `https://docs.google.com/viewer?url=${
+                                form.print_ticket
+                            }?format=pdf`
+                        "
+                        class="btn mx-3 btn-primary btn-lg"
+                        target="_BLANK"
+                    >
                         <i class="far fa-file-pdf"></i>
-                        <br>
+                        <br />
                         <span>PDF TICKET</span>
                     </a>
                 </div>
@@ -62,30 +149,40 @@
             <span slot="footer" class="dialog-footer row">
                 <div class="col-md-6">
                     <el-input v-model="form.customer_email">
-                        <el-button slot="append" icon="el-icon-message"   @click="clickSendEmail" :loading="loading">Enviar</el-button>
+                        <el-button
+                            slot="append"
+                            icon="el-icon-message"
+                            @click="clickSendEmail"
+                            :loading="loading"
+                            >Enviar</el-button
+                        >
                     </el-input>
                 </div>
-                <div class="col-md-6"
-                    v-if="!config.qr_api_enable_ws">
+                <div class="col-md-6" v-if="!config.qr_api_enable_ws">
                     <el-input v-model="form.customer_telephone">
-                        <template slot="prepend">+51</template>
-                        <el-button slot="append"
-
-                                   @click="clickSendWhatsapp">Enviar
-                            <el-tooltip class="item"
-                                        content="Se recomienda tener abierta la sesión de Whatsapp web"
-                                        effect="dark"
-                                        placement="top-start">
+                        <template slot="prepend"
+                            >+51</template
+                        >
+                        <el-button slot="append" @click="clickSendWhatsapp"
+                            >Enviar
+                            <el-tooltip
+                                class="item"
+                                content="Se recomienda tener abierta la sesión de Whatsapp web"
+                                effect="dark"
+                                placement="top-start"
+                            >
                                 <i class="fab fa-whatsapp"></i>
                             </el-tooltip>
                         </el-button>
                     </el-input>
-                    <small v-if="errors.customer_telephone"
-                           class="form-control-feedback"
-                           v-text="errors.customer_telephone[0]"></small>
+                    <small
+                        v-if="errors.customer_telephone"
+                        class="form-control-feedback"
+                        v-text="errors.customer_telephone[0]"
+                    ></small>
                 </div>
                 <template v-else>
-                    <QrApi 
+                    <QrApi
                         colClass="col-md-6"
                         :wsPhone="form.customer_telephone"
                         :wsFile="form.pdf_a4_filename"
@@ -94,190 +191,243 @@
                         :wsData="form.pdf_a4_data"
                     />
                 </template>
-            <div class="col-md-6 mt-3">&nbsp;</div>
+                <div class="col-md-6 mt-3">&nbsp;</div>
                 <div class="col-md-6 mt-3">
-                <template v-if="showClose">
-                    <el-button @click="clickClose">Cerrar</el-button>
-                </template>
-                <template v-else>
-                    <el-button @click="clickFinalize">Ir al listado</el-button>
-                     <el-popover
-                        :open-delay="1000"
-                         placement="top-start"
-                         width="145"
-                         trigger="hover"
-                         content="Presiona ALT + N">
-                            <el-button slot="reference"
-                                       type="primary"
-                                       ref="new_note"
-                                       @click="clickNewSaleNote"
+                    <template v-if="showClose">
+                        <el-button @click="clickClose">Cerrar</el-button>
+                    </template>
+                    <template v-else>
+                        <el-button @click="clickFinalize"
+                            >Ir al listado</el-button
+                        >
+                        <el-popover
+                            :open-delay="1000"
+                            placement="top-start"
+                            width="145"
+                            trigger="hover"
+                            content="Presiona ALT + N"
+                        >
+                            <el-button
+                                slot="reference"
+                                type="primary"
+                                ref="new_note"
+                                @click="clickNewSaleNote"
                             >
                                 Nueva nota de venta
                             </el-button>
                         </el-popover>
-                </template>
+                    </template>
                 </div>
             </span>
         </el-dialog>
-
     </div>
 </template>
 
 <script>
-import {mapState, mapActions} from "vuex/dist/vuex.mjs";
-import QrApi from '@viewsModuleQrApi/QrApiTemplate'
+import { mapState, mapActions } from "vuex/dist/vuex.mjs";
+import QrApi from "@viewsModuleQrApi/QrApiTemplate";
 
 export default {
-    props: ['showDialog', 'recordId', 'showClose','configuration'],
+    props: ["showDialog", "recordId", "showClose", "configuration"],
     components: {
-        QrApi,
+        QrApi
     },
     data() {
         return {
-            serviceUrl:"https://ej2services.syncfusion.com/production/web-services/api/pdfviewer",
+            serviceUrl:
+                "https://ej2services.syncfusion.com/production/web-services/api/pdfviewer",
             titleDialog: null,
             loading: false,
-            resource: 'sale-notes',
-            resource_documents: 'documents',
+            resource: "sale-notes",
+            resource_documents: "documents",
             errors: {},
             form: {},
-            document:{},
+            document: {},
             document_types: [],
             all_series: [],
             series: [],
-            loading_submit:false,
+            loading_submit: false,
             showDialogOptions: false,
             documentNewId: null,
-            activeName: 'first',
-            isSafari: false
-        }
+            activeName: "first",
+            isSafari: false,
+            wsp: {}
+        };
     },
-    created() {
-        this.initForm()
-        this.loadConfiguration(this.$store)
-        this.$store.commit('setConfiguration', this.configuration)
-
+    async created() {
+        this.initForm();
+        this.loadConfiguration(this.$store);
+        this.$store.commit("setConfiguration", this.configuration);
+        await this.$http.get(`/companies/record`).then(response => {
+            if (response.data !== "") {
+                this.wsp = response.data.data;
+            }
+        });
     },
     mounted() {
-        if(navigator.userAgent.indexOf("Safari") != -1) {
-            this.isSafari = true
+        if (navigator.userAgent.indexOf("Safari") != -1) {
+            this.isSafari = true;
         }
     },
     computed: {
-        ...mapState([
-            'config',
-        ]),
-        ShowTicket58: function () {
+        ...mapState(["config"]),
+        ShowTicket58: function() {
             if (this.configuration === undefined) return false;
             if (this.configuration == null) return false;
             if (this.configuration.show_ticket_58 === undefined) return false;
             if (this.configuration.show_ticket_58 == null) return false;
             if (
                 this.configuration.show_ticket_58 !== undefined &&
-                this.configuration.show_ticket_58 !== null) {
+                this.configuration.show_ticket_58 !== null
+            ) {
                 return this.configuration.show_ticket_58;
             }
             return false;
         },
-        ShowTicket80: function () {
+        ShowTicket80: function() {
             if (this.configuration === undefined) return false;
             if (this.configuration == null) return false;
             if (this.configuration.show_ticket_80 === undefined) return false;
             if (this.configuration.show_ticket_80 == null) return false;
             if (
                 this.configuration.show_ticket_80 !== undefined &&
-                this.configuration.show_ticket_80 !== null) {
+                this.configuration.show_ticket_80 !== null
+            ) {
                 return this.configuration.show_ticket_80;
             }
             return false;
         },
-        ShowTicket50: function () {
+        ShowTicket50: function() {
             if (this.configuration === undefined) return false;
             if (this.configuration == null) return false;
             if (this.configuration.show_ticket_50 === undefined) return false;
             if (this.configuration.show_ticket_50 == null) return false;
             if (
                 this.configuration.show_ticket_50 !== undefined &&
-                this.configuration.show_ticket_50 !== null) {
+                this.configuration.show_ticket_50 !== null
+            ) {
                 return this.configuration.show_ticket_50;
             }
             return false;
         }
     },
     methods: {
-        ...mapActions(['loadConfiguration']),
+        ...mapActions(["loadConfiguration"]),
         initForm() {
-            this.errors = {}
+            this.errors = {};
             this.form = {
                 id: null,
                 external_id: null,
                 identifier: null,
-                date_of_issue:null,
+                date_of_issue: null,
                 print_ticket: null,
                 print_ticket_58: null,
                 print_a4: null,
                 print_a5: null,
-                series:null,
-                number:null,
-            }
+                series: null,
+                number: null
+            };
         },
         create() {
-            this.$http.get(`/${this.resource}/record/${this.recordId}`)
+            this.$http
+                .get(`/${this.resource}/record/${this.recordId}`)
                 .then(response => {
-                    this.form = response.data.data
-                    this.titleDialog = `Nota de venta registrada:  ${this.form.serie}-${this.form.number}`
-                })
+                    this.form = response.data.data;
+                    this.titleDialog = `Nota de venta registrada:  ${
+                        this.form.serie
+                    }-${this.form.number}`;
+                });
         },
         clickFinalize() {
-            location.href = `/${this.resource}`
+            location.href = `/${this.resource}`;
         },
         clickNewSaleNote() {
-            this.clickClose()
+            this.clickClose();
         },
         clickClose() {
-            this.$emit('update:showDialog', false)
-            this.initForm()
+            this.$emit("update:showDialog", false);
+            this.initForm();
         },
-        clickDownload(){
-            window.open(`/downloads/saleNote/sale_note/${this.form.external_id}`, '_blank');
+        clickDownload() {
+            window.open(
+                `/downloads/saleNote/sale_note/${this.form.external_id}`,
+                "_blank"
+            );
         },
-        clickToPrint(format){
-            window.open(`/${this.resource}/print/${this.form.id}/${format}`, '_blank');
+        clickToPrint(format) {
+            window.open(
+                `/${this.resource}/print/${this.form.id}/${format}`,
+                "_blank"
+            );
         },
         clickSendEmail() {
-            this.loading=true
-            this.$http.post(`/${this.resource}/email`, {
-                customer_email: this.form.customer_email,
-                id: this.form.id
-            })
+            this.loading = true;
+            this.$http
+                .post(`/${this.resource}/email`, {
+                    customer_email: this.form.customer_email,
+                    id: this.form.id
+                })
                 .then(response => {
                     if (response.data.success) {
-                        this.$message.success('El correo fue enviado satisfactoriamente')
+                        this.$message.success(
+                            "El correo fue enviado satisfactoriamente"
+                        );
                     } else {
-                        this.$message.error('Error al enviar el correo')
+                        this.$message.error("Error al enviar el correo");
                     }
                 })
                 .catch(error => {
                     if (error.response.status === 422) {
-                        this.errors = error.response.data.errors
+                        this.errors = error.response.data.errors;
                     } else {
-                        this.$message.error(error.response.data.message)
+                        this.$message.error(error.response.data.message);
                     }
                 })
                 .then(() => {
-                    this.loading=false
-
-                })
+                    this.loading = false;
+                });
         },
         clickSendWhatsapp() {
-
             if (!this.form.customer_telephone) {
-                return this.$message.error('El número es obligatorio')
+                return this.$message.error("El número es obligatorio");
+            }
+            if (!this.wsp.ws_api_token) {
+                return this.$message.error(
+                    "No se ha configurado el token de la API de Whatsapp"
+                );
+            }
+            const url = this.form.download_pdf;
+
+            if (!url) {
+                return this.$message.error(
+                    "No se encontró una URL en el mensaje"
+                );
             }
 
-            window.open(`https://wa.me/51${this.form.customer_telephone}?text=${this.form.message_text}`, '_blank');
+            const payload = {
+                api_key: this.wsp.ws_api_token,
+                receiver: `51${this.form.customer_telephone}`,
+                data: {
+                    url: url,
+                    media_type: "file",
+                    caption: this.form.message_text
+                }
+            };
 
-        },
+            this.$http
+                .post("https://whatsapp.siapol.site/api/send-media", payload)
+                .then(response => {
+                    if (response.data.success) {
+                        this.$message.success("Mensaje enviado correctamente");
+                        form.customer_telephone = null;
+                    } else {
+                        this.$message.error("Error al enviar el mensaje");
+                    }
+                })
+                .catch(error => {
+                    this.$message.error("Error al enviar el mensaje");
+                });
+        }
     }
-}
+};
 </script>

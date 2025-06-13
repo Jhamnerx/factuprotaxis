@@ -28,7 +28,7 @@ class TenantAddTechnicalServiceIdToDocuments extends Migration
     {
         Schema::table('documents', function (Blueprint $table) {
             $table->dropForeign(['technical_service_id']);
-            $table->dropColumn('technical_service_id');  
+            $table->dropColumn('technical_service_id');
         });
     }
 }

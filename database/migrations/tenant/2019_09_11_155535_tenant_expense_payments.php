@@ -38,5 +38,4 @@ class TenantExpensePayments extends Migration
     {
         Schema::dropIfExists('expense_payments');
     }
-
 }

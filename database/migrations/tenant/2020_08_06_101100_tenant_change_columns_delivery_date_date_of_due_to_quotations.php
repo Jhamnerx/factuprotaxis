@@ -27,8 +27,7 @@ class TenantChangeColumnsDeliveryDateDateOfDueToQuotations extends Migration
     public function down()
     {
 
-        DB::statement("ALTER TABLE quotations CHANGE date_of_due date_of_due DATE NULL"); 
-        DB::statement("ALTER TABLE quotations CHANGE delivery_date delivery_date DATE NULL"); 
-
+        DB::statement("ALTER TABLE quotations CHANGE date_of_due date_of_due DATE NULL");
+        DB::statement("ALTER TABLE quotations CHANGE delivery_date delivery_date DATE NULL");
     }
 }

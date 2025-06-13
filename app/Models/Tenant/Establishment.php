@@ -58,7 +58,7 @@ class Establishment extends ModelTenant
 
     public function getAddressFullAttribute()
     {
-        $address = ($this->address != '-')? $this->address.' ,' : '';
+        $address = ($this->address != '-') ? $this->address . ' ,' : '';
         return "{$address} {$this->department->description} - {$this->province->description} - {$this->district->description}";
     }
 
@@ -85,12 +85,13 @@ class Establishment extends ModelTenant
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeWithMyEstablishment(\Illuminate\Database\Eloquent\Builder $query){
+    public function scopeWithMyEstablishment(\Illuminate\Database\Eloquent\Builder $query)
+    {
         $user = \Auth::user();
-        if(null === $user) {
+        if (null === $user) {
             $user = new User();
         }
-        return $query->where('id',$user->establishment_id);
+        return $query->where('id', $user->establishment_id);
     }
 
 
@@ -118,8 +119,8 @@ class Establishment extends ModelTenant
     {
         return $query->withOut(['country', 'department', 'province', 'district']);
     }
-    
-    
+
+
     /**
      * 
      * Obtener id del almacén
@@ -130,5 +131,4 @@ class Establishment extends ModelTenant
     {
         return $this->warehouse->id;
     }
-
 }

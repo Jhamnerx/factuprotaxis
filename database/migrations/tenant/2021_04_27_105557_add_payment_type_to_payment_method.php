@@ -32,7 +32,6 @@ class AddPaymentTypeToPaymentMethod extends Migration
                 '01',
             ])
             ->update(['is_cash' => 1]);
-
     }
 
     /**

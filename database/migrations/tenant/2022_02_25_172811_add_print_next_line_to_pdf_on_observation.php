@@ -16,7 +16,7 @@ class AddPrintNextLineToPdfOnObservation extends Migration
         Schema::table('configurations', function (Blueprint $table) {
             //
             $table->unsignedTinyInteger('print_new_line_to_observation')->default(0)
-            ->comment('Añade la posiblidad de colocar salto de linea en observación de pdf');
+                ->comment('Añade la posiblidad de colocar salto de linea en observación de pdf');
         });
     }
 

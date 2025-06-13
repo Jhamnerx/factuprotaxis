@@ -1,4 +1,4 @@
-const mix = require('laravel-mix');
+const mix = require("laravel-mix");
 
 /*
  |--------------------------------------------------------------------------
@@ -11,41 +11,98 @@ const mix = require('laravel-mix');
  |
  */
 
-mix.js('resources/js/app.js', 'public/js')
-   .sass('resources/sass/style.scss', 'public/css/app.css')
-   .sass('resources/sass/auth.scss', 'public/css/auth.css')
-   .extract(['vue'])
-   .version();
+mix.js("resources/js/app.js", "public/js")
+    .sass("resources/sass/style.scss", "public/css/app.css")
+    .sass("resources/sass/auth.scss", "public/css/auth.css")
+    .extract(["vue"])
+    .version();
 
 mix.webpackConfig({
     resolve: {
         alias: {
-            '@components': path.resolve(__dirname, 'resources/js/components'),
-            '@views': path.resolve(__dirname, 'resources/js/views/tenant'),
-            '@helpers': path.resolve(__dirname, 'resources/js/helpers'),
-            '@mixins': path.resolve(__dirname, 'resources/js/mixins'),
+            "@components": path.resolve(__dirname, "resources/js/components"),
+            "@views": path.resolve(__dirname, "resources/js/views/tenant"),
+            "@helpers": path.resolve(__dirname, "resources/js/helpers"),
+            "@mixins": path.resolve(__dirname, "resources/js/mixins"),
 
-            '@viewsModuleSale': path.resolve(__dirname, 'modules/Sale/Resources/assets/js/views'),
-            '@viewsModuleFinance': path.resolve(__dirname, 'modules/Finance/Resources/assets/js/views'),
-            '@viewsModulePurchase': path.resolve(__dirname, 'modules/Purchase/Resources/assets/js/views'),
-            '@viewsModuleExpense': path.resolve(__dirname, 'modules/Expense/Resources/assets/js/views'),
-            '@viewsModuleOrder': path.resolve(__dirname, 'modules/Order/Resources/assets/js/views'),
-            '@viewsModuleAccount': path.resolve(__dirname, 'modules/Account/Resources/assets/js/views'),
-            '@viewsModuleItem': path.resolve(__dirname, 'modules/Item/Resources/assets/js/views'),
-            '@viewsModuleHotel': path.resolve(__dirname, 'modules/Hotel/Resources/assets/js/views'),
-            '@viewsModuleDocumentary': path.resolve(__dirname, 'modules/DocumentaryProcedure/Resources/assets/js/views'),
-            '@viewsModulePayment': path.resolve(__dirname, 'modules/Payment/Resources/assets/js/views'),
-            '@viewsModuleMercadoPago': path.resolve(__dirname, 'modules/MercadoPago/Resources/assets/js/views'),
-            '@viewsModuleSuscription': path.resolve(__dirname, 'modules/Suscription/Resources/assets/js/views'),
-            '@viewsModuleMobileApp': path.resolve(__dirname, 'modules/MobileApp/Resources/assets/js/views'),
-            '@viewsModuleLevelAccess': path.resolve(__dirname, 'modules/LevelAccess/Resources/assets/js/views'),
-            '@viewsModuleReport': path.resolve(__dirname, 'modules/Report/Resources/assets/js/views'),
-            '@viewsModuleInventory': path.resolve(__dirname, 'modules/Inventory/Resources/assets/js'),
-            '@viewsModuleMultiUser': path.resolve(__dirname, 'modules/MultiUser/Resources/assets/js/views'),
-            '@viewsModuleQrChatBuho': path.resolve(__dirname, 'modules/QrChatBuho/Resources/assets/js/views'),
-            '@viewsModuleQrApi' : path.resolve(__dirname, 'modules/QrApi/Resources/assets/js/views')
+            "@viewsModuleSale": path.resolve(
+                __dirname,
+                "modules/Sale/Resources/assets/js/views"
+            ),
+            "@viewsModuleFinance": path.resolve(
+                __dirname,
+                "modules/Finance/Resources/assets/js/views"
+            ),
+            "@viewsModulePurchase": path.resolve(
+                __dirname,
+                "modules/Purchase/Resources/assets/js/views"
+            ),
+            "@viewsModuleExpense": path.resolve(
+                __dirname,
+                "modules/Expense/Resources/assets/js/views"
+            ),
+            "@viewsModuleOrder": path.resolve(
+                __dirname,
+                "modules/Order/Resources/assets/js/views"
+            ),
+            "@viewsModuleAccount": path.resolve(
+                __dirname,
+                "modules/Account/Resources/assets/js/views"
+            ),
+            "@viewsModuleItem": path.resolve(
+                __dirname,
+                "modules/Item/Resources/assets/js/views"
+            ),
+            "@viewsModuleHotel": path.resolve(
+                __dirname,
+                "modules/Hotel/Resources/assets/js/views"
+            ),
+            "@viewsModuleDocumentary": path.resolve(
+                __dirname,
+                "modules/DocumentaryProcedure/Resources/assets/js/views"
+            ),
+            "@viewsModulePayment": path.resolve(
+                __dirname,
+                "modules/Payment/Resources/assets/js/views"
+            ),
+            "@viewsModuleMercadoPago": path.resolve(
+                __dirname,
+                "modules/MercadoPago/Resources/assets/js/views"
+            ),
+            "@viewsModuleSuscription": path.resolve(
+                __dirname,
+                "modules/Suscription/Resources/assets/js/views"
+            ),
+            "@viewsModuleMobileApp": path.resolve(
+                __dirname,
+                "modules/MobileApp/Resources/assets/js/views"
+            ),
+            "@viewsModuleLevelAccess": path.resolve(
+                __dirname,
+                "modules/LevelAccess/Resources/assets/js/views"
+            ),
+            "@viewsModuleReport": path.resolve(
+                __dirname,
+                "modules/Report/Resources/assets/js/views"
+            ),
+            "@viewsModuleInventory": path.resolve(
+                __dirname,
+                "modules/Inventory/Resources/assets/js"
+            ),
+            "@viewsModuleMultiUser": path.resolve(
+                __dirname,
+                "modules/MultiUser/Resources/assets/js/views"
+            ),
+            "@viewsModuleQrChatBuho": path.resolve(
+                __dirname,
+                "modules/QrChatBuho/Resources/assets/js/views"
+            ),
+            "@viewsModuleQrApi": path.resolve(
+                __dirname,
+                "modules/QrApi/Resources/assets/js/views"
+            )
         }
     }
-}).sourceMaps()
+}).sourceMaps();
 
 mix.disableSuccessNotifications();

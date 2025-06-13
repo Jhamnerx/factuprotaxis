@@ -17,9 +17,9 @@ class TenantPurchasesTable extends Migration
             $table->increments('id');
             $table->unsignedInteger('user_id');
             $table->uuid('external_id');
-            $table->unsignedInteger('establishment_id'); 
+            $table->unsignedInteger('establishment_id');
             $table->char('soap_type_id', 2);
-            $table->char('state_type_id', 2); 
+            $table->char('state_type_id', 2);
             $table->char('group_id', 2);
             $table->string('document_type_id');
             $table->char('series', 4);
@@ -28,7 +28,7 @@ class TenantPurchasesTable extends Migration
             $table->time('time_of_issue');
             $table->unsignedInteger('supplier_id');
             $table->json('supplier');
-            $table->string('currency_type_id'); 
+            $table->string('currency_type_id');
             $table->decimal('exchange_rate_sale', 12, 2);
             $table->decimal('total_prepayment', 12, 2)->default(0);
             $table->decimal('total_charge', 12, 2)->default(0);
@@ -55,7 +55,7 @@ class TenantPurchasesTable extends Migration
             $table->json('perception')->nullable();
             $table->json('detraction')->nullable();
             $table->json('legends')->nullable();
- 
+
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');

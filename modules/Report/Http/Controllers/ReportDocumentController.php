@@ -36,20 +36,21 @@ class ReportDocumentController extends Controller
 
 
 
-    public function filter() {
+    public function filter()
+    {
 
-        $document_types = DocumentType::whereIn('id',[
-                '01',// factura
-                '03',// boleta
-                '07', // nota de credito
-                '08',// nota de debito
-                '80', // nota de venta
-            ])->get();
+        $document_types = DocumentType::whereIn('id', [
+            '01', // factura
+            '03', // boleta
+            '07', // nota de credito
+            '08', // nota de debito
+            '80', // nota de venta
+        ])->get();
 
         $persons = $this->getPersons('customers');
         $sellers = $this->getSellers();
 
-        $establishments = Establishment::all()->transform(function($row) {
+        $establishments = Establishment::all()->transform(function ($row) {
             return [
                 'id' => $row->id,
                 'name' => $row->description
@@ -57,11 +58,12 @@ class ReportDocumentController extends Controller
         });
         $users = $this->getUsers();
 
-        return compact('document_types','establishments','persons', 'sellers', 'users');
+        return compact('document_types', 'establishments', 'persons', 'sellers', 'users');
     }
 
 
-    public function index() {
+    public function index()
+    {
         return view('report::documents.index');
     }
 
@@ -84,14 +86,12 @@ class ReportDocumentController extends Controller
             return new SaleNoteCollection($records->paginate(config('tenant.items_per_page')));
         }
         return new DocumentCollection($records->paginate(config('tenant.items_per_page')));
-
-
     }
 
 
     public function pdf(Request $request)
     {
-        set_time_limit (1800); // Maximo 30 minutos
+        set_time_limit(1800); // Maximo 30 minutos
         $company = Company::first();
         $establishment = ($request->establishment_id) ? Establishment::findOrFail($request->establishment_id) : auth()->user()->establishment;
         $documentTypeId = "01";
@@ -105,21 +105,22 @@ class ReportDocumentController extends Controller
 
         $classType = $documentType->getCurrentRelatiomClass();
         $records = $this->getRecords($request->all(), $classType);
-        $records= $records->get();
+        $records = $records->get();
 
         $filters = $request->all();
 
         $pdf = PDF::loadView('report::documents.report_pdf_standard', compact("records", "company", "establishment", "filters"))
             ->setPaper('a4', 'landscape');
 
-        $filename = 'Reporte_Ventas_'.date('YmdHis');
+        $filename = 'Reporte_Ventas_' . date('YmdHis');
 
-        return $pdf->download($filename.'.pdf');
+        return $pdf->download($filename . '.pdf');
     }
 
 
-    public function pdfSimple(Request $request) {
-        set_time_limit (1800); // Maximo 30 minutos
+    public function pdfSimple(Request $request)
+    {
+        set_time_limit(1800); // Maximo 30 minutos
         $company = Company::first();
         $establishment = ($request->establishment_id) ? Establishment::findOrFail($request->establishment_id) : auth()->user()->establishment;
         $documentTypeId = "01";
@@ -133,16 +134,16 @@ class ReportDocumentController extends Controller
 
         $classType = $documentType->getCurrentRelatiomClass();
         $records = $this->getRecords($request->all(), $classType);
-        $records= $records->get();
+        $records = $records->get();
 
         $filters = $request->all();
 
         $pdf = PDF::loadView('report::documents.report_pdf_simple', compact("records", "company", "establishment", "filters"))
             ->setPaper('a4', 'landscape');
 
-        $filename = 'Reporte_Ventas_Simple'.date('YmdHis');
+        $filename = 'Reporte_Ventas_Simple' . date('YmdHis');
 
-        return $pdf->download($filename.'.pdf');
+        return $pdf->download($filename . '.pdf');
     }
 
 
@@ -162,14 +163,14 @@ class ReportDocumentController extends Controller
 
         $classType = $documentType->getCurrentRelatiomClass();
         $records = $this->getRecords($request->all(), $classType);
-        $records= $records->get();
+        $records = $records->get();
         $filters = $request->all();
 
         //get categories
         $categories = [];
         $categories_services = [];
 
-        if($request->include_categories == "true"){
+        if ($request->include_categories == "true") {
             $categories = $this->getCategories($records, false);
             $categories_services = $this->getCategories($records, true);
         }
@@ -182,9 +183,8 @@ class ReportDocumentController extends Controller
             ->filters($filters)
             ->categories($categories)
             ->categories_services($categories_services);
-         // return $documentExport->view();
-        return $documentExport->download('Reporte_Ventas_'.Carbon::now().'.xlsx');
-
+        // return $documentExport->view();
+        return $documentExport->download('Reporte_Ventas_' . Carbon::now() . '.xlsx');
     }
 
 
@@ -198,7 +198,7 @@ class ReportDocumentController extends Controller
     public function export(Request $request)
     {
         $host = $request->getHost();
-        $columns=json_decode($request->columns);
+        $columns = json_decode($request->columns);
 
         $website = $this->getTenantWebsite();
         $user = $this->getCurrentUser();
@@ -297,14 +297,15 @@ class ReportDocumentController extends Controller
     }
 
 
-    public function getCategories($records, $is_service) {
+    public function getCategories($records, $is_service)
+    {
 
         $aux_categories = collect([]);
 
         foreach ($records as $document) {
 
-            $id_categories = $document->items->filter(function($row) use($is_service){
-                return (($is_service) ? (!is_null($row->relation_item->category_id) && $row->item->unit_type_id === 'ZZ') : !is_null($row->relation_item->category_id)) ;
+            $id_categories = $document->items->filter(function ($row) use ($is_service) {
+                return (($is_service) ? (!is_null($row->relation_item->category_id) && $row->item->unit_type_id === 'ZZ') : !is_null($row->relation_item->category_id));
             })->pluck('relation_item.category_id');
 
             foreach ($id_categories as $value) {
@@ -313,19 +314,19 @@ class ReportDocumentController extends Controller
         }
 
         return Category::whereIn('id', $aux_categories->unique()->toArray())->get();
-
     }
 
-    public function email(Request $request) {
+    public function email(Request $request)
+    {
         $request->validate(
             ['email' => 'required']
         );
-        $data=$request->data;
-        $columns=$request->columns;
+        $data = $request->data;
+        $columns = $request->columns;
         $company = Company::active();
         $email = $request->input('email');
 
-        $mailable = new DocumentEmail($company, $this->getPdf($data,$columns), $this->getExcel($data,$columns));
+        $mailable = new DocumentEmail($company, $this->getPdf($data, $columns), $this->getExcel($data, $columns));
         $sendIt = EmailController::SendMail($email, $mailable);
 
         return [
@@ -333,11 +334,11 @@ class ReportDocumentController extends Controller
         ];
     }
 
-    private function getPdf($request,$columns, $format = 'ticket', $mm = null)
+    private function getPdf($request, $columns, $format = 'ticket', $mm = null)
     {
-        $reques=json_decode(json_encode($request, JSON_FORCE_OBJECT));
-        set_time_limit (1800); // Maximo 30 minutos
-        $columns=json_decode(json_encode($columns));
+        $reques = json_decode(json_encode($request, JSON_FORCE_OBJECT));
+        set_time_limit(1800); // Maximo 30 minutos
+        $columns = json_decode(json_encode($columns));
         $company = Company::first();
         $establishment = ($reques->establishment_id) ? Establishment::findOrFail($reques->establishment_id) : auth()->user()->establishment;
         $documentTypeId = "01";
@@ -351,35 +352,35 @@ class ReportDocumentController extends Controller
 
         $classType = $documentType->getCurrentRelatiomClass();
         $records = $this->getRecords($request, $classType);
-        $records= $records->get();
+        $records = $records->get();
 
         $filters = $request;
         // dd($data);
 
-        $quantity_rows = 30;//$cash->cash_documents()->count();
+        $quantity_rows = 30; //$cash->cash_documents()->count();
 
         $width = 78;
-        if($mm != null) {
+        if ($mm != null) {
             $width = $mm - 2;
         }
 
         $view = view('report::documents.report_pdf', compact("records", "company", "establishment", "filters", "columns"));
         $html = $view->render();
         $pdf = new Mpdf([
-                            'mode' => 'utf-8',
-                            'format' => 'A4-L',
-                        ]);
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+        ]);
         $pdf->WriteHTML($html);
 
         return $pdf->output('', 'S');
     }
 
 
-    private function getExcel($request,$columns)
+    private function getExcel($request, $columns)
     {
-        $reques=json_decode(json_encode($request, JSON_FORCE_OBJECT));
-        set_time_limit (1800); // Maximo 30 minutos
-        $columns=json_decode(json_encode($columns));
+        $reques = json_decode(json_encode($request, JSON_FORCE_OBJECT));
+        set_time_limit(1800); // Maximo 30 minutos
+        $columns = json_decode(json_encode($columns));
         $company = Company::first();
         $establishment = ($reques->establishment_id) ? Establishment::findOrFail($reques->establishment_id) : auth()->user()->establishment;
         $documentTypeId = "01";
@@ -393,14 +394,14 @@ class ReportDocumentController extends Controller
 
         $classType = $documentType->getCurrentRelatiomClass();
         $records = $this->getRecords($request, $classType);
-        $records= $records->get();
+        $records = $records->get();
 
         $filters = $request;
 
         $categories = [];
         $categories_services = [];
 
-        if($reques->include_categories == "true"){
+        if ($reques->include_categories == "true") {
             $categories = $this->getCategories($records, false);
             $categories_services = $this->getCategories($records, true);
         }
@@ -414,12 +415,11 @@ class ReportDocumentController extends Controller
             ->categories($categories)
             ->categories_services($categories_services)
             ->columns($columns);
-        $attachment = Excel::raw($documentExport,
+        $attachment = Excel::raw(
+            $documentExport,
             BaseExcel::XLSX
         );
 
         return $attachment;
     }
-
-
 }

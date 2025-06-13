@@ -15,18 +15,18 @@ class AddGradeAndSectionTouserRelSuscriptionPlan extends Migration
     {
         Schema::table('user_rel_suscription_plans', function (Blueprint $table) {
             //
-             $table->text('grade')->nullable()->comment('Grado designado - utilizado en matricula');
-             $table->text('section')->nullable()->comment('Seccion designado - utilizado en matricula');
+            $table->text('grade')->nullable()->comment('Grado designado - utilizado en matricula');
+            $table->text('section')->nullable()->comment('Seccion designado - utilizado en matricula');
         });
         Schema::table('sale_notes', function (Blueprint $table) {
             //
-             $table->text('grade')->nullable()->comment('Grado designado - utilizado en matricula');
-             $table->text('section')->nullable()->comment('Seccion designado - utilizado en matricula');
+            $table->text('grade')->nullable()->comment('Grado designado - utilizado en matricula');
+            $table->text('section')->nullable()->comment('Seccion designado - utilizado en matricula');
         });
         Schema::table('documents', function (Blueprint $table) {
             //
-             $table->text('grade')->nullable()->comment('Grado designado - utilizado en matricula');
-             $table->text('section')->nullable()->comment('Seccion designado - utilizado en matricula');
+            $table->text('grade')->nullable()->comment('Grado designado - utilizado en matricula');
+            $table->text('section')->nullable()->comment('Seccion designado - utilizado en matricula');
         });
     }
 
@@ -52,6 +52,5 @@ class AddGradeAndSectionTouserRelSuscriptionPlan extends Migration
             $table->dropColumn('grade');
             $table->dropColumn('section');
         });
-
     }
 }

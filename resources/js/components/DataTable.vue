@@ -8,7 +8,11 @@
                     :class="{ shift: isVisible }"
                     @click="toggleInformation"
                 >
-                    {{ isVisible ? "Ocultar opciones de filtro" : "Mostrar opciones de filtro" }}
+                    {{
+                        isVisible
+                            ? "Ocultar opciones de filtro"
+                            : "Mostrar opciones de filtro"
+                    }}
                 </el-button>
                 <div class="row filter-content" v-if="applyFilter && isVisible">
                     <div class="col-lg-6 col-md-6 col-sm-12 pb-2">
@@ -34,9 +38,9 @@
                         <template
                             v-if="
                                 search.column === 'date_of_issue' ||
-                                search.column === 'date_of_due' ||
-                                search.column === 'date_of_payment' ||
-                                search.column === 'delivery_date'
+                                    search.column === 'date_of_due' ||
+                                    search.column === 'date_of_payment' ||
+                                    search.column === 'delivery_date'
                             "
                         >
                             <el-date-picker
@@ -61,9 +65,9 @@
                         </template>
                     </div>
                 </div>
-            </div>            
+            </div>
             <div class="col-md-4 col-lg-4 col-xl-4 ">
-                <div class="row" v-if="fromRestaurant||fromEcommerce">
+                <div class="row" v-if="fromRestaurant || fromEcommerce">
                     <div class="col-lg-12 col-md-12 col-sm-12 pb-2">
                         <div class="d-flex">
                             <div style="width:150px">
@@ -85,17 +89,29 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-lg-4 col-xl-4" v-if="fromRestaurant||fromEcommerce">
+            <div
+                class="col-md-4 col-lg-4 col-xl-4"
+                v-if="fromRestaurant || fromEcommerce"
+            >
                 <div class="d-flex">
                     <div style="width:160px">
                         Hacer visiblie todo los productos
-                        <el-tooltip class="item" content="Unicamente se hará visiblie si tiene codigo interno"
-                            effect="dark" placement="top-start">
+                        <el-tooltip
+                            class="item"
+                            content="Unicamente se hará visiblie si tiene codigo interno"
+                            effect="dark"
+                            placement="top-start"
+                        >
                             <i class="fa fa-info-circle"></i>
                         </el-tooltip>
                     </div>
                     <div style="width: 30px; height: 30px" class="my-auto">
-                        <el-button  @click="methodVisibleAllProduct" type="primary" size="mini" icon="el-icon-check"></el-button>
+                        <el-button
+                            @click="methodVisibleAllProduct"
+                            type="primary"
+                            size="mini"
+                            icon="el-icon-check"
+                        ></el-button>
                     </div>
                 </div>
             </div>
@@ -137,7 +153,7 @@ export default {
         productType: {
             type: String,
             required: false,
-            default: ''
+            default: ""
         },
         resource: String,
         applyFilter: {
@@ -147,14 +163,14 @@ export default {
         },
         pharmacy: Boolean,
         restaurant: Boolean,
-        ecommerce: Boolean,
+        ecommerce: Boolean
     },
     data() {
         return {
             search: {
                 column: null,
                 value: null,
-                list_value: 'all',
+                list_value: "all"
             },
             columns: [],
             records: [],
@@ -165,20 +181,20 @@ export default {
             fromRestaurant: false,
             fromEcommerce: false,
             list_columns: {
-                all:'Todos',
-                visible:'Visibles',
-                hidden:'Ocultos'
-            },
+                all: "Todos",
+                visible: "Visibles",
+                hidden: "Ocultos"
+            }
         };
     },
     created() {
-        if(this.pharmacy !== undefined && this.pharmacy === true){
+        if (this.pharmacy !== undefined && this.pharmacy === true) {
             this.fromPharmacy = true;
         }
-        if(this.ecommerce !== undefined && this.ecommerce === true){
+        if (this.ecommerce !== undefined && this.ecommerce === true) {
             this.fromEcommerce = true;
         }
-        if(this.restaurant !== undefined && this.restaurant === true){
+        if (this.restaurant !== undefined && this.restaurant === true) {
             this.fromRestaurant = true;
         }
         this.$eventHub.$on("reloadData", () => {
@@ -224,19 +240,19 @@ export default {
                 });
         },
         getQueryParameters() {
-            if (this.productType == 'ZZ') {
-                this.search.type = 'ZZ';
+            if (this.productType == "ZZ") {
+                this.search.type = "ZZ";
             }
-            if (this.productType == 'PRODUCTS') {
+            if (this.productType == "PRODUCTS") {
                 // Debe listar solo productos
                 this.search.type = this.productType;
             }
             return queryString.stringify({
                 page: this.pagination.current_page,
                 limit: this.limit,
-                isPharmacy:this.fromPharmacy,
-                isRestaurant:this.fromRestaurant,
-                isEcommerce:this.fromEcommerce,
+                isPharmacy: this.fromPharmacy,
+                isRestaurant: this.fromRestaurant,
+                isEcommerce: this.fromEcommerce,
                 ...this.search
             });
         },
@@ -248,17 +264,18 @@ export default {
             return this.search;
         },
         async methodVisibleAllProduct() {
-            let response = await this.$http.post(`/${this.resource}/visibleMassive`,{
-                resource: this.fromRestaurant ? 'restaurant' : 'ecommerce',
-            });
-            console.log(response);
-                
+            let response = await this.$http.post(
+                `/${this.resource}/visibleMassive`,
+                {
+                    resource: this.fromRestaurant ? "restaurant" : "ecommerce"
+                }
+            );
+
             if (response.status === 200) {
                 this.$message.success(response.data.message);
-                this.getRecords()
+                this.getRecords();
             } else {
                 this.$message.error(response.data.message);
-
             }
         }
     }

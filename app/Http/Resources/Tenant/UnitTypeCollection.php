@@ -14,10 +14,10 @@ class UnitTypeCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        return $this->collection->transform(function($row, $key) {
+        return $this->collection->transform(function ($row, $key) {
             return [
                 'id' => $row->id,
-                'active' => ($row->active)?'Si':'No',
+                'active' => ($row->active) ? 'Si' : 'No',
                 'symbol' => $row->symbol,
                 'description' => $row->description,
             ];

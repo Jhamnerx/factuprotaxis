@@ -44,7 +44,7 @@ class PersonResource extends JsonResource
                     'id' => $row->id,
                     'trade_name' => $row->trade_name,
                     'country_id' => $row->country_id,
-                    'location_id' => !is_null($row->location_id)?$row->location_id:[],
+                    'location_id' => !is_null($row->location_id) ? $row->location_id : [],
                     'address' => $row->address,
                     'phone' => $row->phone,
                     'email' => $row->email,

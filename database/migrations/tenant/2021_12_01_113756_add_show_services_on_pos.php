@@ -1,10 +1,10 @@
 <?php
 
-    use Illuminate\Database\Migrations\Migration;
-    use Illuminate\Database\Schema\Blueprint;
-    use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-    class AddShowServicesOnPos extends Migration
+class AddShowServicesOnPos extends Migration
 {
     /**
      * Run the migrations.
@@ -15,8 +15,8 @@
     {
         Schema::table('configurations', function (Blueprint $table) {
             //
-                  $table->boolean('show_service_on_pos')->default(false)->comment('Permite listar al inicio, los servicios en pos');
-  });
+            $table->boolean('show_service_on_pos')->default(false)->comment('Permite listar al inicio, los servicios en pos');
+        });
     }
 
     /**
@@ -28,7 +28,7 @@
     {
         Schema::table('configurations', function (Blueprint $table) {
             //
-                  $table->dropColumn('show_service_on_pos');
-  });
+            $table->dropColumn('show_service_on_pos');
+        });
     }
 }

@@ -14,10 +14,10 @@ class AddTechnicalServiceIdToCashDocumentsTable extends Migration
 	 */
 	public function up()
 	{
-        Schema::table('cash_documents', function (Blueprint $table) {
-            $table->unsignedInteger('technical_service_id')->nullable()->after('sale_note_id');
-            $table->foreign('technical_service_id')->references('id')->on('technical_services')->onDelete('cascade');
-        });
+		Schema::table('cash_documents', function (Blueprint $table) {
+			$table->unsignedInteger('technical_service_id')->nullable()->after('sale_note_id');
+			$table->foreign('technical_service_id')->references('id')->on('technical_services')->onDelete('cascade');
+		});
 	}
 
 	/**
@@ -27,9 +27,9 @@ class AddTechnicalServiceIdToCashDocumentsTable extends Migration
 	 */
 	public function down()
 	{
-        Schema::table('cash_documents', function (Blueprint $table) {
-            $table->dropForeign(['technical_service_id']);
-            $table->dropColumn('technical_service_id');
-        });
+		Schema::table('cash_documents', function (Blueprint $table) {
+			$table->dropForeign(['technical_service_id']);
+			$table->dropColumn('technical_service_id');
+		});
 	}
 }

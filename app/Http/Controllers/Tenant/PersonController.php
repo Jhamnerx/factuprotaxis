@@ -73,8 +73,15 @@ class PersonController extends Controller
         $sellers = $this->getSellers();
         $api_service_token = \App\Models\Tenant\Configuration::getApiServiceToken();
 
-        return compact('countries', 'identity_document_types', 'locations','person_types','api_service_token'
-        ,'zones','sellers');
+        return compact(
+            'countries',
+            'identity_document_types',
+            'locations',
+            'person_types',
+            'api_service_token',
+            'zones',
+            'sellers'
+        );
     }
 
     public function record($id)
@@ -110,13 +117,13 @@ class PersonController extends Controller
         $person->fill($data);
 
         $location_id = $request->input('location_id');
-        if(is_array($location_id) && count($location_id) === 3) {
+        if (is_array($location_id) && count($location_id) === 3) {
             $person->district_id = $location_id[2];
             $person->province_id = $location_id[1];
             $person->department_id = $location_id[0];
         }
 
-        if($request->password && $request->email ){
+        if ($request->password && $request->email) {
             $person->password = bcrypt($request->password);
         }
 
@@ -158,13 +165,10 @@ class PersonController extends Controller
                 'success' => true,
                 'message' => $person_type . ' eliminado con éxito'
             ];
-
         } catch (Exception $e) {
 
             return ($e->getCode() == '23000') ? ['success' => false, 'message' => "El {$person_type} esta siendo usado por otros registros, no puede eliminar"] : ['success' => false, 'message' => "Error inesperado, no se pudo eliminar el {$person_type}"];
-
         }
-
     }
 
     public function import(Request $request)
@@ -236,7 +240,6 @@ class PersonController extends Controller
             'success' => true,
             'message' => "Cliente {$type_message} con éxito"
         ];
-
     }
 
     public function export($type, Request $request)
@@ -271,7 +274,6 @@ class PersonController extends Controller
             ->records($records)
             ->type($type)
             ->download($filename . Carbon::now() . '.xlsx');
-
     }
 
     public function clientsForGenerateCPE()
@@ -322,7 +324,6 @@ class PersonController extends Controller
         $pdf->WriteHTML($html, HTMLParserMode::HTML_BODY);
 
         $pdf->output('etiquetas_clientes_' . now()->format('Y_m_d') . '.pdf', 'I');
-
     }
 
     public function generateBarcode($id)
@@ -343,7 +344,6 @@ class PersonController extends Controller
         ];
 
         return response()->download($temp, "{$person->barcode}.png", $headers);
-
     }
 
     public function getPersonByBarcode($request)
@@ -398,27 +398,21 @@ class PersonController extends Controller
         $input = $request->input ?? null;
         $records = Person::query();
 
-        if($id)
-        {
+        if ($id) {
             $records->where('id', $id)->take(self::TAKE_FOR_SEARCH_ID);
-        }
-        else if($input)
-        {
+        } else if ($input) {
             $records->whereFilterSearchData($request)
-                    ->optionalFiltersSearchData($type)
-                    ->take($this->getConfigMaxItemsSelect());
-        }
-        else
-        {
+                ->optionalFiltersSearchData($type)
+                ->take($this->getConfigMaxItemsSelect());
+        } else {
             $records->optionalFiltersSearchData($type)
-                    ->take($this->getConfigMinItemsSelect());
+                ->take($this->getConfigMinItemsSelect());
         }
 
         return $records->orderBy('name')
-                        ->get()
-                        ->transform(function($row) {
-                            return $row->getSearchDataResource();
-                        });
+            ->get()
+            ->transform(function ($row) {
+                return $row->getSearchDataResource();
+            });
     }
-
 }

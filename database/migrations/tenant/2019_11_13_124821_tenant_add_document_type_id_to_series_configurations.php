@@ -31,5 +31,4 @@ class TenantAddDocumentTypeIdToSeriesConfigurations extends Migration
             $table->dropColumn('document_type_id');
         });
     }
-
 }

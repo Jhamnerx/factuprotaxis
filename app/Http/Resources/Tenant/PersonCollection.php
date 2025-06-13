@@ -15,7 +15,7 @@ class PersonCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        return $this->collection->transform(function(Person $row, $key) {
+        return $this->collection->transform(function (Person $row, $key) {
 
             return  $row->getCollectionData();
             /** Pasado al modelo  */

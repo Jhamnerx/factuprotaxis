@@ -12,7 +12,7 @@ class TenantCatAddressTypesTable extends Migration
      * @return void
      */
     public function up()
-    { 
+    {
 
         Schema::create('cat_address_types', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -26,7 +26,6 @@ class TenantCatAddressTypesTable extends Migration
             ['id' => '04', 'description' => 'Explotación'],
             ['id' => '05', 'description' => 'Otros'],
         ]);
-
     }
 
     /**
@@ -38,5 +37,4 @@ class TenantCatAddressTypesTable extends Migration
     {
         Schema::dropIfExists('cat_address_types');
     }
-    
 }

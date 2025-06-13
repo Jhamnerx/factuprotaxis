@@ -31,5 +31,4 @@ class TenantAddAddressTypeIdToPersons extends Migration
             $table->dropColumn('address_type_id');
         });
     }
-    
 }

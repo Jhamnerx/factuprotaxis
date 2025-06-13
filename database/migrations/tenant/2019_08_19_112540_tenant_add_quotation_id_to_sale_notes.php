@@ -19,12 +19,12 @@ class TenantAddQuotationIdToSaleNotes extends Migration
         });
     }
 
-    
+
     public function down()
     {
         Schema::table('sale_notes', function (Blueprint $table) {
             $table->dropForeign(['quotation_id']);
-            $table->dropColumn('quotation_id');   
+            $table->dropColumn('quotation_id');
         });
     }
 }

@@ -56,9 +56,11 @@ class CompanyResource extends JsonResource
             'api_sunat_id' => $this->api_sunat_id,
             'api_sunat_secret' => $this->api_sunat_secret,
             'title_web' => $this->title_web,
-            'qr_api_enable_ws'=> $configuration->qr_api_enable,
-            'qr_api_url_ws'=> $configuration->qr_api_url,
-            'qr_api_key_ws'=> $configuration->qr_api_apiKey,
+            'qr_api_enable_ws' => $configuration->qr_api_enable,
+            'qr_api_url_ws' => $configuration->qr_api_url,
+            'qr_api_key_ws' => $configuration->qr_api_apiKey,
+            'ws_api_token' => $this->ws_api_token,
+            'ws_api_phone_number_id' => $this->ws_api_phone_number_id,
         ];
     }
 }

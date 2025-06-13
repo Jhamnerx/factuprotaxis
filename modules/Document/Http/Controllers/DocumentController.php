@@ -113,7 +113,6 @@ class DocumentController extends Controller
         $state_types = StateType::get();
 
         return compact('customers', 'document_types', 'series', 'establishments', 'state_types');
-
     }
 
 
@@ -194,7 +193,6 @@ class DocumentController extends Controller
         }
 
         return compact('detraction_types', 'cat_payment_method_types', 'locations');
-
     }
 
 
@@ -243,7 +241,6 @@ class DocumentController extends Controller
             Storage::put($directory . $file_name, $file_content);
             $set_image_pay_constancy = $file_name;
             $detraction->image_pay_constancy = $set_image_pay_constancy;
-
         }
 
         // dd($detraction, $request->upload_image_pay_constancy['temp_path']);
@@ -279,7 +276,6 @@ class DocumentController extends Controller
             ];
         });
         return $prepayment_documents;
-
     }
 
 
@@ -289,7 +285,6 @@ class DocumentController extends Controller
         $items = SearchItemController::getItemsToDocuments($request);
 
         return compact('items');
-
     }
 
 
@@ -313,7 +308,6 @@ class DocumentController extends Controller
                 ->whereIn('id', collect($lots)->pluck('id')->toArray())
                 ->where('has_sale', true)
                 ->latest();
-
         } else if ($sale_note_item_id) {
             $records = $this->getRecordsForSaleNoteItem($records, $sale_note_item_id, $request);
         } else {
@@ -328,7 +322,7 @@ class DocumentController extends Controller
                 ->latest();
         }
 
-//        return new ItemLotCollection($records->get());
+        //        return new ItemLotCollection($records->get());
         return new ItemLotCollection($records->paginate(config('tenant.items_per_page')));
     }
 
@@ -349,7 +343,6 @@ class DocumentController extends Controller
             $query->whereIn('id', collect($lots)->pluck('id')->toArray())
                 ->where('has_sale', true)
                 ->latest();
-
         } else if ($sale_note_item_id) {
             $query = $this->getRecordsForSaleNoteItem($query, $sale_note_item_id, $request);
         } else {
@@ -406,8 +399,6 @@ class DocumentController extends Controller
             ->whereIn('id', collect($document_item->item->lots)->pluck('id')->toArray())
             ->where('has_sale', true)
             ->get();
-
-
     }
 
 
@@ -425,7 +416,6 @@ class DocumentController extends Controller
         $document = Document::find($document_id);
 
         return (new ConsultCdr)->search($document);
-
     }
 
 
@@ -448,5 +438,4 @@ class DocumentController extends Controller
             'message' => 'Se habilitó el comprobante para enviarlo por resumen'
         ];
     }
-
 }

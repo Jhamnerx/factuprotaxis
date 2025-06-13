@@ -28,7 +28,7 @@ class TenantAddPurchaseOrderIdToPurchases extends Migration
     {
         Schema::table('purchases', function (Blueprint $table) {
             $table->dropForeign(['purchase_order_id']);
-            $table->dropColumn('purchase_order_id');  
+            $table->dropColumn('purchase_order_id');
         });
     }
 }

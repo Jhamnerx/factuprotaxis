@@ -1,0 +1,498 @@
+<template>
+    <el-dialog
+        :close-on-click-modal="false"
+        :title="titleDialog"
+        :visible="showDialog"
+        :append-to-body="true"
+        @close="close"
+        @open="create"
+        @opened="opened"
+    >
+        <form autocomplete="off" @submit.prevent="submit">
+            <div class="form-body">
+                <el-tabs v-model="activeName">
+                    <el-tab-pane label="Datos Generales" name="general">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div
+                                    :class="{
+                                        'has-danger':
+                                            errors.identity_document_type_id
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Tipo Doc. Identidad
+                                        <span class="text-danger"
+                                            >*</span
+                                        ></label
+                                    >
+                                    <el-select
+                                        v-model="form.identity_document_type_id"
+                                        dusk="identity_document_type_id"
+                                        filterable
+                                        popper-class="el-select-identity_document_type"
+                                    >
+                                        <el-option
+                                            v-for="option in identity_document_types"
+                                            :key="option.id"
+                                            :label="option.description"
+                                            :value="option.id"
+                                        ></el-option>
+                                    </el-select>
+                                    <small
+                                        v-if="errors.identity_document_type_id"
+                                        class="form-control-feedback"
+                                        v-text="
+                                            errors.identity_document_type_id[0]
+                                        "
+                                    ></small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div
+                                    :class="{ 'has-danger': errors.number }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Número
+                                        <span class="text-danger"
+                                            >*</span
+                                        ></label
+                                    >
+
+                                    <div v-if="api_service_token != false">
+                                        <x-input-service
+                                            v-model="form.number"
+                                            :identity_document_type_id="
+                                                form.identity_document_type_id
+                                            "
+                                            @search="searchNumber"
+                                        >
+                                        </x-input-service>
+                                    </div>
+                                    <div v-else>
+                                        <el-input
+                                            v-model="form.number"
+                                            :maxlength="maxLength"
+                                            dusk="number"
+                                        >
+                                            <template
+                                                v-if="
+                                                    form.identity_document_type_id ===
+                                                        '6' ||
+                                                        form.identity_document_type_id ===
+                                                            '1'
+                                                "
+                                            >
+                                                <el-button
+                                                    slot="append"
+                                                    :loading="loading_search"
+                                                    icon="el-icon-search"
+                                                    type="primary"
+                                                    @click.prevent="
+                                                        searchCustomer
+                                                    "
+                                                >
+                                                    <template
+                                                        v-if="
+                                                            form.identity_document_type_id ===
+                                                                '6'
+                                                        "
+                                                    >
+                                                        SUNAT
+                                                    </template>
+                                                    <template
+                                                        v-if="
+                                                            form.identity_document_type_id ===
+                                                                '1'
+                                                        "
+                                                    >
+                                                        RENIEC
+                                                    </template>
+                                                </el-button>
+                                            </template>
+                                        </el-input>
+                                    </div>
+
+                                    <small
+                                        v-if="errors.number"
+                                        class="form-control-feedback"
+                                        v-text="errors.number[0]"
+                                    ></small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div
+                                    :class="{ 'has-danger': errors.name }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Nombre
+                                        <span class="text-danger"
+                                            >*</span
+                                        ></label
+                                    >
+                                    <el-input
+                                        v-model="form.name"
+                                        dusk="name"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.name"
+                                        class="form-control-feedback"
+                                        v-text="errors.name[0]"
+                                    ></small>
+                                </div>
+                            </div>
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane class name="second">
+                        <span slot="label">Dirección</span>
+                        <div class="row">
+                            <!-- País -->
+
+                            <div class="col-md-3">
+                                <div
+                                    :class="{ 'has-danger': errors.country_id }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label">País</label>
+                                    <el-select
+                                        v-model="form.country_id"
+                                        dusk="country_id"
+                                        filterable
+                                    >
+                                        <el-option
+                                            v-for="option in countries"
+                                            :key="option.id"
+                                            :label="option.description"
+                                            :value="option.id"
+                                        ></el-option>
+                                    </el-select>
+                                    <small
+                                        v-if="errors.country_id"
+                                        class="form-control-feedback"
+                                        v-text="errors.country_id[0]"
+                                    ></small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-9">
+                                <div
+                                    :class="{
+                                        'has-danger': errors.location_id
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label">Ubigeo</label>
+                                    <el-cascader
+                                        v-model="form.location_id"
+                                        :clearable="true"
+                                        :options="locations"
+                                        filterable
+                                    ></el-cascader>
+                                    <small
+                                        v-if="errors.location_id"
+                                        class="form-control-feedback"
+                                        v-text="errors.location_id[0]"
+                                    ></small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div
+                                    :class="{ 'has-danger': errors.address }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Dirección</label
+                                    >
+                                    <el-input
+                                        v-model="form.address"
+                                        dusk="address"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.address"
+                                        class="form-control-feedback"
+                                        v-text="errors.address[0]"
+                                    ></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Telefono -->
+                            <div class="col-md-6">
+                                <div
+                                    :class="{ 'has-danger': errors.telephone }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Teléfono</label
+                                    >
+                                    <el-input
+                                        v-model="form.telephone"
+                                        dusk="telephone"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.telephone"
+                                        class="form-control-feedback"
+                                        v-text="errors.telephone[0]"
+                                    ></small>
+                                </div>
+                            </div>
+                            <!-- Correo electronico contacto -->
+                            <div class="col-md-6">
+                                <div
+                                    :class="{ 'has-danger': errors.email }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Correo electrónico</label
+                                    >
+                                    <el-input
+                                        v-model="form.email"
+                                        dusk="email"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.email"
+                                        class="form-control-feedback"
+                                        v-text="errors.email[0]"
+                                    ></small>
+                                </div>
+                            </div>
+                        </div>
+                    </el-tab-pane>
+                </el-tabs>
+            </div>
+            <div class="form-actions text-right mt-4">
+                <el-button @click="close">Cancelar</el-button>
+                <el-button type="primary" @click="submit">Guardar</el-button>
+            </div>
+        </form>
+    </el-dialog>
+</template>
+
+<script>
+import { mapActions, mapState } from "vuex/dist/vuex.mjs";
+import { serviceNumber } from "../../../../mixins/functions";
+export default {
+    mixins: [serviceNumber],
+    props: ["showDialog", "recordId", "document_type_id"],
+    data() {
+        return {
+            form: {},
+            api_service_token: false,
+            resource: "propietarios",
+            countries: [],
+            provinces: [],
+            districts: [],
+            locations: [],
+            identity_document_types: [],
+            activeName: "general",
+            errors: {},
+            titleDialog: "Nuevo Propietario",
+            loading_submit: false
+        };
+    },
+    async created() {
+        this.loadConfiguration();
+        await this.initForm();
+        await this.$http
+            .get(`/${this.resource}/tables`)
+            .then(response => {
+                this.countries = response.data.countries;
+                this.identity_document_types =
+                    response.data.identity_document_types;
+                this.locations = response.data.locations;
+                this.api_service_token = response.data.api_service_token;
+                this.all_departments = response.data.departments;
+                this.all_provinces = response.data.provinces;
+                this.all_districts = response.data.districts;
+            })
+            .finally(() => {
+                if (this.api_service_token === false) {
+                    if (this.config.api_service_token !== undefined) {
+                        this.api_service_token = this.config.api_service_token;
+                    }
+                }
+            });
+    },
+    computed: {
+        ...mapState(["config"]),
+        maxLength: function() {
+            if (this.form.identity_document_type_id === "6") {
+                return 11;
+            }
+            if (this.form.identity_document_type_id === "1") {
+                return 8;
+            }
+        }
+    },
+    methods: {
+        ...mapActions(["loadConfiguration"]),
+        initForm() {
+            this.errors = {};
+            this.form = {
+                identity_document_type_id: "6",
+                number: "",
+                name: null,
+                telephone: null,
+                email: null,
+                country_id: "PE",
+                location_id: [],
+                department_id: null,
+                province_id: null,
+                district_id: null,
+                address: "",
+                enabled: true
+            };
+        },
+        async opened() {
+            if (this.input_person) {
+                if (
+                    this.form.number.length === 8 ||
+                    this.form.number.length === 11
+                ) {
+                    if (this.api_service_token != false) {
+                        await this.$eventHub.$emit("enableClickSearch");
+                    } else {
+                        this.searchCustomer();
+                    }
+                }
+            }
+        },
+        create() {
+            this.titleDialog = this.recordId
+                ? "Editar Propietario"
+                : "Nuevo Propietario";
+            if (this.recordId) {
+                this.fetchRecord();
+            } else {
+                //  this.initForm();
+            }
+        },
+        fetchRecord() {
+            if (this.recordId) {
+                this.$http
+                    .get(`/${this.resource}/record/${this.recordId}`)
+                    .then(response => {
+                        this.form = response.data.data;
+                        this.filterProvinces();
+                        this.filterDistricts();
+                    });
+            } else {
+                this.initForm();
+            }
+        },
+        validateDigits() {
+            const pattern_number = new RegExp("^[0-9]+$", "i");
+
+            if (this.form.identity_document_type_id === "6") {
+                if (this.form.number.length !== 11) {
+                    return {
+                        success: false,
+                        message: `El campo número debe tener 11 dígitos.`
+                    };
+                }
+
+                if (!pattern_number.test(this.form.number)) {
+                    return {
+                        success: false,
+                        message: `El campo número debe contener solo números`
+                    };
+                }
+            }
+
+            if (this.form.identity_document_type_id === "1") {
+                if (this.form.number.length !== 8) {
+                    return {
+                        success: false,
+                        message: `El campo número debe tener 8 dígitos.`
+                    };
+                }
+
+                if (!pattern_number.test(this.form.number)) {
+                    return {
+                        success: false,
+                        message: `El campo número debe contener solo números`
+                    };
+                }
+            }
+
+            if (["4", "7", "0"].includes(this.form.identity_document_type_id)) {
+                const pattern = new RegExp("^[A-Z0-9\-]+$", "i");
+
+                if (!pattern.test(this.form.number)) {
+                    return {
+                        success: false,
+                        message: `El campo número no cumple con el formato establecido`
+                    };
+                }
+            }
+
+            return {
+                success: true
+            };
+        },
+        async submit() {
+            let val_digits = await this.validateDigits();
+            if (!val_digits.success) {
+                return this.$message.error(val_digits.message);
+            }
+
+            this.loading_submit = true;
+
+            await this.$http
+                .post(`/${this.resource}`, this.form)
+                .then(response => {
+                    if (response.data.success) {
+                        this.$message.success(response.data.message);
+
+                        this.$eventHub.$emit("reloadData");
+
+                        this.close();
+                    } else {
+                        this.$message.error(response.data.message);
+                    }
+                })
+                .catch(error => {
+                    if (error.response.status === 422) {
+                        this.errors = error.response.data;
+                    } else {
+                        console.log(error);
+                    }
+                })
+                .finally(() => {
+                    this.loading_submit = false;
+                });
+        },
+        searchCustomer() {
+            this.searchServiceNumberByType();
+        },
+        searchNumber(data) {
+            //cambios apiperu
+            this.form.name = data.name;
+            this.form.trade_name = data.trade_name;
+            this.form.location_id = data.location_id;
+            this.form.address = data.address;
+            // this.form.department_id = data.department_id;
+            // this.form.department_id = data.department_id;
+            // this.form.province_id = data.province_id;
+            // this.form.district_id = data.district_id;
+            this.form.condition = data.condition;
+            this.form.state = data.state;
+            // this.filterProvinces()
+            // this.filterDistricts()
+            //                this.form.addresses[0].telephone = data.telefono;
+        },
+        close() {
+            this.$emit("update:showDialog", false);
+            this.initForm();
+        }
+    }
+};
+</script>

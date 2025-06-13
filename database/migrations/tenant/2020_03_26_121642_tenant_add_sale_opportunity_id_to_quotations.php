@@ -28,7 +28,7 @@ class TenantAddSaleOpportunityIdToQuotations extends Migration
     {
         Schema::table('quotations', function (Blueprint $table) {
             $table->dropForeign(['sale_opportunity_id']);
-            $table->dropColumn('sale_opportunity_id');   
+            $table->dropColumn('sale_opportunity_id');
         });
     }
 }

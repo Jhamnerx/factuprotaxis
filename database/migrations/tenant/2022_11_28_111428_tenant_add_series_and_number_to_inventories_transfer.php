@@ -43,5 +43,4 @@ class TenantAddSeriesAndNumberToInventoriesTransfer extends Migration
             $table->dropColumn('filename');
         });
     }
-
 }

@@ -64,7 +64,7 @@ final class Service
         $statusCode = $response->getStatusCode();
         $data = json_decode($response->getBody(), true);
 
-        if($statusCode !== 200) {
+        if ($statusCode !== 200) {
             return [
                 'success' => false,
                 'code' => $statusCode,
@@ -72,7 +72,7 @@ final class Service
             ];
         }
 
-        if($statusCode === 200) {
+        if ($statusCode === 200) {
             return [
                 'success' => true,
                 'code' => $statusCode,
@@ -110,22 +110,22 @@ final class Service
         $statusCode = $response->getStatusCode();
         $data = json_decode($response->getBody(), true);
 
-        if($statusCode !== 200) {
+        if ($statusCode !== 200) {
             // dd($body);
-        // dd($response->object());
+            // dd($response->object());
             $error = Errors::getMessage($statusCode);
             $errors = $this->validateObject($data, 'errores');
             // retorna error pero permite almacenar la data del documento
             // y continuar para ser enviado en otro momento
             return [
                 'success' => false,
-                'message' => $error . ' | Detalles: '.json_encode($errors),
+                'message' => $error . ' | Detalles: ' . json_encode($errors),
                 'code' => $data['estado'],
             ];
         }
 
-        if($statusCode == 200) {
-            if($statusCode == $data['estado']) {
+        if ($statusCode == 200) {
+            if ($statusCode == $data['estado']) {
                 return [
                     'success' => true,
                     'code' => $data['estado'],
@@ -166,7 +166,7 @@ final class Service
         Log::info($data);
         Log::info("---END PSE sendXmlSigned---");
 
-        if($statusCode !== 200) {
+        if ($statusCode !== 200) {
             $error = Errors::getMessage($statusCode);
             $errors = $this->validateObject($data, 'errores');
             return [
@@ -177,13 +177,13 @@ final class Service
             ];
         }
 
-        if($statusCode == 200) {
-            if($statusCode == $data['estado']) {
+        if ($statusCode == 200) {
+            if ($statusCode == $data['estado']) {
                 $mensaje = $this->validateObject($data, 'mensaje');
                 $rechazado = $this->validateObject($data, 'rechazado');
                 $errors = $this->validateObject($data, 'errores');
 
-                if($hasSummary) {
+                if ($hasSummary) {
                     $ticket = $this->validateObject($data, 'ticket');
                     return [
                         'success' => true,
@@ -244,7 +244,7 @@ final class Service
 
         $response = [
             'code' => $responseCode,
-            'description' => 'PSE - '.$description,
+            'description' => 'PSE - ' . $description,
             'notes' => $notes,
         ];
 
@@ -259,7 +259,7 @@ final class Service
         $token = $this->getToken();
 
         $client = new Client();
-        $response = $client->request('GET', $url.'/'.$filename, [
+        $response = $client->request('GET', $url . '/' . $filename, [
             'headers' => [
                 'Authorization' => 'Bearer ' . $token['token'],
                 'Content-Type' => 'application/json',
@@ -270,20 +270,20 @@ final class Service
         $statusCode = $response->getStatusCode();
         $data = json_decode($response->getBody(), true);
 
-        if($statusCode !== 200) {
+        if ($statusCode !== 200) {
             // dd($body);
             // dd($response->object());
             $error = Errors::getMessage($response->status());
             $errors = $this->validateObject($data, 'errores');
             return [
                 'success' => false,
-                'message' => $error . ' | Detalles: '.json_encode($errors),
+                'message' => $error . ' | Detalles: ' . json_encode($errors),
                 'code' => $statusCode,
             ];
         }
 
-        if($statusCode == 200) {
-            if($data['estado'] == $statusCode) {
+        if ($statusCode == 200) {
+            if ($data['estado'] == $statusCode) {
                 $mensaje = $this->validateObject($data, 'mensaje');
                 $rechazado = $this->validateObject($data, 'rechazado');
                 $errors = $this->validateObject($data, 'errores');
@@ -301,5 +301,4 @@ final class Service
             }
         }
     }
-
 }

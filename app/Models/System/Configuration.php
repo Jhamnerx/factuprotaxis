@@ -29,7 +29,7 @@ class Configuration extends Model
         'tenant_image_ads',
     ];
 
-    
+
     protected $casts = [
         'regex_password_client' => 'boolean',
         'tenant_show_ads' => 'boolean',
@@ -47,7 +47,6 @@ class Configuration extends Model
 
             // if (empty($item->apk_url)) $item->apk_url = 'https://facturaloperu.com/apk/app-debug.apk';
         });
-
     }
 
     public function getUseLoginGlobalAttribute($value)
@@ -66,7 +65,8 @@ class Configuration extends Model
     }
 
 
-    public static function getApiServiceToken(){
+    public static function getApiServiceToken()
+    {
         $configuration = self::first();
         // $api_service_token = $configuration->token_apiruc =! '' ? $configuration->token_apiruc : config('configuration.api_service_token');
         $api_service_token = $configuration->token_apiruc == 'false' ? config('configuration.api_service_token') : $configuration->token_apiruc;
@@ -76,14 +76,14 @@ class Configuration extends Model
     public static function getDataModuleViewComposer()
     {
         return self::select([
-                        'use_login_global',
-                        'tenant_show_ads',
-                        'tenant_image_ads'
-                    ])
-                    ->firstOrFail();
+            'use_login_global',
+            'tenant_show_ads',
+            'tenant_image_ads'
+        ])
+            ->firstOrFail();
     }
 
-    
+
     /**
      * 
      * Url de imagen para publicidad en clientes (header)
@@ -92,14 +92,11 @@ class Configuration extends Model
      */
     public function getUrlTenantImageAds()
     {
-        if($this->tenant_image_ads)
-        {
+        if ($this->tenant_image_ads) {
             $separator = DIRECTORY_SEPARATOR;
             return asset("storage{$separator}uploads{$separator}system_ads{$separator}" . $this->tenant_image_ads);
         }
 
         return null;
     }
-
-
 }

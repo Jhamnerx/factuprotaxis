@@ -19,7 +19,7 @@ class ServiceController extends Controller
     public function exchange($date)
     {
         $res = (new ApiServiceController())->exchangeRateTest($date);
-        if($res['sale'] === 0) {
+        if ($res['sale'] === 0) {
             $res = (new ApiPeruDevServiceController())->exchange($date);
         }
 

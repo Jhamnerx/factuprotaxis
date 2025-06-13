@@ -28,7 +28,7 @@ class TenantAddOrderNoteIdToSaleNotes extends Migration
     {
         Schema::table('sale_notes', function (Blueprint $table) {
             $table->dropForeign(['order_note_id']);
-            $table->dropColumn('order_note_id');  
+            $table->dropColumn('order_note_id');
         });
     }
 }

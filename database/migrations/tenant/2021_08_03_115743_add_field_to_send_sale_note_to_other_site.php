@@ -40,7 +40,6 @@ class AddFieldToSendSaleNoteToOtherSite extends Migration
             $table->longText('data')->nullable();
             $table->timestamps();
         });
-
     }
 
     /**
@@ -57,6 +56,5 @@ class AddFieldToSendSaleNoteToOtherSite extends Migration
 
         Schema::dropIfExists('migration_configuration');
         Schema::dropIfExists('sale_note_migration');
-
     }
 }

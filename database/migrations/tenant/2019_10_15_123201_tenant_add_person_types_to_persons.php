@@ -14,7 +14,7 @@ class TenantAddPersonTypesToPersons extends Migration
     public function up()
     {
         Schema::table('persons', function (Blueprint $table) {
-            $table->string('comment')->nullable()->after('perception_agent'); 
+            $table->string('comment')->nullable()->after('perception_agent');
             $table->unsignedInteger('person_type_id')->nullable()->after('perception_agent');
             $table->foreign('person_type_id')->references('id')->on('person_types');
         });
@@ -30,7 +30,7 @@ class TenantAddPersonTypesToPersons extends Migration
         Schema::table('persons', function (Blueprint $table) {
             $table->dropColumn('comment');
             $table->dropForeign(['person_type_id']);
-            $table->dropColumn('person_type_id');  
+            $table->dropColumn('person_type_id');
         });
     }
 }

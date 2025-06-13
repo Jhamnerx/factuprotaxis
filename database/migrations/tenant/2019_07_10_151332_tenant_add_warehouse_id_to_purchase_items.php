@@ -16,6 +16,7 @@ class TenantAddWarehouseIdToPurchaseItems extends Migration
         Schema::table('purchase_items', function (Blueprint $table) {
             $table->unsignedInteger('warehouse_id')->nullable();
             $table->foreign('warehouse_id')->references('id')->on('warehouses');
+
             //
         });
     }

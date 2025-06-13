@@ -122,7 +122,6 @@ class QuotationController extends Controller
                     ->orWhere('number', 'like', "%{$value}%");
             })
                 ->whereTypeUser();
-
         } else if ($column === 'seller_name') {
             $query->whereHas('seller', function ($q) use ($value) {
                 $q->where('name', 'like', "%{$value}%");
@@ -211,9 +210,21 @@ class QuotationController extends Controller
         */
         $sellers = User::GetSellers(false)->get();
 
-        return compact('customers','enabled_discount_global' ,'establishments','global_discount_types',  'currency_types', 'discount_types', 'charge_types', 'configuration',
-            'company', 'document_type_03_filter', 'payment_method_types', 'payment_destinations', 'sellers');
-
+        return compact(
+            'customers',
+            'enabled_discount_global',
+            'establishments',
+            'global_discount_types',
+            'currency_types',
+            'discount_types',
+            'charge_types',
+            'configuration',
+            'company',
+            'document_type_03_filter',
+            'payment_method_types',
+            'payment_destinations',
+            'sellers'
+        );
     }
 
 
@@ -303,7 +314,6 @@ class QuotationController extends Controller
 
             $this->setFilename();
             $this->createPdf($this->quotation, "a4", $this->quotation->filename);
-
         });
 
         return [
@@ -347,7 +357,6 @@ class QuotationController extends Controller
                 'id' => $this->quotation->id,
             ],
         ];
-
     }
 
     public function getTermsCondition()
@@ -360,7 +369,6 @@ class QuotationController extends Controller
         }
 
         return null;
-
     }
 
 
@@ -387,7 +395,6 @@ class QuotationController extends Controller
                 'id' => $this->quotation->id,
             ],
         ];
-
     }
 
     public function anular($id)
@@ -427,7 +434,6 @@ class QuotationController extends Controller
         $name = [$this->quotation->prefix, $this->quotation->id, date('Ymd')];
         $this->quotation->filename = join('-', $name);
         $this->quotation->save();
-
     }
 
 
@@ -491,7 +497,6 @@ class QuotationController extends Controller
     {
         $items = SearchItemController::getItemsToQuotation($request);
         return compact('items');
-
     }
 
     /**
@@ -556,14 +561,12 @@ class QuotationController extends Controller
 
         $items = SearchItemController::getItemsToQuotation(null, $id);
         return compact('items');
-
     }
 
 
     public function searchCustomerById($id)
     {
         return $this->searchClientById($id);
-
     }
 
     public function download($external_id, $format)
@@ -657,24 +660,25 @@ class QuotationController extends Controller
                 'format' => [
                     $width,
                     120 +
-                    ($quantity_rows * 8) +
-                    ($discount_global * 3) +
-                    $company_name +
-                    $company_address +
-                    $company_number +
-                    $customer_name +
-                    $customer_address +
-                    $p_order +
-                    $legends +
-                    $total_exportation +
-                    $total_free +
-                    $total_unaffected +
-                    $payments +
-                    $total_exonerated +
-                    $terms_condition +
-                    $contact +
-                    $document_description +
-                    $total_taxed],
+                        ($quantity_rows * 8) +
+                        ($discount_global * 3) +
+                        $company_name +
+                        $company_address +
+                        $company_number +
+                        $customer_name +
+                        $customer_address +
+                        $p_order +
+                        $legends +
+                        $total_exportation +
+                        $total_free +
+                        $total_unaffected +
+                        $payments +
+                        $total_exonerated +
+                        $terms_condition +
+                        $contact +
+                        $document_description +
+                        $total_taxed
+                ],
                 'margin_top' => 2,
                 'margin_right' => 5,
                 'margin_bottom' => 0,
@@ -733,8 +737,6 @@ class QuotationController extends Controller
                 'margin_left' => 5,
                 'default_font' => 'arial'
             ]);
-
-
         } else {
 
 
@@ -756,13 +758,13 @@ class QuotationController extends Controller
                             DIRECTORY_SEPARATOR . 'font')
                     ]),
                     'fontdata' => $fontData + [
-                            'custom_bold' => [
-                                'R' => $pdf_font_bold . '.ttf',
-                            ],
-                            'custom_regular' => [
-                                'R' => $pdf_font_regular . '.ttf',
-                            ],
+                        'custom_bold' => [
+                            'R' => $pdf_font_bold . '.ttf',
                         ],
+                        'custom_regular' => [
+                            'R' => $pdf_font_regular . '.ttf',
+                        ],
+                    ],
                     'default_font' => 'arial'
                 ];
 
@@ -780,21 +782,19 @@ class QuotationController extends Controller
                                 DIRECTORY_SEPARATOR . 'font')
                         ]),
                         'fontdata' => $fontData + [
-                                'custom_bold' => [
-                                    'R' => $pdf_font_bold . '.ttf',
-                                ],
-                                'custom_regular' => [
-                                    'R' => $pdf_font_regular . '.ttf',
-                                ],
+                            'custom_bold' => [
+                                'R' => $pdf_font_bold . '.ttf',
                             ],
+                            'custom_regular' => [
+                                'R' => $pdf_font_regular . '.ttf',
+                            ],
+                        ],
                         'default_font' => 'arial'
                     ];
-
                 }
 
                 $pdf = new Mpdf($default);
-            }
-            else {
+            } else {
                 $pdf = new Mpdf([
                     'default_font' => 'arial'
                 ]);
@@ -954,6 +954,5 @@ class QuotationController extends Controller
                 'checked' => ($row->warehouse_id == $warehouse->id) ? true : false,
             ];
         });
-
     }
 }

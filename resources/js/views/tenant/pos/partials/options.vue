@@ -20,7 +20,7 @@
                     <div class="summary row">
                         <div class="col-md-6">
                             <h4 class="title">
-                                Venta 11111 : comprobante {{ form.number }}
+                                Venta exitosa : comprobante {{ form.number }}
                             </h4>
                         </div>
                         <div class="col-md-6">
@@ -272,10 +272,11 @@ export default {
             configuration: {},
             activeName: "first",
             showDialogGenerate: false,
-            button_convert_cpe_pos: true
+            button_convert_cpe_pos: true,
+            wsp: {}
         };
     },
-    created() {
+    async created() {
         this.initForm();
         this.loadConfiguration();
         /*
@@ -283,6 +284,11 @@ export default {
                 this.$store.commit('setConfiguration', response.data)
             });
             */
+        await this.$http.get(`/companies/record`).then(response => {
+            if (response.data !== "") {
+                this.wsp = response.data.data;
+            }
+        });
     },
     mounted() {},
     computed: {
@@ -313,14 +319,15 @@ export default {
         },
         ...mapActions(["loadConfiguration"]),
         clickSendWhatsapp() {
-            console.log(this.configuration);
-
             if (!this.form.customer_telephone) {
                 return this.$message.error("El número es obligatorio");
             }
-
+            if (!this.wsp.ws_api_token) {
+                return this.$message.error(
+                    "No se ha configurado el token de la API de Whatsapp"
+                );
+            }
             const url = this.form.download_pdf;
-            const caption = message.replace(url, "").trim();
 
             if (!url) {
                 return this.$message.error(
@@ -329,20 +336,21 @@ export default {
             }
 
             const payload = {
-                api_key: "a53e5f1b7a6bb29928b13c9fc4adf1e8f42e0ac4",
+                api_key: this.wsp.ws_api_token,
                 receiver: `51${this.form.customer_telephone}`,
                 data: {
                     url: url,
                     media_type: "file",
-                    caption: caption
+                    caption: this.form.message_text
                 }
             };
 
             this.$http
-                .post("https://whatsapp.siapol.site/api/send", payload)
+                .post("https://whatsapp.siapol.site/api/send-media", payload)
                 .then(response => {
                     if (response.data.success) {
                         this.$message.success("Mensaje enviado correctamente");
+                        form.customer_telephone = null;
                     } else {
                         this.$message.error("Error al enviar el mensaje");
                     }

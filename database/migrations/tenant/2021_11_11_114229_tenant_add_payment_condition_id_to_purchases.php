@@ -31,5 +31,4 @@ class TenantAddPaymentConditionIdToPurchases extends Migration
             $table->dropColumn('payment_condition_id');
         });
     }
-
 }

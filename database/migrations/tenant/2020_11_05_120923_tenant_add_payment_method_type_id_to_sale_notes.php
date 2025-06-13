@@ -28,7 +28,7 @@ class TenantAddPaymentMethodTypeIdToSaleNotes extends Migration
     {
         Schema::table('sale_notes', function (Blueprint $table) {
             $table->dropForeign(['payment_method_type_id']);
-            $table->dropColumn('payment_method_type_id');  
+            $table->dropColumn('payment_method_type_id');
         });
     }
 }

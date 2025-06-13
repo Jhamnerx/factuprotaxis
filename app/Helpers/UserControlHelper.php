@@ -11,7 +11,7 @@ class UserControlHelper
 {
 
     use LockedEmissionTrait;
-    
+
 
     /**
      * 
@@ -21,16 +21,13 @@ class UserControlHelper
      */
     public function exceedLimitUsers()
     {
-        if($this->getConfigurationColumn('locked_users'))
-        {
+        if ($this->getConfigurationColumn('locked_users')) {
             $plan = $this->getClientPlan(['id', 'limit_users']);
 
-            if(!$plan->isUnlimitedUsers())
-            {
+            if (!$plan->isUnlimitedUsers()) {
                 $quantity = User::getQuantityActive();
 
-                if($quantity >= $plan->limit_users)
-                {
+                if ($quantity >= $plan->limit_users) {
                     return $this->getResponse(true, 'Ha superado el límite permitido para crear/activar usuarios.');
                 }
             }
@@ -39,7 +36,7 @@ class UserControlHelper
         return $this->getResponse(false);
     }
 
-    
+
     /**
      * 
      * Validar limite de usuarios
@@ -50,10 +47,10 @@ class UserControlHelper
     {
         $exceed_limit_users = $this->exceedLimitUsers();
 
-        if($exceed_limit_users['success']) $this->throwException($exceed_limit_users['message']);
+        if ($exceed_limit_users['success']) $this->throwException($exceed_limit_users['message']);
     }
 
-    
+
     /**
      * 
      *
@@ -63,10 +60,8 @@ class UserControlHelper
     {
         $user = auth()->user();
 
-        if($user)
-        {
-            if(!$user->isActive()) abort(403);
+        if ($user) {
+            if (!$user->isActive()) abort(403);
         }
     }
-
 }

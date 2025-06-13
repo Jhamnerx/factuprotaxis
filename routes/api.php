@@ -87,7 +87,6 @@ if ($hostname) {
                 Route::get('/categories', 'Tenant\Api\SellnowController@categories');
                 Route::post('/favoriteitem', 'Tenant\Api\SellnowController@setFavoriteItem');
             });
-
         });
         Route::get('documents/search/customers', 'Tenant\DocumentController@searchCustomers');
 
@@ -97,11 +96,10 @@ if ($hostname) {
         Route::get('sendserver/{document_id}/{query?}', 'Tenant\DocumentController@sendServer');
         Route::post('configurations/generateDispatch', 'Tenant\ConfigurationController@generateDispatch');
 
-        
+
         // Contenido de los certificados de qz tray
         Route::get('certificates-qztray/private', 'Tenant\CertificateQzTrayController@private');
         Route::get('certificates-qztray/digital', 'Tenant\CertificateQzTrayController@digital');
-
     });
 } else {
     Route::domain(env('APP_URL_BASE'))->group(function () {
@@ -117,9 +115,6 @@ if ($hostname) {
             Route::get('restaurant/partner/list', 'System\Api\RestaurantPartnerController@list');
             Route::post('restaurant/partner/store', 'System\Api\RestaurantPartnerController@store');
             Route::post('restaurant/partner/search', 'System\Api\RestaurantPartnerController@search');
-
         });
-
     });
-
 }

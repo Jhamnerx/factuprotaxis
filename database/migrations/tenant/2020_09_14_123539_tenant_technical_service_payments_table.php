@@ -19,7 +19,7 @@ class TenantTechnicalServicePaymentsTable extends Migration
             $table->date('date_of_payment');
             $table->char('payment_method_type_id', 2);
             $table->string('reference')->nullable();
-            $table->decimal('change',12, 2)->default(0);
+            $table->decimal('change', 12, 2)->default(0);
             $table->decimal('payment', 12, 2);
 
             $table->foreign('technical_service_id')->references('id')->on('technical_services')->onDelete('cascade');

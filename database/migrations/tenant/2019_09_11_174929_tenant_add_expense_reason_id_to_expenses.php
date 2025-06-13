@@ -28,7 +28,7 @@ class TenantAddExpenseReasonIdToExpenses extends Migration
     {
         Schema::table('expenses', function (Blueprint $table) {
             $table->dropForeign(['expense_reason_id']);
-            $table->dropColumn('expense_reason_id');  
+            $table->dropColumn('expense_reason_id');
         });
     }
 }

@@ -32,7 +32,6 @@ class AddSellerCanViewBalanceOnFinanceToConfiguration extends Migration
         Schema::table('configurations', function (Blueprint $table) {
             //
             $table->dropColumn('seller_can_view_balance');
-
         });
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Tenant\CashController as TenantCashController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -11,7 +13,7 @@
 |
 */
 
-Route::prefix('restaurant')->group(function() {
+Route::prefix('restaurant')->group(function () {
     // para configuracion de productos a mostrar
     Route::get('/list/items', 'RestaurantController@list_items')->name('tenant.restaurant.list_items')->middleware('redirect.module');
     Route::post('items/visible', 'RestaurantController@is_visible');
@@ -38,7 +40,7 @@ Route::prefix('restaurant')->group(function() {
     });
 
     //Promotion
-    Route::prefix('promotions')->group(function() {
+    Route::prefix('promotions')->group(function () {
 
         Route::get('', 'PromotionController@index')->name('tenant.restaurant.promotion.index')->middleware('redirect.module');
         Route::get('columns', 'PromotionController@columns');
@@ -48,11 +50,10 @@ Route::prefix('restaurant')->group(function() {
         Route::post('', 'PromotionController@store');
         Route::delete('{promotion}', 'PromotionController@destroy');
         Route::post('upload', 'PromotionController@upload');
-
     });
 
     //Orders
-    Route::prefix('orders')->group(function() {
+    Route::prefix('orders')->group(function () {
 
         Route::get('', 'OrderController@index')->name('tenant.restaurant.order.index')->middleware('redirect.module');
         Route::get('columns', 'OrderController@columns');
@@ -64,11 +65,10 @@ Route::prefix('restaurant')->group(function() {
         Route::post('warehouse', 'OrderController@searchWarehouse');
         Route::get('tables', 'OrderController@tables');
         Route::get('tables/item/{internal_id}', 'OrderController@item');
-
     });
 
     //Cash
-    Route::prefix('cash')->group(function() {
+    Route::prefix('cash')->group(function () {
 
         Route::get('', 'CashController@index')->name('tenant.restaurant.cash.index')->middleware('redirect.module');
         Route::get('/pos', 'CashController@posFilter')->name('tenant.restaurant.cash.filter-pos');
@@ -79,7 +79,7 @@ Route::prefix('restaurant')->group(function() {
         Route::get('tables', 'CashController@tables');
         Route::get('opening_cash', 'CashController@opening_cash');
         Route::get('opening_cash_check/{user_id}', 'CashController@opening_cash_check');
-        Route::post('cash', 'Tenant\CashController@store');
+        Route::post('cash', [TenantCashController::class, 'store']);
         Route::post('cash_document', 'CashController@cash_document');
         Route::get('close/{cash}', 'CashController@close');
         Route::get('report/{cash}', 'CashController@report');
@@ -91,34 +91,28 @@ Route::prefix('restaurant')->group(function() {
         Route::get('search/customer/{id}', 'CashController@searchCustomerById');
         Route::get('report/products/{cash}', 'CashController@report_products');
         Route::get('report/products-excel/{cash}', 'CashController@report_products_excel');
-
-
     });
 
-      //Waiters
-    Route::prefix('waiter')->group(function() {
+    //Waiters
+    Route::prefix('waiter')->group(function () {
         Route::post('', 'WaiterController@store');
         Route::get('', 'WaiterController@records');
         Route::delete('{id}', 'WaiterController@destroy');
     });
 
-    Route::prefix('users')->group(function() {
+    Route::prefix('users')->group(function () {
         Route::post('', 'RestaurantConfigurationController@userStore');
         Route::get('/record/{user}', 'RestaurantConfigurationController@userRecord');
     });
-
-
 });
 
 // ruta publica
-Route::middleware(['locked.tenant'])->group(function() {
+Route::middleware(['locked.tenant'])->group(function () {
     // restaurant
     Route::get('/pedidos/{name?}', 'RestaurantController@menu')->name('tenant.restaurant.menu');
-
-
 });
 
-Route::middleware(['locked.tenant'])->group(function() {
+Route::middleware(['locked.tenant'])->group(function () {
     // ruta publica de lista
-Route::get('/lista', 'ListaController@index')->name('restaurant.lista');
+    Route::get('/lista', 'ListaController@index')->name('restaurant.lista');
 });

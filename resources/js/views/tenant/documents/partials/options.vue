@@ -187,7 +187,9 @@
             <div class="row mt-3">
                 <div class="col-md-12" v-if="chooseServiceApiWsp">
                     <el-input v-model="form.customer_telephone">
-                        <template slot="prepend">+51</template>
+                        <template slot="prepend"
+                            >+51</template
+                        >
                         <el-button slot="append" @click="clickSendWhatsapp"
                             >Enviar
                             <el-tooltip
@@ -285,12 +287,12 @@ export default {
         "dispatchId",
         "isUpdate",
         "configuration",
-        "table",
+        "table"
     ],
     components: {
         Keypress,
         QrApi,
-        QrChatWsapp,
+        QrChatWsapp
     },
     data() {
         return {
@@ -303,28 +305,34 @@ export default {
                 {
                     keyCode: 78, // N
                     modifiers: ["altKey"],
-                    preventDefault: true,
+                    preventDefault: true
                 },
                 {
                     keyCode: 80, // P
                     modifiers: ["altKey"],
-                    preventDefault: true,
-                },
+                    preventDefault: true
+                }
             ],
             company: {},
             locked_emission: {},
+            wsp: {}
         };
     },
     created() {
         this.loadConfiguration(this.$store);
         this.$store.commit("setConfiguration", this.configuration);
     },
-    mounted() {
+    async mounted() {
         this.initForm();
+        await this.$http.get(`/companies/record`).then(response => {
+            if (response.data !== "") {
+                this.wsp = response.data.data;
+            }
+        });
     },
     computed: {
         ...mapState(["config"]),
-        ShowTicket58: function () {
+        ShowTicket58: function() {
             if (this.config === undefined) return false;
             if (this.config == null) return false;
             if (this.config.show_ticket_58 === undefined) return false;
@@ -337,7 +345,7 @@ export default {
             }
             return false;
         },
-        ShowTicket80: function () {
+        ShowTicket80: function() {
             if (this.config === undefined) return false;
             if (this.config == null) return false;
             if (this.config.show_ticket_80 === undefined) return false;
@@ -350,7 +358,7 @@ export default {
             }
             return false;
         },
-        ShowTicket50: function () {
+        ShowTicket50: function() {
             if (this.config === undefined) return false;
             if (this.config == null) return false;
             if (this.config.show_ticket_50 === undefined) return false;
@@ -365,7 +373,7 @@ export default {
         },
         chooseServiceApiWsp() {
             return !this.config.qrchat_enable && !this.config.qr_api_enable_ws;
-        },
+        }
     },
     methods: {
         ...mapActions(["loadConfiguration"]),
@@ -374,10 +382,34 @@ export default {
                 return this.$message.error("El número es obligatorio");
             }
 
-            window.open(
-                `https://wa.me/51${this.form.customer_telephone}?text=${this.form.message_text}`,
-                "_blank"
-            );
+            if (!this.wsp.ws_api_token) {
+                return this.$message.error(
+                    "No se ha configurado el token de la API de Whatsapp"
+                );
+            }
+            const payload = {
+                api_key: this.wsp.ws_api_token,
+                receiver: `51${this.form.customer_telephone}`,
+                data: {
+                    url: this.form.download_pdf,
+                    media_type: "file",
+                    caption: this.form.message_text
+                }
+            };
+
+            this.$http
+                .post("https://whatsapp.siapol.site/api/send-media", payload)
+                .then(response => {
+                    if (response.status === 200) {
+                        this.$message.success("Mensaje enviado correctamente");
+                        form.customer_telephone = null;
+                    } else {
+                        this.$message.error("Error al enviar el mensaje");
+                    }
+                })
+                .catch(error => {
+                    this.$message.error("Error al enviar el mensaje");
+                });
         },
         initForm() {
             this.errors = {};
@@ -395,14 +427,14 @@ export default {
                 group_id: null,
                 send_to_pse: false,
                 response_signature_pse: null,
-                response_send_cdr_pse: null,
+                response_send_cdr_pse: null
             };
             this.locked_emission = {
                 success: true,
-                message: null,
+                message: null
             };
             this.company = {
-                soap_type_id: null,
+                soap_type_id: null
             };
         },
         async create() {
@@ -412,7 +444,7 @@ export default {
             this.loading = true;
             await this.$http
                 .get(`/${this.resource}/locked_emission`)
-                .then((response) => {
+                .then(response => {
                     this.locked_emission = response.data;
                 })
                 .finally(() => (this.loading = false));
@@ -421,7 +453,7 @@ export default {
             this.loading = true;
             await this.$http
                 .get(`/companies/record`)
-                .then((response) => {
+                .then(response => {
                     if (response.data !== "") {
                         this.company = response.data.data;
                     }
@@ -432,12 +464,14 @@ export default {
             this.loading = true;
             await this.$http
                 .get(`/${this.resource}/record/${this.recordId}`)
-                .then((response) => {
+                .then(response => {
                     this.form = response.data.data;
                     this.titleDialog = "Comprobante: " + this.form.number;
                     if (this.generatDispatch)
                         window.open(
-                            `/dispatches/create/${this.form.id}/i/${this.dispatchId}`
+                            `/dispatches/create/${this.form.id}/i/${
+                                this.dispatchId
+                            }`
                         );
                 })
                 .finally(() => {
@@ -461,9 +495,9 @@ export default {
             this.$http
                 .post(`/${this.resource}/email`, {
                     customer_email: this.form.customer_email,
-                    id: this.form.id,
+                    id: this.form.id
                 })
-                .then((response) => {
+                .then(response => {
                     if (response.data.success) {
                         this.$message.success(
                             "El correo fue enviado satisfactoriamente"
@@ -472,7 +506,7 @@ export default {
                         this.$message.error("Error al enviar el correo");
                     }
                 })
-                .catch((error) => {
+                .catch(error => {
                     if (error.response.status === 422) {
                         this.errors = error.response.data.errors;
                     } else {
@@ -486,7 +520,7 @@ export default {
         clickConsultCdr(document_id) {
             this.$http
                 .get(`/${this.resource}/consult_cdr/${document_id}`)
-                .then((response) => {
+                .then(response => {
                     if (response.data.success) {
                         this.$message.success(response.data.message);
                         this.getRecord();
@@ -495,7 +529,7 @@ export default {
                         this.$message.error(response.data.message);
                     }
                 })
-                .catch((error) => {
+                .catch(error => {
                     this.$message.error(error.response.data.message);
                 });
         },
@@ -534,7 +568,7 @@ export default {
                 this.clickPrint("ticket_50"); // Imprime ticket 50 con letra P
             }
         },
-        getConfigQRApi() {},
-    },
+        getConfigQRApi() {}
+    }
 };
 </script>

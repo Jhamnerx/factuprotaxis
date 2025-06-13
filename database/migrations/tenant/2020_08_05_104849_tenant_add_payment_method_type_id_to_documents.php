@@ -28,7 +28,7 @@ class TenantAddPaymentMethodTypeIdToDocuments extends Migration
     {
         Schema::table('documents', function (Blueprint $table) {
             $table->dropForeign(['payment_method_type_id']);
-            $table->dropColumn('payment_method_type_id');  
+            $table->dropColumn('payment_method_type_id');
         });
     }
 }

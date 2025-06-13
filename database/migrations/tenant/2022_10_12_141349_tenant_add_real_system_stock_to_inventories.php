@@ -18,7 +18,7 @@ class TenantAddRealSystemStockToInventories extends Migration
             $table->decimal('system_stock', 12, 4)->nullable()->after('date_of_issue');
         });
     }
-    
+
 
     /**
      * Reverse the migrations.

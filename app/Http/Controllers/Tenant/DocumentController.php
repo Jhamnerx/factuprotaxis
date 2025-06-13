@@ -83,7 +83,7 @@ class DocumentController extends Controller
 
     public function __construct()
     {
-        $this->middleware('input.request:document,web', ['only' => ['store','preview']]);
+        $this->middleware('input.request:document,web', ['only' => ['store', 'preview']]);
         $this->middleware('input.request:documentUpdate,web', ['only' => ['update']]);
     }
 
@@ -100,13 +100,18 @@ class DocumentController extends Controller
         $view_apiperudev_validator_cpe = config('tenant.apiperudev_validator_cpe');
         $view_validator_cpe = config('tenant.validator_cpe');
 
-        return view('tenant.documents.index',
-            compact('is_client', 'import_documents',
+        return view(
+            'tenant.documents.index',
+            compact(
+                'is_client',
+                'import_documents',
                 'import_documents_second',
                 'document_import_excel',
                 'configuration',
                 'view_apiperudev_validator_cpe',
-                'view_validator_cpe'));
+                'view_validator_cpe'
+            )
+        );
     }
 
     public function columns()
@@ -170,7 +175,7 @@ class DocumentController extends Controller
 
         //tru de boletas en env esta en true filtra a los con dni   , false a todos
         $identity_document_type_id = $this->getIdentityDocumentTypeId($request->document_type_id, $request->operation_type_id);
-//        $operation_type_id_id = $this->getIdentityDocumentTypeId($request->operation_type_id);
+        //        $operation_type_id_id = $this->getIdentityDocumentTypeId($request->operation_type_id);
 
         $customers = Person::where('number', 'like', "%{$request->input}%")
             ->orWhere('name', 'like', "%{$request->input}%")
@@ -232,7 +237,7 @@ class DocumentController extends Controller
         $userType = $user->type;
         $series = $user->getSeries();
         // $prepayment_documents = $this->table('prepayment_documents');
-        $establishments = Establishment::where('id', $establishment_id)->get();// Establishment::all();
+        $establishments = Establishment::where('id', $establishment_id)->get(); // Establishment::all();
         $document_types_invoice = DocumentType::whereIn('id', ['01', '03'])->get();
         $document_types_note = DocumentType::whereIn('id', ['07', '08'])->get();
         $note_credit_types = NoteCreditType::whereActive()->orderByDescription()->get();
@@ -266,10 +271,10 @@ class DocumentController extends Controller
         // $cat_payment_method_types = CatPaymentMethodType::whereActive()->get();
         // $detraction_types = DetractionType::whereActive()->get();
 
-//        return compact('customers', 'establishments', 'series', 'document_types_invoice', 'document_types_note',
-//                       'note_credit_types', 'note_debit_types', 'currency_types', 'operation_types',
-//                       'discount_types', 'charge_types', 'company', 'document_type_03_filter',
-//                       'document_types_guide');
+        //        return compact('customers', 'establishments', 'series', 'document_types_invoice', 'document_types_note',
+        //                       'note_credit_types', 'note_debit_types', 'currency_types', 'operation_types',
+        //                       'discount_types', 'charge_types', 'company', 'document_type_03_filter',
+        //                       'document_types_guide');
 
         // return compact('customers', 'establishments', 'series', 'document_types_invoice', 'document_types_note',
         //                'note_credit_types', 'note_debit_types', 'currency_types', 'operation_types',
@@ -309,7 +314,6 @@ class DocumentController extends Controller
             'global_discount_types',
             'affectation_igv_types'
         );
-
     }
 
     public function item_tables()
@@ -375,7 +379,8 @@ class DocumentController extends Controller
             'CatItemPackageMeasurement',
             'CatItemProductFamily',
             'validate_stock_add_item',
-            'CatItemUnitsPerPackage');
+            'CatItemUnitsPerPackage'
+        );
     }
 
     public function table($table)
@@ -386,7 +391,7 @@ class DocumentController extends Controller
                 ->whereIsEnabled()
                 ->whereFilterCustomerBySeller('customers')
                 ->orderBy('name')
-                ->take(20)
+                ->take(5)
                 ->get()->transform(function ($row) {
                     /** @var Person $row */
                     return $row->getCollectionData();
@@ -402,7 +407,6 @@ class DocumentController extends Controller
                         'address' => $row->address,
                         'internal_code' => $row->internal_code,
                     ];
-
                 });
             return $customers;
         }
@@ -579,12 +583,11 @@ class DocumentController extends Controller
      */
     public function store(DocumentRequest $request)
     {
-        try
-        {
+        try {
             $validate = $this->validateDocument($request);
             if (!$validate['success']) return $validate;
 
-            if(!$this->validationOpenCash($request)) return $this->generalResponse(false, 'Ocurrió un error: Caja seleccionada en métodos de pago se encuentra cerrada');
+            if (!$this->validationOpenCash($request)) return $this->generalResponse(false, 'Ocurrió un error: Caja seleccionada en métodos de pago se encuentra cerrada');
 
             $res = $this->storeWithData($request->all());
             $document_id = $res['data']['id'];
@@ -592,24 +595,22 @@ class DocumentController extends Controller
             $this->associateSaleNoteToDocument($request, $document_id);
 
             return $res;
-        }
-        catch(Exception $e)
-        {
+        } catch (Exception $e) {
             $this->generalWriteErrorLog($e);
 
-            return $this->generalResponse(false, 'Ocurrió un error: '.$e->getMessage());
+            return $this->generalResponse(false, 'Ocurrió un error: ' . $e->getMessage());
         }
     }
 
     public function validationOpenCash($request)
     {
         // busca una caja chica en el array de pagos
-        $find_cash = array_search('cash', array_column($request->payments,'payment_destination_id'));
+        $find_cash = array_search('cash', array_column($request->payments, 'payment_destination_id'));
         // si ha seleccionado una caja chica
-        if($find_cash >= 0) {
+        if ($find_cash >= 0) {
             // no hay id de la caja seleccionada por lo que si es abierta una nueva será seleccionada como destino
-            $cash = Cash::where([['user_id', auth()->user()->id],['state', true]])->first();
-            if(!$cash){
+            $cash = Cash::where([['user_id', auth()->user()->id], ['state', true]])->first();
+            if (!$cash) {
                 return false;
             }
         }
@@ -644,7 +645,6 @@ class DocumentController extends Controller
             'success' => true,
             'message' => ''
         ];
-
     }
 
     /**
@@ -735,7 +735,6 @@ class DocumentController extends Controller
                         $sale_note->document_id = $documentId;
                         $sale_note->push();
                     }
-
                 }
 
                 // $noteArray = explode('-', $note);
@@ -833,7 +832,7 @@ class DocumentController extends Controller
         $document = Document::findOrFail($documentId);
         foreach ($document->items as &$item) {
             $discounts = [];
-            if($item->discounts) {
+            if ($item->discounts) {
                 foreach ($item->discounts as $discount) {
                     $discount_type = ChargeDiscountType::query()->find($discount->discount_type_id);
                     $discounts[] = [
@@ -881,11 +880,11 @@ class DocumentController extends Controller
             $facturalo->updateSoap('02', $type);
             $facturalo->updateState('01');
             $facturalo->createPdf($document, $type, 'ticket');
-//            $facturalo->senderXmlSignedBill();
+            //            $facturalo->senderXmlSignedBill();
         });
 
-//        $document = $fact->getDocument();
-//        $response = $fact->getResponse();
+        //        $document = $fact->getDocument();
+        //        $response = $fact->getResponse();
 
         return [
             'success' => true,
@@ -1187,7 +1186,7 @@ class DocumentController extends Controller
         $plate_numbers = $request->plate_numbers;
         $observations = $request->observations;
 
-//        return $observations;
+        //        return $observations;
         $records = Document::query();
         if ($d_start && $d_end) {
             $records->whereBetween('date_of_issue', [$d_start, $d_end]);
@@ -1257,10 +1256,9 @@ class DocumentController extends Controller
         $state_types = StateType::get();
         $document_types = DocumentType::whereIn('id', ['01', '03', '07', '08'])->get();
         $series = Series::whereIn('document_type_id', ['01', '03', '07', '08'])->get();
-        $establishments = Establishment::where('id', auth()->user()->establishment_id)->get();// Establishment::all();
+        $establishments = Establishment::where('id', auth()->user()->establishment_id)->get(); // Establishment::all();
 
         return compact('customers', 'document_types', 'series', 'establishments', 'state_types', 'items', 'categories');
-
     }
 
 
@@ -1275,7 +1273,6 @@ class DocumentController extends Controller
         });
 
         return $items;
-
     }
 
 
@@ -1293,7 +1290,6 @@ class DocumentController extends Controller
             });
 
         return $items;
-
     }
 
 
@@ -1367,7 +1363,6 @@ class DocumentController extends Controller
             ->records($source)
             ->payment_count($this->max_count_payment)
             ->download('Reporte_Pagos_' . Carbon::now() . '.xlsx');
-
     }
 
     public function destroyDocument($document_id)
@@ -1379,21 +1374,16 @@ class DocumentController extends Controller
                 $record = Document::findOrFail($document_id);
                 $this->deleteAllPayments($record->payments);
                 $record->delete();
-
             });
 
             return [
                 'success' => true,
                 'message' => 'Documento eliminado con éxito'
             ];
-
         } catch (Exception $e) {
 
             return ($e->getCode() == '23000') ? ['success' => false, 'message' => 'El Documento esta siendo usada por otros registros, no puede eliminar'] : ['success' => false, 'message' => 'Error inesperado, no se pudo eliminar el Documento'];
-
         }
-
-
     }
 
     public function storeCategories(CategoryRequest $request)
@@ -1442,7 +1432,7 @@ class DocumentController extends Controller
 
                 return [
                     'success' => true,
-                    'message' =>  'Se importaron '.$data['registered'].' de '.$data['total_records'].' registros',
+                    'message' =>  'Se importaron ' . $data['registered'] . ' de ' . $data['total_records'] . ' registros',
                     'data' => $data
                 ];
             } catch (Exception $e) {
@@ -1514,12 +1504,12 @@ class DocumentController extends Controller
             $voucher_filename = $request->input('voucher_filename');
             $temp_path = $request->input('temp_path');
 
-            if($temp_path) {
+            if ($temp_path) {
                 $file_name_old_array = explode('.', $voucher_filename);
                 $file_content = file_get_contents($temp_path);
                 $extension = $file_name_old_array[1];
-                $voucher_filename = Str::slug('r_'.$file_name_old_array[0]).'_'.date('YmdHis').'.'.$extension;
-                Storage::disk('tenant')->put('document_payment'.DIRECTORY_SEPARATOR.$voucher_filename, $file_content);
+                $voucher_filename = Str::slug('r_' . $file_name_old_array[0]) . '_' . date('YmdHis') . '.' . $extension;
+                Storage::disk('tenant')->put('document_payment' . DIRECTORY_SEPARATOR . $voucher_filename, $file_content);
             }
 
             $document_id = $request->input('document_id');
@@ -1544,7 +1534,6 @@ class DocumentController extends Controller
                 'success' => false,
                 'message' => $e->getMessage(),
             ];
-
         }
     }
 
@@ -1582,7 +1571,7 @@ class DocumentController extends Controller
         }
     }
 
-    public function preview(DocumentRequest $request) 
+    public function preview(DocumentRequest $request)
     {
         $validate = $this->validateDocument($request);
         if (!$validate['success']) return $validate;
@@ -1590,7 +1579,7 @@ class DocumentController extends Controller
         $facturalo = new Facturalo();
         $inputs = $request->all();
         $facturalo->setActions(array_key_exists('actions', $inputs) ? $inputs['actions'] : []);
-        
+
         $document = new Document($inputs);
 
         $facturalo->setPaymentsPreview($document, $inputs['payments']);
@@ -1610,11 +1599,10 @@ class DocumentController extends Controller
             $transport = new \Modules\BusinessTurn\Models\DocumentTransport($inputs['transport']);
             $document->transport = $transport;
         }
-        
+
         $invoice = new \App\Models\Tenant\Invoice($inputs['invoice']);
         $document->invoice = $invoice;
 
         $facturalo->previewPdf($document, $inputs['type']);
     }
-
 }

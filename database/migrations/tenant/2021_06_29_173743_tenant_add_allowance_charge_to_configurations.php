@@ -15,7 +15,7 @@ class TenantAddAllowanceChargeToConfigurations extends Migration
     {
         Schema::table('configurations', function (Blueprint $table) {
             $table->boolean('active_allowance_charge')->default(false)->nullable()->after('include_igv');
-            $table->decimal('percentage_allowance_charge', 12,2)->default(0)->nullable()->after('include_igv');
+            $table->decimal('percentage_allowance_charge', 12, 2)->default(0)->nullable()->after('include_igv');
         });
     }
 

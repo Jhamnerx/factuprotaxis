@@ -47,8 +47,8 @@ class Warehouse extends ModelTenant
     /**
      * @return int
      */
-    public function getEstablishmentId()
-    : int {
+    public function getEstablishmentId(): int
+    {
         return $this->establishment_id;
     }
 
@@ -57,8 +57,8 @@ class Warehouse extends ModelTenant
      *
      * @return Warehouse
      */
-    public function setEstablishmentId(int $establishment_id)
-    : Warehouse {
+    public function setEstablishmentId(int $establishment_id): Warehouse
+    {
         $this->establishment_id = $establishment_id;
         return $this;
     }
@@ -66,8 +66,8 @@ class Warehouse extends ModelTenant
     /**
      * @return string
      */
-    public function getDescription()
-    : string {
+    public function getDescription(): string
+    {
         return $this->description;
     }
 
@@ -76,8 +76,8 @@ class Warehouse extends ModelTenant
      *
      * @return Warehouse
      */
-    public function setDescription(string $description)
-    : Warehouse {
+    public function setDescription(string $description): Warehouse
+    {
         $this->description = $description;
         return $this;
     }
@@ -91,16 +91,16 @@ class Warehouse extends ModelTenant
      */
     public static function getDataForFilters()
     {
-        return self::with(['establishment' => function($query){
-                $query->whereFilterWithOutRelations()
+        return self::with(['establishment' => function ($query) {
+            $query->whereFilterWithOutRelations()
                 ->select(['id', 'description']);
-            }])
+        }])
             ->get()
-            ->transform(function($row){
+            ->transform(function ($row) {
                 return $row->getRowForFilter();
             });
     }
-    
+
 
     /**
      * 
@@ -118,7 +118,7 @@ class Warehouse extends ModelTenant
         ];
     }
 
-    
+
     /**
      *
      * @param  Builder $query
@@ -132,7 +132,7 @@ class Warehouse extends ModelTenant
         ]);
     }
 
-    
+
     /**
      * 
      * Obtener id del almacen
@@ -147,5 +147,4 @@ class Warehouse extends ModelTenant
 
         return $query->where('establishment_id', $establishment_id)->select('id')->firstOrFail()->id;
     }
-
 }

@@ -24,8 +24,6 @@ class TenantInventoriesTransferTable extends Migration
 
             $table->foreign('warehouse_id')->references('id')->on('warehouses');
             $table->foreign('warehouse_destination_id')->references('id')->on('warehouses');
-
-
         });
     }
 
