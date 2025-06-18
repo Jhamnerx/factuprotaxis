@@ -3,9 +3,12 @@
 namespace Modules\Payment\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Hyn\Tenancy\Traits\UsesTenantConnection;
 
 class PaymentColor extends Model
 {
+    use UsesTenantConnection;
+
     protected $fillable = [
         'colorable_id',
         'colorable_type',

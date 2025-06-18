@@ -1,18 +1,21 @@
 <?php
 
-namespace App\Models\Tenant\Payment;
+namespace Modules\Payment\Models;
 
 use Illuminate\Support\Collection;
+use Modules\Payment\Models\Feature;
 use App\Models\Tenant\Taxis\Vehiculos;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Payment\Models\Subscription;
-use Laravelcm\Subscriptions\Models\Feature;
+use Hyn\Tenancy\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravelcm\Subscriptions\Models\Plan as BasePlan;
 
 class Plan extends Model
 {
+    use UsesTenantConnection;
+
     use SoftDeletes;
     protected $table = 'plans';
 
@@ -46,12 +49,12 @@ class Plan extends Model
         'signup_fee' => 'float',
         'deleted_at' => 'datetime',
         'discounts' => 'array',
+        'is_socio' => 'boolean',
     ];
 
     protected static function boot(): void
     {
         parent::boot();
-
         static::deleted(function ($plan): void {
             $plan->features()->delete();
             $plan->subscriptions()->delete();
@@ -110,5 +113,38 @@ class Plan extends Model
     public function vehiculos(): HasMany
     {
         return $this->hasMany(Vehiculos::class, 'plan_id');
+    }
+    public function getCollectionData()
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'is_active' => $this->is_active,
+            'price' => $this->price,
+            'signup_fee' => $this->signup_fee,
+            'currency' => $this->currency,
+            'invoice_period' => $this->invoice_period,
+            'invoice_interval' => $this->invoice_interval,
+            'trial_period' => $this->trial_period,
+            'trial_interval' => $this->trial_interval,
+            'grace_period' => $this->grace_period,
+            'grace_interval' => $this->grace_interval,
+            'active_subscribers_limit' => $this->active_subscribers_limit,
+            'sort_order' => $this->sort_order,
+            'is_socio' => $this->is_socio,
+            'type' => $this->type,
+            'slug' => $this->slug,
+            'features' => $this->features ?? [],
+            'discounts' => $this->discounts ?? [],
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'deleted_at' => $this->deleted_at,
+            // Propiedades de los métodos auxiliares
+            'is_free' => $this->isFree(),
+            'has_trial' => $this->hasTrial(),
+            'has_grace' => $this->hasGrace(),
+            'is_lifetime' => $this->lifetime(),
+        ];
     }
 }

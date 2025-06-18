@@ -8,13 +8,17 @@ use Carbon\Carbon;
 
 final class Period
 {
-    private Carbon|string $start;
+    /** @var Carbon|string */
+    private $start;
 
-    private Carbon|string $end;
+    /** @var Carbon|string */
+    private $end;
 
     private string $interval;
 
     private int $period;
+
+    private $is_indeterminate = false;
 
     /**
      * Create a new Period instance.
@@ -37,6 +41,7 @@ final class Period
         $this->period = $count;
         $start = clone $this->start;
         $method = 'add' . ucfirst($this->interval) . 's';
+
         $this->end = $start->{$method}($this->period);
     }
 

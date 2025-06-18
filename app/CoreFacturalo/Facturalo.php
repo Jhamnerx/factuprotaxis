@@ -385,6 +385,7 @@ class Facturalo
         }
 
         $base_pdf_template = Establishment::find($this->document->establishment_id)->template_pdf;
+
         if (($format_pdf === 'ticket') or
             ($format_pdf === 'ticket_58') or
             ($format_pdf === 'ticket_50')

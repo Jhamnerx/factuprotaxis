@@ -7,7 +7,8 @@ namespace App\Traits;
 use Carbon\Carbon;
 use App\Services\Period;
 
-use App\Models\Tenant\Payment\Plan;
+
+use Modules\Payment\Models\Plan;
 use Modules\Payment\Models\Subscription;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 trait HasPlanSubscriptions
 {
-    protected static function bootHasSubscriptions(): void
+    protected static function bootHasSubscriptions()
     {
         static::deleted(function ($plan): void {
             $plan->subscriptions()->delete();
@@ -25,27 +26,27 @@ trait HasPlanSubscriptions
     /**
      * The subscriber may have many plan subscriptions.
      */
-    public function planSubscriptions(): MorphMany
+    public function planSubscriptions()
     {
         return $this->morphMany(
-            related: Subscription::class,
-            name: 'subscriber',
-            type: 'subscriber_type',
-            id: 'subscriber_id'
+            Subscription::class,
+            'subscriber',
+            'subscriber_type',
+            'subscriber_id'
         );
     }
 
-    public function activePlanSubscriptions(): Collection
+    public function activePlanSubscriptions()
     {
         return $this->planSubscriptions->reject->inactive();
     }
 
-    public function planSubscription(string $subscriptionSlug): ?Subscription
+    public function planSubscription(string $subscriptionSlug)
     {
         return $this->planSubscriptions()->where('slug', 'like', '%' . $subscriptionSlug . '%')->first();
     }
 
-    public function subscribedPlans(): Collection
+    public function subscribedPlans()
     {
         $planIds = $this->planSubscriptions->reject
             ->inactive()
@@ -55,7 +56,7 @@ trait HasPlanSubscriptions
         return tap(new Plan())->whereIn('id', $planIds)->get();
     }
 
-    public function subscribedTo(int $planId): bool
+    public function subscribedTo(int $planId)
     {
         $subscription = $this->planSubscriptions()
             ->where('plan_id', $planId)
@@ -63,26 +64,42 @@ trait HasPlanSubscriptions
 
         return $subscription && $subscription->active();
     }
-
-    public function newPlanSubscription(string $subscription, Plan $plan, ?Carbon $startDate = null): Subscription
+    public function newPlanSubscription(string $subscription, Plan $plan, ?Carbon $startDate = null)
     {
+        $startDate = $startDate ?? Carbon::now();
+
+        // Verificar si es un plan indeterminado
+        if ($plan->lifetime()) {
+            return $this->planSubscriptions()->create([
+                'name' => $subscription,
+                'slug' => $subscription . '-' . $plan->slug,
+                'plan_id' => $plan->getKey(),
+                'starts_at' => $startDate,
+                'is_indeterminate' => true,
+            ]);
+        }
+
+        // Para planes normales, seguimos el flujo estándar con período
         $trial = new Period(
-            interval: $plan->trial_interval,
-            count: $plan->trial_period,
-            start: $startDate ?? Carbon::now()
+            $plan->trial_interval,
+            $plan->trial_period,
+            $startDate
         );
+
         $period = new Period(
-            interval: $plan->invoice_interval,
-            count: $plan->invoice_period,
-            start: $trial->getEndDate()
+            $plan->invoice_interval,
+            $plan->invoice_period,
+            $trial->getEndDate()
         );
 
         return $this->planSubscriptions()->create([
             'name' => $subscription,
+            'slug' => $subscription . '-' . $plan->slug,
             'plan_id' => $plan->getKey(),
             'trial_ends_at' => $trial->getEndDate(),
             'starts_at' => $period->getStartDate(),
             'ends_at' => $period->getEndDate(),
+            'is_indeterminate' => false,
         ]);
     }
 }

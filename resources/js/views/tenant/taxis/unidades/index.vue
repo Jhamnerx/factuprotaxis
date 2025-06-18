@@ -50,6 +50,7 @@
 
             <div class="card-body">
                 <data-table
+                    ref="dataTable"
                     :columns="columns"
                     :resource="resource"
                     @click-create="clickCreate"
@@ -88,6 +89,7 @@
                             Carga Útil
                         </th>
                         <th>Estado</th>
+                        <th>Detalle Plan</th>
                         <th>Estado TUC</th>
                         <th class="text-right">Acciones</th>
                     </tr>
@@ -99,13 +101,13 @@
                             {{ row.numero_interno }}
                         </td>
                         <td v-if="columns.propietario.visible">
-                            {{ row.propietario }}
+                            {{ row.propietario.name }}
                         </td>
                         <td v-if="columns.marca.visible">
-                            {{ row.marca }}
+                            {{ row.marca.nombre }}
                         </td>
                         <td v-if="columns.modelo.visible">
-                            {{ row.modelo }}
+                            {{ row.modelo.nombre }}
                         </td>
                         <td v-if="columns.year.visible" class="year">
                             {{ row.year }}
@@ -153,6 +155,201 @@
                             >
                         </td>
                         <td>
+                            <el-popover
+                                v-if="row.plan_id"
+                                placement="top-start"
+                                width="400"
+                                trigger="hover"
+                                popper-class="subscription-popover"
+                            >
+                                <div class="subscription-info">
+                                    <h4>Información de Suscripción</h4>
+                                    <div class="subscription-details">
+                                        <p>
+                                            <strong>Plan:</strong>
+                                            {{ row.subscription.plan.name }}
+                                        </p>
+                                        <p>
+                                            <strong>Precio:</strong> S/
+                                            {{
+                                                formatNumber(
+                                                    row.subscription.plan.price
+                                                )
+                                            }}
+                                        </p>
+                                        <p>
+                                            <strong>Periodo:</strong>
+                                            {{
+                                                row.subscription.plan
+                                                    .invoice_interval
+                                            }}
+                                        </p>
+                                        <p>
+                                            <strong>Estado:</strong>
+                                            {{
+                                                getStatusText(
+                                                    row.subscription.status
+                                                )
+                                            }}
+                                            <el-tag
+                                                v-if="
+                                                    row.subscription.is_active
+                                                "
+                                                type="success"
+                                                size="mini"
+                                                class="ml-2"
+                                                >Activo</el-tag
+                                            >
+                                            <el-tag
+                                                v-if="
+                                                    row.subscription.is_on_trial
+                                                "
+                                                type="warning"
+                                                size="mini"
+                                                class="ml-2"
+                                                >En prueba</el-tag
+                                            >
+                                            <el-tag
+                                                v-if="
+                                                    row.subscription.is_canceled
+                                                "
+                                                type="danger"
+                                                size="mini"
+                                                class="ml-2"
+                                                >Cancelado</el-tag
+                                            >
+                                            <el-tag
+                                                v-if="row.subscription.is_ended"
+                                                type="info"
+                                                size="mini"
+                                                class="ml-2"
+                                                >Finalizado</el-tag
+                                            >
+                                        </p>
+                                        <p>
+                                            <strong>Fecha inicio:</strong>
+                                            {{
+                                                formatDate(
+                                                    row.subscription.starts_at
+                                                )
+                                            }}
+                                        </p>
+                                        <p>
+                                            <strong>Fecha fin:</strong>
+                                            {{
+                                                formatDate(
+                                                    row.subscription.ends_at
+                                                )
+                                            }}
+                                        </p>
+
+                                        <div
+                                            v-if="
+                                                row.subscription
+                                                    .plan_is_lifetime
+                                            "
+                                            class="mt-2"
+                                        >
+                                            <el-tag type="success"
+                                                >Plan de por vida</el-tag
+                                            >
+                                        </div>
+
+                                        <div
+                                            v-if="row.subscription.plan_is_free"
+                                            class="mt-2"
+                                        >
+                                            <el-tag type="info"
+                                                >Plan gratuito</el-tag
+                                            >
+                                        </div>
+
+                                        <div
+                                            v-if="
+                                                row.subscription.plan_has_trial
+                                            "
+                                            class="mt-2"
+                                        >
+                                            <el-tag type="warning"
+                                                >Incluye período de
+                                                prueba</el-tag
+                                            >
+                                        </div>
+
+                                        <div
+                                            v-if="
+                                                row.subscription.plan_has_grace
+                                            "
+                                            class="mt-2"
+                                        >
+                                            <el-tag type="primary"
+                                                >Incluye período de
+                                                gracia</el-tag
+                                            >
+                                        </div>
+                                        <p>
+                                            <strong>Fecha fin:</strong>
+                                            {{
+                                                formatDate(
+                                                    row.subscription.ends_at
+                                                )
+                                            }}
+                                        </p>
+
+                                        <div
+                                            v-if="
+                                                hasDiscounts(
+                                                    row.subscription.plan
+                                                        .discounts
+                                                )
+                                            "
+                                            class="discounts-section"
+                                        >
+                                            <h5>Descuentos disponibles:</h5>
+                                            <ul>
+                                                <li
+                                                    v-for="(discount,
+                                                    index) in parseDiscounts(
+                                                        row.subscription.plan
+                                                            .discounts
+                                                    )"
+                                                    :key="index"
+                                                    v-if="discount.value > 0"
+                                                >
+                                                    {{ discount.name }}: S/
+                                                    {{
+                                                        formatNumber(
+                                                            discount.value
+                                                        )
+                                                    }}
+                                                    <span v-if="discount.months"
+                                                        >({{
+                                                            discount.months
+                                                        }}
+                                                        meses)</span
+                                                    >
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span slot="reference" class="badge badge-info">
+                                    {{ row.subscription.plan.name }} - S/
+                                    {{
+                                        formatNumber(
+                                            row.subscription.plan.price
+                                        )
+                                    }}
+                                    -
+                                    {{ row.subscription.plan.invoice_interval }}
+                                </span>
+                            </el-popover>
+                            <span v-else class="badge badge-secondary"
+                                >Sin plan</span
+                            >
+                        </td>
+
+                        <td>
                             <span
                                 :class="
                                     'badge-estado-tuc ' +
@@ -189,6 +386,23 @@
                                     >
                                         Eliminar
                                     </button>
+                                    <button
+                                        class="dropdown-item"
+                                        @click.prevent="
+                                            openSubscriptionModal(
+                                                row,
+                                                row.plan_id
+                                                    ? 'change'
+                                                    : 'create'
+                                            )
+                                        "
+                                    >
+                                        {{
+                                            row.plan_id
+                                                ? "Cambiar plan"
+                                                : "Registrar plan"
+                                        }}
+                                    </button>
                                 </div>
                             </div>
                         </td>
@@ -202,6 +416,12 @@
                 :recordId="recordId"
                 @close="closeDialog"
             ></unidades-form>
+            <subscription-modal
+                :showModal.sync="showSubscriptionModal"
+                :vehiculo="selectedVehiculo"
+                :type="subscriptionType"
+                @saved="onSubscriptionSaved"
+            />
         </div>
     </div>
 </template>
@@ -209,13 +429,14 @@
 <script>
 import DataTable from "../../../../components/DataTable.vue";
 import UnidadesForm from "./form.vue";
+import SubscriptionModal from "./subscription-modal.vue";
 import { deletable } from "../../../../mixins/deletable";
 
 export default {
     name: "TenantTaxisUnidadesIndex",
     props: ["estado", "api_service_token", "configuration"],
     mixins: [deletable],
-    components: { DataTable, UnidadesForm },
+    components: { DataTable, UnidadesForm, SubscriptionModal },
     created() {
         this.getColumnsToShow();
     },
@@ -224,6 +445,9 @@ export default {
             showDialog: false,
             resource: "unidades",
             recordId: null,
+            showSubscriptionModal: false,
+            selectedVehiculo: null,
+            subscriptionType: "create",
             estadosTuc: [
                 "TUC",
                 "RECIBO",
@@ -402,6 +626,46 @@ export default {
                 default:
                     return type;
             }
+        },
+        openSubscriptionModal(row, type) {
+            this.selectedVehiculo = row;
+            this.subscriptionType = type;
+            this.showSubscriptionModal = true;
+        },
+        onSubscriptionSaved() {
+            this.showSubscriptionModal = false;
+            this.selectedVehiculo = null;
+            this.subscriptionType = "create";
+            this.$refs.dataTable.getRecords();
+        },
+        parseDiscounts(discountsStr) {
+            try {
+                if (!discountsStr) return [];
+                return typeof discountsStr === "string"
+                    ? JSON.parse(discountsStr)
+                    : discountsStr;
+            } catch (e) {
+                console.error("Error al parsear descuentos:", e);
+                return [];
+            }
+        },
+        hasDiscounts(discountsStr) {
+            const discounts = this.parseDiscounts(discountsStr);
+            return (
+                discounts &&
+                discounts.length > 0 &&
+                discounts.some(d => d.value > 0)
+            );
+        },
+        getStatusText(status) {
+            const statusMap = {
+                unpaid: "Pendiente de pago",
+                paid: "Pagado",
+                active: "Activo",
+                cancelled: "Cancelado",
+                expired: "Expirado"
+            };
+            return statusMap[status] || status;
         }
     }
 };
@@ -497,5 +761,80 @@ button.btn-danger {
 .btn-danger:hover {
     background-color: #c82333;
     border-color: #bd2130;
+}
+
+/* Estilos para el popover de suscripción */
+.subscription-popover {
+    font-size: 14px;
+}
+
+.subscription-info h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #409eff;
+    font-weight: bold;
+}
+
+.subscription-details p {
+    margin-bottom: 8px;
+}
+
+.discounts-section {
+    margin-top: 15px;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+.discounts-section h5 {
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #67c23a;
+}
+
+.discounts-section ul {
+    padding-left: 20px;
+    margin-bottom: 0;
+}
+
+.discounts-section li {
+    margin-bottom: 5px;
+}
+
+.ml-2 {
+    margin-left: 8px;
+}
+
+.mt-2 {
+    margin-top: 12px;
+}
+
+.el-tag {
+    margin-right: 5px;
+    font-size: 11px;
+}
+
+.el-tag--success {
+    background-color: rgba(103, 194, 58, 0.1);
+    color: #67c23a;
+}
+
+.el-tag--warning {
+    background-color: rgba(230, 162, 60, 0.1);
+    color: #e6a23c;
+}
+
+.el-tag--danger {
+    background-color: rgba(245, 108, 108, 0.1);
+    color: #f56c6c;
+}
+
+.el-tag--info {
+    background-color: rgba(144, 147, 153, 0.1);
+    color: #909399;
+}
+
+.el-tag--primary {
+    background-color: rgba(64, 158, 255, 0.1);
+    color: #409eff;
 }
 </style>

@@ -22,6 +22,11 @@
                                 placeholder="Ingrese el N° Interno"
                                 uppercase
                             ></el-input>
+                            <small
+                                v-if="errors.numero_interno"
+                                class="text-danger"
+                                >{{ errors.numero_interno[0] }}</small
+                            >
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -33,6 +38,9 @@
                                 placeholder="Ingrese la placa"
                                 uppercase
                             ></el-input>
+                            <small v-if="errors.placa" class="text-danger">{{
+                                errors.placa[0]
+                            }}</small>
                         </div>
                     </div>
 
@@ -55,6 +63,11 @@
                                     :value="item.id"
                                 ></el-option>
                             </el-select>
+                            <small
+                                v-if="errors.propietario_id"
+                                class="text-danger"
+                                >{{ errors.propietario_id[0] }}</small
+                            >
                         </div>
                     </div>
                 </div>
@@ -77,6 +90,9 @@
                                     :value="item.id"
                                 ></el-option>
                             </el-select>
+                            <small v-if="errors.marca_id" class="text-danger">{{
+                                errors.marca_id[0]
+                            }}</small>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -96,6 +112,11 @@
                                     :value="item.id"
                                 ></el-option>
                             </el-select>
+                            <small
+                                v-if="errors.modelo_id"
+                                class="text-danger"
+                                >{{ errors.modelo_id[0] }}</small
+                            >
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -109,6 +130,9 @@
                                 placeholder="Seleccionar año"
                                 style="width: 100%"
                             ></el-date-picker>
+                            <small v-if="errors.year" class="text-danger">{{
+                                errors.year[0]
+                            }}</small>
                         </div>
                     </div>
                 </div>
@@ -121,6 +145,9 @@
                                 v-model="form.color"
                                 placeholder="Ingrese el color"
                             ></el-input>
+                            <small v-if="errors.color" class="text-danger">{{
+                                errors.color[0]
+                            }}</small>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -130,6 +157,11 @@
                                 v-model="form.numero_motor"
                                 placeholder="Ingrese el número de motor"
                             ></el-input>
+                            <small
+                                v-if="errors.numero_motor"
+                                class="text-danger"
+                                >{{ errors.numero_motor[0] }}</small
+                            >
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -145,6 +177,11 @@
                                 placeholder="Seleccionar fecha"
                                 style="width: 100%"
                             ></el-date-picker>
+                            <small
+                                v-if="errors.fecha_ingreso"
+                                class="text-danger"
+                                >{{ errors.fecha_ingreso[0] }}</small
+                            >
                         </div>
                     </div>
                 </div>
@@ -165,6 +202,9 @@
                                     :value="estado"
                                 ></el-option>
                             </el-select>
+                            <small v-if="errors.estado" class="text-danger">{{
+                                errors.estado[0]
+                            }}</small>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -182,6 +222,11 @@
                                     :value="estadoTuc"
                                 ></el-option>
                             </el-select>
+                            <small
+                                v-if="errors.estado_tuc"
+                                class="text-danger"
+                                >{{ errors.estado_tuc[0] }}</small
+                            >
                         </div>
                     </div>
                 </div>
@@ -197,6 +242,9 @@
                                 :min="0"
                                 style="width: 100%"
                             ></el-input-number>
+                            <small v-if="errors.largo" class="text-danger">{{
+                                errors.largo[0]
+                            }}</small>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -209,6 +257,9 @@
                                 :min="0"
                                 style="width: 100%"
                             ></el-input-number>
+                            <small v-if="errors.ancho" class="text-danger">{{
+                                errors.ancho[0]
+                            }}</small>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -221,6 +272,9 @@
                                 :min="0"
                                 style="width: 100%"
                             ></el-input-number>
+                            <small v-if="errors.alto" class="text-danger">{{
+                                errors.alto[0]
+                            }}</small>
                         </div>
                     </div>
                 </div>
@@ -236,6 +290,9 @@
                                 :min="0"
                                 style="width: 100%"
                             ></el-input-number>
+                            <small v-if="errors.peso" class="text-danger">{{
+                                errors.peso[0]
+                            }}</small>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -248,6 +305,11 @@
                                 :min="0"
                                 style="width: 100%"
                             ></el-input-number>
+                            <small
+                                v-if="errors.carga_util"
+                                class="text-danger"
+                                >{{ errors.carga_util[0] }}</small
+                            >
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -257,6 +319,9 @@
                                 v-model="form.ccn"
                                 placeholder="Ingrese el CCN"
                             ></el-input>
+                            <small v-if="errors.ccn" class="text-danger">{{
+                                errors.ccn[0]
+                            }}</small>
                         </div>
                     </div>
                 </div>
@@ -270,6 +335,9 @@
                                 :min="0"
                                 style="width: 100%"
                             ></el-input-number>
+                            <small v-if="errors.ejes" class="text-danger">{{
+                                errors.ejes[0]
+                            }}</small>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -280,6 +348,9 @@
                                 :min="0"
                                 style="width: 100%"
                             ></el-input-number>
+                            <small v-if="errors.asientos" class="text-danger">{{
+                                errors.asientos[0]
+                            }}</small>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -289,6 +360,11 @@
                                 v-model="form.categoria"
                                 placeholder="Ingrese la categoría"
                             ></el-input>
+                            <small
+                                v-if="errors.categoria"
+                                class="text-danger"
+                                >{{ errors.categoria[0] }}</small
+                            >
                         </div>
                     </div>
                 </div>
@@ -384,6 +460,7 @@ export default {
             this.titleDialog = this.recordId
                 ? "Editar Vehículo"
                 : "Nuevo Vehículo";
+            this.errors = {};
             this.form = {
                 id: null,
                 numero_interno: "",
@@ -461,64 +538,74 @@ export default {
         },
         async initForm() {
             this.loading = true;
-            try {
-                const { data } = await this.$http.get(
-                    `/${this.resource}/record/${this.recordId}`
-                );
 
-                this.form = {
-                    id: this.recordId,
-                    numero_interno: data.numero_interno,
-                    placa: data.placa,
-                    chasis: data.chasis,
-                    propietario_id: data.propietario_id,
-                    marca_id: data.marca_id,
-                    modelo_id: data.modelo_id,
-                    color: data.color,
-                    year: data.year ? data.year.toString() : null,
-                    numero_motor: data.numero_motor,
-                    fecha_ingreso: data.fecha_ingreso
-                        ? data.fecha_ingreso.substring(0, 10)
-                        : null,
-                    estado: data.estado,
-                    estado_tuc: data.estado_tuc,
-                    largo: data.largo,
-                    ancho: data.ancho,
-                    alto: data.alto,
-                    peso: data.peso,
-                    carga_util: data.carga_util,
-                    ccn: data.ccn,
-                    ejes: data.ejes,
-                    asientos: data.asientos,
-                    categoria: data.categoria
-                };
+            this.$http
+                .get(`/${this.resource}/record/${this.recordId}`)
+                .then(response => {
+                    // Obtener datos del vehículo de la respuesta
+                    const data = response.data.data || response.data;
+                    console.log("Datos del vehículo:", data);
 
-                // Cargar el propietario en la lista de propietarios si no está
-                if (
-                    data.propietario &&
-                    this.propietarios.findIndex(
-                        p => p.id === data.propietario.id
-                    ) === -1
-                ) {
-                    this.propietarios = [
-                        ...this.propietarios,
-                        data.propietario
-                    ];
-                }
+                    // Asignar directamente las propiedades del objeto recibido al formulario
+                    this.form = {
+                        id: this.recordId,
+                        // Asignar propiedades con valores predeterminados si no existen
+                        numero_interno: data.numero_interno || "",
+                        placa: data.placa || "",
+                        chasis: data.chasis || "",
+                        propietario_id: data.propietario_id || null,
+                        marca_id: data.marca_id || null,
+                        modelo_id: data.modelo_id || null,
+                        color: data.color || "",
+                        year: data.year ? data.year.toString() : null,
+                        numero_motor: data.numero_motor || "",
+                        fecha_ingreso: data.fecha_ingreso
+                            ? data.fecha_ingreso.substring(0, 10)
+                            : null,
+                        estado: data.estado || "ACTIVO",
+                        estado_tuc: data.estado_tuc || null,
+                        largo: data.largo || null,
+                        ancho: data.ancho || null,
+                        alto: data.alto || null,
+                        peso: data.peso || null,
+                        carga_util: data.carga_util || null,
+                        ccn: data.ccn || "",
+                        ejes: data.ejes || null,
+                        asientos: data.asientos || null,
+                        categoria: data.categoria || ""
+                    };
 
-                // Cargar los modelos de la marca seleccionada
-                if (data.marca_id) {
-                    await this.loadModelos();
-                }
-            } catch (error) {
-                console.error("Error al cargar el registro:", error);
-                this.$message.error("Error al cargar los datos del vehículo");
-            } finally {
-                this.loading = false;
-            }
+                    // Cargar el propietario en la lista de propietarios si no está
+                    if (
+                        data.propietario &&
+                        this.propietarios.findIndex(
+                            p => p.id === data.propietario.id
+                        ) === -1
+                    ) {
+                        this.propietarios = [
+                            ...this.propietarios,
+                            data.propietario
+                        ];
+                    }
+
+                    // Cargar los modelos de la marca seleccionada
+                    if (data.marca_id) {
+                        this.loadModelos();
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al cargar el registro:", error);
+                    this.$message.error(
+                        "Error al cargar los datos del vehículo"
+                    );
+                })
+                .finally(() => {
+                    this.loading = false;
+                });
         },
         async submit() {
             this.loading = true;
+            this.errors = {};
 
             await this.$http
                 .post(`/${this.resource}`, this.form)
@@ -578,5 +665,12 @@ export default {
 
 .form-body::-webkit-scrollbar-thumb:hover {
     background: #555;
+}
+
+.text-danger {
+    color: #f56c6c;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
 }
 </style>

@@ -35,7 +35,7 @@
                                         @change="getColumnsToShow(1)"
                                         v-model="column.visible"
                                     >
-                                        {{ column.label }}
+                                        {{ column.title }}
                                     </el-checkbox>
                                 </el-dropdown-item>
                             </el-dropdown-menu>
@@ -57,16 +57,21 @@
                         <th>Descripción</th>
                         <th>Precio</th>
                         <th>Activo</th>
-                        <th>Moneda</th>
+                        <th v-if="columns.currency.visible">Moneda</th>
                         <th>Periodo</th>
-                        <th>Intervalo</th>
-                        <th>Orden</th>
-                        <th>Socio</th>
+                        <th v-if="columns.invoice_interval.visible">
+                            Intervalo
+                        </th>
+                        <th v-if="columns.sort_order.visible">Orden</th>
+                        <th v-if="columns.is_socio.visible">Socio</th>
                         <th class="text-right">Acciones</th>
                     </tr>
+
                     <tr slot-scope="{ row }">
                         <td>{{ row.name }}</td>
-                        <td>{{ row.description }}</td>
+                        <td>
+                            {{ row.description }}
+                        </td>
                         <td>{{ row.price }}</td>
                         <td>
                             <el-tag
@@ -75,11 +80,32 @@
                                 {{ row.is_active ? "Sí" : "No" }}
                             </el-tag>
                         </td>
-                        <td>{{ row.currency }}</td>
-                        <td>{{ row.invoice_period }}</td>
-                        <td>{{ row.invoice_interval }}</td>
-                        <td>{{ row.sort_order }}</td>
+                        <td v-if="columns.currency.visible">
+                            {{ row.currency }}
+                        </td>
                         <td>
+                            {{
+                                row.invoice_interval == "indeterminate"
+                                    ? "-"
+                                    : row.invoice_interval
+                            }}
+                        </td>
+                        <td v-if="columns.invoice_interval.visible">
+                            <span
+                                v-if="row.invoice_interval === 'indeterminate'"
+                                >Indeterminado</span
+                            >
+                            <span v-if="row.invoice_interval == 'year'"
+                                >Anual</span
+                            >
+                            <span v-if="row.invoice_interval == 'month'"
+                                >Mensual</span
+                            >
+                        </td>
+                        <td v-if="columns.sort_order.visible">
+                            {{ row.sort_order }}
+                        </td>
+                        <td v-if="columns.is_socio.visible">
                             <el-tag :type="row.is_socio ? 'info' : 'default'">
                                 {{ row.is_socio ? "Sí" : "No" }}
                             </el-tag>
@@ -116,6 +142,7 @@
 import DataTable from "../../../../components/DataTable.vue";
 import PlanForm from "./form.vue";
 import { deletable } from "../../../../mixins/deletable";
+import { round } from "lodash";
 
 export default {
     name: "PlansIndex",
@@ -126,16 +153,12 @@ export default {
             showDialog: false,
             recordId: null,
             resource: "planes",
+
             columns: {
-                name: { label: "Nombre", visible: true },
-                description: { label: "Descripción", visible: true },
-                price: { label: "Precio", visible: true },
-                is_active: { label: "Activo", visible: true },
-                currency: { label: "Moneda", visible: true },
-                invoice_period: { label: "Periodo", visible: true },
-                invoice_interval: { label: "Intervalo", visible: true },
-                sort_order: { label: "Orden", visible: true },
-                is_socio: { label: "Socio", visible: true }
+                sort_order: { title: "Orden", visible: true },
+                is_socio: { title: "Socio", visible: true },
+                currency: { title: "Moneda", visible: true },
+                invoice_interval: { title: "Intervalo", visible: true }
             }
         };
     },
@@ -165,7 +188,7 @@ export default {
             this.$http
                 .post("/validate_columns", {
                     columns: this.columns,
-                    report: "plans_index",
+                    report: "planes_index",
                     updated: updated !== undefined
                 })
                 .then(response => {

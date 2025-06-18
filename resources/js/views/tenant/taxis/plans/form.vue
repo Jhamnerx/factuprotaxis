@@ -1,87 +1,118 @@
 <template>
     <el-dialog :visible.sync="showDialog" width="800px" :before-close="close">
         <span slot="title">{{ recordId ? "Editar Plan" : "Nuevo Plan" }}</span>
-        <el-form
-            :model="form"
-            :rules="rules"
-            ref="form"
-            label-width="160px"
-            @submit.native.prevent
-        >
+        <form autocomplete="off" @submit.prevent="submitForm">
             <div class="row">
-                <!-- Nombre y Slug -->
                 <div class="col-md-6 col-12">
-                    <el-form-item label="Nombre" prop="name">
+                    <div class="form-group">
+                        <label>Nombre<span class="text-danger">*</span></label>
                         <el-input
                             v-model="form.name"
                             maxlength="255"
                             placeholder="Nombre del plan"
                         />
-                    </el-form-item>
-                    <el-form-item label="Slug" prop="slug">
+                        <small
+                            v-if="errors.name"
+                            class="form-control-feedback"
+                            v-text="errors.name[0]"
+                        ></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Slug</label>
                         <el-input
                             v-model="form.slug"
                             maxlength="255"
                             placeholder="Slug único"
-                            :disabled="true"
+                            disabled
                         />
-                    </el-form-item>
+                        <small
+                            v-if="errors.slug"
+                            class="form-control-feedback"
+                            v-text="errors.slug[0]"
+                        ></small>
+                    </div>
                 </div>
-                <!-- Switches Activo y Socio en la misma fila -->
-                <div class="col-md-6 col-12 d-flex align-items-center">
-                    <el-form-item label-width="0">
-                        <div
-                            class="d-flex flex-row align-items-center w-100"
-                            style="gap: 32px;"
-                        >
-                            <div class="d-flex flex-row align-items-center">
-                                <span class="mr-2">Activo</span>
-                                <el-switch v-model="form.is_active" />
-                            </div>
-                            <div class="d-flex flex-row align-items-center">
-                                <span class="mr-2">Plan Socio?</span>
-                                <el-switch
-                                    v-model="form.is_socio"
-                                    @change="onIsSocioChange"
-                                />
-                            </div>
+                <div class="col-md-6 col-12">
+                    <div
+                        class="form-group d-flex align-items-center"
+                        style="gap: 32px;"
+                    >
+                        <div>
+                            <label class="mr-2">Activo</label>
+                            <el-switch v-model="form.is_active" />
                         </div>
-                    </el-form-item>
+                        <div>
+                            <label class="mr-2">Plan Socio?</label>
+                            <el-switch
+                                v-model="form.is_socio"
+                                @change="onIsSocioChange"
+                                active-color="#13ce66"
+                                inactive-color="#ff4949"
+                                :active-value="true"
+                                :inactive-value="false"
+                            />
+                            <small
+                                class="form-text text-muted"
+                                v-if="form.is_socio"
+                            >
+                                Activado (se mostrarán características)
+                            </small>
+                            <small class="form-text text-muted" v-else>
+                                Desactivado (se mostrarán descuentos)
+                            </small>
+                        </div>
+                    </div>
                 </div>
-                <!-- Descripción -->
                 <div class="col-12">
-                    <el-form-item label="Descripción" prop="description">
+                    <div class="form-group">
+                        <label>Descripción</label>
                         <el-input
                             v-model="form.description"
                             type="textarea"
                             placeholder="Descripción detallada del plan"
                         />
-                    </el-form-item>
+                        <small
+                            v-if="errors.description"
+                            class="form-control-feedback"
+                            v-text="errors.description[0]"
+                        ></small>
+                    </div>
                 </div>
-                <!-- Precio y Cuota de Registro -->
                 <div class="col-md-6 col-12">
-                    <el-form-item label="Precio" prop="price">
+                    <div class="form-group">
+                        <label>Precio</label>
                         <el-input-number
                             v-model="form.price"
                             :min="0"
                             :step="0.01"
                             placeholder="Precio"
                         />
-                    </el-form-item>
+                        <small
+                            v-if="errors.price"
+                            class="form-control-feedback"
+                            v-text="errors.price[0]"
+                        ></small>
+                    </div>
                 </div>
                 <div class="col-md-6 col-12">
-                    <el-form-item label="Cuota de Registro" prop="signup_fee">
+                    <div class="form-group">
+                        <label>Cuota de Registro</label>
                         <el-input-number
                             v-model="form.signup_fee"
                             :min="0"
                             :step="0.01"
                             placeholder="Cuota de Registro"
                         />
-                    </el-form-item>
+                        <small
+                            v-if="errors.signup_fee"
+                            class="form-control-feedback"
+                            v-text="errors.signup_fee[0]"
+                        ></small>
+                    </div>
                 </div>
-                <!-- Moneda -->
                 <div class="col-md-6 col-12">
-                    <el-form-item label="Moneda" prop="currency">
+                    <div class="form-group">
+                        <label>Moneda</label>
                         <el-select
                             v-model="form.currency"
                             placeholder="Selecciona una opción"
@@ -89,62 +120,88 @@
                             <el-option label="PEN" value="PEN" />
                             <el-option label="USD" value="USD" />
                         </el-select>
-                    </el-form-item>
+                        <small
+                            v-if="errors.currency"
+                            class="form-control-feedback"
+                            v-text="errors.currency[0]"
+                        ></small>
+                    </div>
                 </div>
-                <!-- Periodo de Facturación -->
                 <div
                     v-if="form.invoice_interval !== 'indeterminate'"
                     class="col-md-6 col-12"
                 >
-                    <el-form-item
-                        label="Periodo de Facturación"
-                        prop="invoice_period"
-                    >
+                    <div class="form-group">
+                        <label>Periodo de Facturación</label>
                         <el-input-number
                             v-model="form.invoice_period"
                             :min="1"
                             @change="onInvoicePeriodChange"
                         />
-                    </el-form-item>
+                        <small
+                            v-if="errors.invoice_period"
+                            class="form-control-feedback"
+                            v-text="errors.invoice_period[0]"
+                        ></small>
+                    </div>
                 </div>
-                <!-- Intervalo de Facturación -->
                 <div class="col-md-6 col-12">
-                    <el-form-item
-                        label="Intervalo de Facturación"
-                        prop="invoice_interval"
-                    >
+                    <div class="form-group">
+                        <label>Intervalo de Facturación</label>
                         <el-select
                             v-model="form.invoice_interval"
-                            :clearable="false"
                             @change="onInvoiceIntervalChange"
+                            :disabled="form.is_socio"
                         >
-                            <el-option label="Mes" value="month" />
+                            <el-option
+                                label="Mes"
+                                value="month"
+                                :disabled="form.is_socio"
+                            />
                             <el-option label="Año" value="year" />
                             <el-option
                                 label="Indeterminado"
                                 value="indeterminate"
+                                :disabled="form.is_socio"
                             />
                         </el-select>
-                    </el-form-item>
+                        <small
+                            v-if="errors.invoice_interval"
+                            class="form-control-feedback"
+                            v-text="errors.invoice_interval[0]"
+                        ></small>
+                        <small
+                            v-if="form.is_socio"
+                            class="form-text text-muted"
+                        >
+                            Para planes socio, el intervalo siempre es anual
+                        </small>
+                    </div>
                 </div>
-                <!-- Orden de Clasificación -->
                 <div class="col-md-6 col-12">
-                    <el-form-item
-                        label="Orden de Clasificación"
-                        prop="sort_order"
-                    >
-                        <el-input-number v-model="form.sort_order" :min="0" />
-                    </el-form-item>
+                    <div class="form-group">
+                        <label>Orden de Clasificación</label>
+                        <el-input-number
+                            v-model="form.sort_order"
+                            :min="0"
+                            disabled
+                        />
+                        <small
+                            v-if="errors.sort_order"
+                            class="form-control-feedback"
+                            v-text="errors.sort_order[0]"
+                        ></small>
+                    </div>
                 </div>
-                <!-- Sección para Features o Descuentos -->
-                <div v-if="form.is_socio" class="col-12">
-                    <label class="block text-sm font-medium text-gray-700 mb-2"
-                        >Características</label
+                <div v-if="showFeatures" class="col-12 mt-2">
+                    <label
+                        >Características
+                        <span class="badge badge-info">Plan Socio</span></label
                     >
                     <div
-                        v-for="(feature, idx) in form.features"
+                        v-for="(feature, idx) in form.features || []"
                         :key="'feature-' + idx"
-                        class="border rounded p-3 mb-2 feature-row"
+                        class="border rounded p-3 mb-2"
                     >
                         <div class="row">
                             <div class="col-md-6 col-12">
@@ -161,42 +218,56 @@
                                 />
                             </div>
                         </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <el-input
+                                    v-model="feature.description"
+                                    placeholder="Descripción"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div v-else class="col-md-8 col-12">
-                    <label class="block text-sm font-medium text-gray-700 mb-2"
-                        >Descuentos</label
+                <div v-else class="col-12 mt-2">
+                    <label
+                        >Descuentos
+                        <span class="badge badge-secondary"
+                            >Plan Regular</span
+                        ></label
                     >
                     <div
                         v-for="(discount, idx) in form.discounts"
                         :key="'discount-' + idx"
-                        class="border rounded p-3 mb-2 discount-row"
+                        class="border rounded p-3 mb-2"
                     >
                         <div class="row align-items-center">
                             <div class="col-md-8 col-12">
                                 <el-input v-model="discount.name" readonly />
                             </div>
-                            <div
-                                class="col-md-4 col-12 d-flex justify-content-end"
-                            >
+                            <div class="col-md-4 col-12">
                                 <el-input-number
                                     v-model="discount.value"
                                     :min="0"
                                     controls-position="right"
                                     :step="1"
-                                    class="discount-input-number"
-                                    style="width: 100%; min-width: 90px;"
                                 />
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </el-form>
-        <span slot="footer">
-            <el-button @click="close">Cancelar</el-button>
-            <el-button type="primary" @click="submitForm">Guardar</el-button>
-        </span>
+            <div class="form-actions text-right pt-2">
+                <el-button @click.prevent="close()">Cancelar</el-button>
+                <el-button
+                    :loading="loading_submit"
+                    native-type="submit"
+                    type="primary"
+                    @click.prevent="submitForm"
+                >
+                    {{ form.id ? "Actualizar" : "Guardar" }}
+                </el-button>
+            </div>
+        </form>
     </el-dialog>
 </template>
 
@@ -210,7 +281,9 @@ export default {
     data() {
         return {
             resource: "planes",
+            errors: {},
             form: {
+                id: null,
                 name: "",
                 description: "",
                 is_active: true,
@@ -312,11 +385,23 @@ export default {
                 features: [{ type: "array" }],
                 discounts: [{ type: "array" }]
             },
-            loading: false
+            loading: false,
+            loading_submit: false
         };
     },
+    computed: {
+        isSocioEnabled() {
+            return Boolean(this.form.is_socio);
+        },
+        showFeatures() {
+            // Este método determina si la sección de características debe mostrarse
+            const isSocio = Boolean(this.form.is_socio);
+            console.log("showFeatures computed - is_socio:", isSocio);
+            return isSocio;
+        }
+    },
     watch: {
-        showDialog(val) {
+        async showDialog(val) {
             if (val && this.recordId) {
                 this.fetchRecord();
             } else if (val && !this.recordId) {
@@ -332,12 +417,93 @@ export default {
         }
     },
     methods: {
-        fetchRecord() {
-            this.$http.get(`/planes/record/${this.recordId}`).then(res => {
-                this.form = Object.assign({}, res.data.data);
-            });
+        async fetchRecord() {
+            this.loading = true;
+            await this.$http
+                .get(`/${this.resource}/record/${this.recordId}`)
+                .then(response => {
+                    this.form = response.data.data;
+                    console.log("Fetched record:", this.form);
+                    console.log(
+                        "is_socio value:",
+                        this.form.is_socio,
+                        "type:",
+                        typeof this.form.is_socio
+                    );
+
+                    // Asegurar que is_socio sea un valor booleano
+                    if (typeof this.form.is_socio === "string") {
+                        this.form.is_socio =
+                            this.form.is_socio === "1" ||
+                            this.form.is_socio.toLowerCase() === "true";
+                    } else if (typeof this.form.is_socio === "number") {
+                        this.form.is_socio = this.form.is_socio === 1;
+                    } else {
+                        this.form.is_socio = Boolean(this.form.is_socio);
+                    }
+
+                    // Asegurar que features sea siempre un array
+                    if (!Array.isArray(this.form.features)) {
+                        this.form.features = [];
+                    }
+
+                    // Si es plan socio pero no tiene características, inicializar con una característica por defecto
+                    if (this.form.is_socio && this.form.features.length === 0) {
+                        this.form.features = [
+                            {
+                                name: "Valido Hasta",
+                                value:
+                                    new Date().getFullYear() +
+                                    parseInt(this.form.invoice_period || 1),
+                                sort_order: 1,
+                                resettable_period: parseInt(
+                                    this.form.invoice_period || 1
+                                ),
+                                resettable_interval:
+                                    this.form.invoice_interval || "year",
+                                description: `Este es un plan socio válido por ${this
+                                    .form.invoice_period || 1} años.`
+                            }
+                        ];
+                    }
+
+                    // Forzar actualización reactiva
+                    this.$set(this.form, "is_socio", this.form.is_socio);
+                    this.$set(this.form, "features", this.form.features);
+
+                    console.log(
+                        "After processing - is_socio:",
+                        this.form.is_socio
+                    );
+                    console.log(
+                        "After processing - features:",
+                        this.form.features
+                    );
+                })
+                .catch(error => {
+                    console.error("Error fetching record:", error);
+                    this.$message.error("Error al cargar el registro");
+                })
+                .finally(() => {
+                    this.loading = false;
+                });
         },
-        resetForm() {
+        async resetForm() {
+            // Obtener el último sort_order
+            let sort_order = 1;
+            try {
+                const res = await this.$http.get(
+                    `/${this.resource}/last-sort-order`
+                );
+                if (res.data && res.data.last_sort_order) {
+                    sort_order = res.data.last_sort_order + 1;
+                }
+            } catch (e) {
+                console.error("Error al obtener el último sort_order:", e);
+                // Si falla, dejar sort_order en 1
+            }
+
+            this.errors = {};
             this.form = {
                 name: "",
                 description: "",
@@ -348,10 +514,10 @@ export default {
                 invoice_period: 1,
                 invoice_interval: "month",
                 active_subscribers_limit: null,
-                sort_order: 0,
-                is_socio: false,
+                sort_order: sort_order,
+                is_socio: false, // Inicializar explícitamente como booleano
                 slug: "",
-                features: [],
+                features: [], // Inicializar como array vacío
                 discounts: [
                     {
                         name: "Descuento por pago anual",
@@ -379,37 +545,41 @@ export default {
                     }
                 ]
             };
+
+            // Forzar la reactividad en los campos críticos
+            this.$nextTick(() => {
+                this.$set(this.form, "is_socio", false);
+                this.$set(this.form, "features", []);
+            });
+
             if (this.$refs.form) this.$refs.form.resetFields();
         },
         close() {
             this.$emit("close");
         },
         submitForm() {
-            this.$refs.form.validate(valid => {
-                if (!valid) return;
-                this.loading = true;
-                this.$http
-                    .post(`/${this.resource}`, this.form)
-                    .then(res => {
-                        if (res.data.success) {
-                            this.$message.success(res.data.message);
-                            this.$eventHub.$emit("reloadData");
-                            this.close();
-                        } else {
-                            this.$message.error(res.data.message);
-                        }
-                    })
-                    .catch(err => {
-                        if (err.response && err.response.status === 422) {
-                            this.errors = err.response.data;
-                        } else {
-                            console.log(err);
-                        }
-                    })
-                    .finally(() => {
-                        this.loading = false;
-                    });
-            });
+            this.loading_submit = true;
+            this.$http
+                .post(`/${this.resource}`, this.form)
+                .then(res => {
+                    if (res.data.success) {
+                        this.$message.success(res.data.message);
+                        this.$eventHub.$emit("reloadData");
+                        this.close();
+                    } else {
+                        this.$message.error(res.data.message);
+                    }
+                })
+                .catch(err => {
+                    if (err.response && err.response.status === 422) {
+                        this.errors = err.response.data;
+                    } else {
+                        console.log("error: " + err);
+                    }
+                })
+                .finally(() => {
+                    this.loading_submit = false;
+                });
         },
         addFeature() {
             this.form.features.push({ name: "", value: null, description: "" });
@@ -418,24 +588,54 @@ export default {
             this.form.features.splice(idx, 1);
         },
         updatedIsSocio(val) {
+            console.log("updatedIsSocio executing with value:", val);
+
+            // Asegurarse de que el valor sea un booleano
+            val = Boolean(val);
+
+            // Asignamos directamente el valor con $set para garantizar la reactividad
+            this.$set(this.form, "is_socio", val);
+
             if (val) {
+                // Si es un plan socio, cambiamos intervalo a anual
                 this.form.invoice_interval = "year";
                 this.form.invoice_period = 1;
-                this.form.features = [
+
+                // Primero asegurarnos que features sea un array
+                if (!Array.isArray(this.form.features)) {
+                    this.$set(this.form, "features", []);
+                }
+
+                // Inicializar con la característica por defecto
+                const newFeatures = [
                     {
                         name: "Valido Hasta",
-                        value: new Date().getFullYear() + 1,
+                        value:
+                            new Date().getFullYear() +
+                            parseInt(this.form.invoice_period || 1),
                         sort_order: 1,
-                        resettable_period: 1,
+                        resettable_period: parseInt(
+                            this.form.invoice_period || 1
+                        ),
                         resettable_interval: "year",
-                        description: "Este es un plan socio válido por 1 años."
+                        description: `Este es un plan socio válido por ${this
+                            .form.invoice_period || 1} años.`
                     }
                 ];
+
+                // Actualizar reactivamente
+                this.$set(this.form, "features", newFeatures);
             } else {
+                // Si no es plan socio, volver a mensual
                 this.form.invoice_interval = "month";
                 this.form.invoice_period = 1;
-                this.form.features = [];
+
+                // Limpiar características
+                this.$set(this.form, "features", []);
             }
+
+            console.log("After update: form.is_socio =", this.form.is_socio);
+            console.log("After update: form.features =", this.form.features);
         },
         slugify(text) {
             return text
@@ -450,93 +650,70 @@ export default {
         onInvoicePeriodChange(val) {
             // Si es plan socio, actualiza la feature 'Valido Hasta' y descripción
             if (this.form.is_socio && this.form.features.length > 0) {
-                this.form.features = this.form.features.map(feature => {
-                    if (feature.name === "Valido Hasta") {
-                        feature.value =
-                            new Date().getFullYear() + parseInt(val);
-                        feature.resettable_period = parseInt(val);
-                        feature.description =
-                            "Este es un plan socio válido por " +
-                            val +
-                            " años.";
-                    }
-                    return feature;
-                });
+                this.updateSocioFeatures();
             }
         },
+        updateSocioFeatures() {
+            // Actualiza la característica del plan socio basado en el periodo e intervalo actual
+            const period = parseInt(this.form.invoice_period || 1);
+            const interval = this.form.invoice_interval || "year";
+            const currentYear = new Date().getFullYear();
+
+            const newFeatures = this.form.features.map(feature => {
+                if (feature.name === "Valido Hasta") {
+                    const newValue =
+                        interval === "year"
+                            ? currentYear + period
+                            : currentYear + 1;
+                    const intervalText = interval === "year" ? "años" : "meses";
+
+                    return {
+                        ...feature,
+                        value: newValue,
+                        resettable_period: period,
+                        resettable_interval: interval,
+                        description: `Este es un plan socio válido por ${period} ${intervalText}.`
+                    };
+                }
+                return feature;
+            });
+
+            // Actualizar reactivamente
+            this.$set(this.form, "features", newFeatures);
+        },
         onInvoiceIntervalChange(val) {
+            console.log("onInvoiceIntervalChange called with:", val);
+
             if (val === "indeterminate") {
                 this.form.invoice_period = 999;
             } else {
                 this.form.invoice_period = 1;
             }
+
+            // Si es plan socio, actualizar las características
+            if (this.form.is_socio && this.form.features.length > 0) {
+                this.updateSocioFeatures();
+            }
         },
         onIsSocioChange(val) {
+            console.log("onIsSocioChange called with:", val);
+
+            // Llamamos a updatedIsSocio para manejar la lógica de cambio
             this.updatedIsSocio(val);
+
+            // Forzar una actualización del DOM
+            this.$nextTick(() => {
+                console.log(
+                    "After updatedIsSocio - features:",
+                    this.form.features
+                );
+                console.log(
+                    "After updatedIsSocio - is_socio:",
+                    this.form.is_socio
+                );
+                console.log("showFeatures computed value:", this.showFeatures);
+            });
         }
     }
 };
 </script>
-
-<style scoped>
-.feature-row,
-.discount-row {
-    display: flex;
-    align-items: stretch;
-    margin-bottom: 8px;
-}
-.block {
-    display: block;
-}
-.text-sm {
-    font-size: 0.875rem;
-}
-.font-medium {
-    font-weight: 500;
-}
-.text-gray-700 {
-    color: #374151;
-}
-.border {
-    border: 1px solid #e5e7eb;
-}
-.rounded {
-    border-radius: 0.375rem;
-}
-.p-3 {
-    padding: 0.75rem;
-}
-.mb-2 {
-    margin-bottom: 0.5rem;
-}
-.mt-2 {
-    margin-top: 0.5rem;
-}
-.d-flex {
-    display: flex !important;
-}
-.flex-row {
-    flex-direction: row !important;
-}
-.align-items-center {
-    align-items: center !important;
-}
-.w-100 {
-    width: 100% !important;
-}
-.mr-2 {
-    margin-right: 0.5rem !important;
-}
-.discount-input-number >>> .el-input__inner {
-    text-align: right;
-    font-weight: 500;
-    font-size: 1rem;
-    background: #f8fafc;
-}
-.discount-row {
-    background: #f8fafc;
-}
-.justify-content-end {
-    justify-content: flex-end !important;
-}
-</style>

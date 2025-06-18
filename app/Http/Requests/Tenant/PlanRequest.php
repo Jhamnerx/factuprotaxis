@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Tenant;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PlanRequest extends FormRequest
 {
@@ -13,18 +14,22 @@ class PlanRequest extends FormRequest
 
     public function rules()
     {
-        $id = $this->route('plan');
+        $id = $this->input('id');
         return [
             'name'                    => 'required|string|max:255',
             'description'             => 'nullable|string',
             'price'                   => 'required|numeric|min:0',
-            'slug'                    => 'nullable|string|max:255|unique:plans,slug,' . $id,
+            'slug'                    => [
+                'required',
+                Rule::unique('tenant.plans')->where(function ($query) use ($id) {
+                    return $query->where('id', '<>', $id);
+                })
+            ],
             'signup_fee'              => 'required|numeric|min:0',
             'currency'                => 'required|string',
             'invoice_period'          => 'required|integer|min:1',
             'invoice_interval'        => 'required|string',
             'active_subscribers_limit' => 'nullable|integer|min:0',
-            'sort_order'              => 'required|integer|min:0|unique:plans,sort_order,' . $id,
             'features'                => 'array',
             'features.*.name'         => 'required|string|max:255',
             'features.*.value'        => 'nullable|numeric',

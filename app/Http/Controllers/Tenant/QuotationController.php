@@ -809,6 +809,7 @@ class QuotationController extends Controller
         $stylesheet = file_get_contents($path_css);
 
         $pdf->WriteHTML($stylesheet, HTMLParserMode::HEADER_CSS);
+
         // $pdf->WriteHTML($html, HTMLParserMode::HTML_BODY);
 
         if ($format_pdf != 'ticket') {

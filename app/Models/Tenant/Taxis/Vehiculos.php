@@ -2,22 +2,25 @@
 
 namespace App\Models\Tenant\Taxis;
 
+use Modules\Payment\Models\Plan;
 use App\Enums\EstadoVehiculoEnum;
 use App\Models\Tenant\ModelTenant;
 use App\Enums\EstadoTucVehiculoEnum;
+use App\Traits\HasPlanSubscriptions;
 use App\Models\Tenant\Taxis\Contratos;
 use App\Models\Tenant\Taxis\Solicitud;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Payment\Models\PaymentColor;
+use Modules\Payment\Models\Subscription;
 use App\Models\Tenant\Taxis\Propietarios;
-use App\Models\Tenant\Payment\Subscription;
 use Hyn\Tenancy\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Laravelcm\Subscriptions\Traits\HasPlanSubscriptions;
+
 
 class Vehiculos extends ModelTenant
 {
     use UsesTenantConnection;
+    use HasPlanSubscriptions;
 
     protected $table = 'vehiculos';
 
@@ -93,15 +96,20 @@ class Vehiculos extends ModelTenant
         return $query->where('active', false);
     }
 
-    // public function suscripciones()
-    // {
-    //     return $this->morphMany(Subscription::class, 'vehiculo');
-    // }
+    public function suscripciones()
+    {
+        return $this->morphMany(Subscription::class, 'vehiculo');
+    }
 
-    // public function subscription()
-    // {
-    //     return $this->belongsTo(Subscription::class, 'subscription_id');
-    // }
+    public function subscription()
+    {
+        return $this->belongsTo(Subscription::class, 'subscription_id');
+    }
+
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class, 'plan_id', 'id');
+    }
 
     public function contratos()
     {
@@ -179,7 +187,6 @@ class Vehiculos extends ModelTenant
                 ];
             }
         }
-
         $data = [
             'id' => $this->id,
             'numero_interno' => $this->numero_interno,
@@ -207,6 +214,7 @@ class Vehiculos extends ModelTenant
             'propietario' => $propietario,
             'plan_id' => $this->plan_id,
             'subscription_id' => $this->subscription_id,
+            'subscription' => $this->subscription ? $this->subscription->getCollectionData() : null,
             'user_id' => $this->user_id,
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,

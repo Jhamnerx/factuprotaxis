@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Http\Resources\Tenant;
+
+use Modules\Payment\Models\SubscriptionInvoice;
+use Illuminate\Http\Resources\Json\ResourceCollection;
+
+class SubscriptionCollection extends ResourceCollection
+{
+    /**
+     * Transform the resource collection into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return $this->collection->transform(function (SubscriptionInvoice $row, $key) {
+
+            return  $row->getCollectionData();
+        });
+    }
+}

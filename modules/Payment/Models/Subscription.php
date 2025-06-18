@@ -8,13 +8,15 @@ use Carbon\Carbon;
 use LogicException;
 use App\Services\Period;
 use App\Traits\BelongsToPlan;
+use Modules\Payment\Models\Plan;
 use Spatie\Sluggable\SlugOptions;
+
+
+
 use Illuminate\Support\Facades\DB;
-use App\Models\Tenant\Payment\Plan;
-
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Hyn\Tenancy\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Payment\Models\SubscriptionUsage;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -22,9 +24,12 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Subscription extends Model
 {
+    use UsesTenantConnection;
+
     use BelongsToPlan;
     use SoftDeletes;
 
+    protected $table = 'subscriptions';
     protected $fillable = [
         'subscriber_id',
         'subscriber_type',
@@ -37,6 +42,8 @@ class Subscription extends Model
         'ends_at',
         'cancels_at',
         'canceled_at',
+        'is_indeterminate',
+        'metadata',
     ];
 
     protected $casts = [
@@ -48,6 +55,12 @@ class Subscription extends Model
         'cancels_at' => 'datetime',
         'canceled_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'is_indeterminate' => 'boolean',
+        'metadata' => 'array',
+    ];
+
+    protected $with = [
+        'plan',
     ];
 
     /**
@@ -62,15 +75,24 @@ class Subscription extends Model
 
     public function getTable()
     {
-        return config('laravel-subscriptions.tables.subscriptions');
+        return 'subscriptions';
     }
-
     protected static function boot(): void
     {
         parent::boot();
 
         static::creating(function (self $model): void {
-            if (! $model->starts_at || ! $model->ends_at) {
+            // Verificar si el plan es indeterminado
+            if ($model->plan && $model->plan->type === 'indeterminate') {
+                $model->is_indeterminate = true;
+                // Para planes indeterminados solo establecemos la fecha de inicio
+                if (!$model->starts_at) {
+                    $model->starts_at = Carbon::now();
+                }
+                // No establecemos ends_at para planes indeterminados
+            }
+            // Para planes normales, calculamos el período si no está establecido
+            elseif (!$model->starts_at || !$model->ends_at) {
                 $model->setNewPeriod();
             }
         });
@@ -89,15 +111,19 @@ class Subscription extends Model
     {
         return $this->hasMany(SubscriptionUsage::class);
     }
-
     public function active(): bool
     {
-        return ! $this->ended() || $this->onTrial();
+        // Si es un plan indeterminado, siempre está activo a menos que esté cancelado
+        if ($this->isIndeterminate()) {
+            return !$this->canceled();
+        }
+
+        return !$this->ended() || $this->onTrial();
     }
 
     public function inactive(): bool
     {
-        return ! $this->active();
+        return !$this->active();
     }
 
     public function onTrial(): bool
@@ -112,7 +138,22 @@ class Subscription extends Model
 
     public function ended(): bool
     {
+        // Un plan indeterminado nunca termina por fecha, solo por cancelación
+        if ($this->isIndeterminate()) {
+            return false;
+        }
+
         return $this->ends_at && Carbon::now()->gte($this->ends_at);
+    }
+
+    /**
+     * Determina si la suscripción es de tipo indeterminado (sin fecha de fin)
+     *
+     * @return bool
+     */
+    public function isIndeterminate(): bool
+    {
+        return $this->is_indeterminate || ($this->plan && $this->plan->type === 'indeterminate');
     }
 
     public function cancel(bool $immediately = false): self
@@ -228,7 +269,6 @@ class Subscription extends Model
     {
         return $builder->where('ends_at', '>', Carbon::now());
     }
-
     /**
      * Set new subscription period.
      *
@@ -244,10 +284,21 @@ class Subscription extends Model
             $invoice_period = $this->plan->invoice_period;
         }
 
+        // Si el intervalo es indeterminado, establecemos la bandera y solo definimos la fecha de inicio
+        if ($invoice_interval === 'indeterminate' || $this->plan->type === 'indeterminate') {
+            $this->is_indeterminate = true;
+            $this->starts_at = $start ?? Carbon::now();
+            // No establecemos ends_at para planes indeterminados
+            return $this;
+        }
+
+        // Para planes normales (no indeterminados), continuamos con el comportamiento estándar
+        $this->is_indeterminate = false;
+
         $period = new Period(
-            interval: $invoice_interval,
-            count: $invoice_period,
-            start: $start ?? Carbon::now()
+            $invoice_interval,
+            $invoice_period,
+            $start ?? Carbon::now()
         );
 
         $this->starts_at = $period->getStartDate();
@@ -346,5 +397,39 @@ class Subscription extends Model
         $feature = $this->plan->features()->where('slug', $featureSlug)->first();
 
         return $feature->value ?? null;
+    }
+    public function getCollectionData(): array
+    {
+        $data = [
+            'id' => $this->id,
+            'subscriber_type' => $this->subscriber_type,
+            'subscriber_id' => $this->subscriber_id,
+            'plan_id' => $this->plan_id,
+            'plan' => $this->plan->getCollectionData(),
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'timezone' => $this->timezone,
+            'trial_ends_at' => $this->trial_ends_at ? $this->trial_ends_at->format('Y-m-d H:i:s') : null,
+            'starts_at' => $this->starts_at ? $this->starts_at->format('Y-m-d H:i:s') : null,
+            'ends_at' => $this->ends_at ? $this->ends_at->format('Y-m-d H:i:s') : null,
+            'cancels_at' => $this->cancels_at ? $this->cancels_at->format('Y-m-d H:i:s') : null,
+            'canceled_at' => $this->canceled_at ? $this->canceled_at->format('Y-m-d H:i:s') : null,
+            'comentario' => $this->comentario,
+            'vehiculo' => $this->vehiculo,
+            'status' => $this->status,
+            'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
+            'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
+            'deleted_at' => $this->deleted_at ? $this->deleted_at->format('Y-m-d H:i:s') : null,
+            'is_active' => $this->active(),
+            'is_inactive' => $this->inactive(),
+            'is_on_trial' => $this->onTrial(),
+            'is_canceled' => $this->canceled(),
+            'is_ended' => $this->ended(),
+            'is_indeterminate' => $this->isIndeterminate(),
+            'metadata' => $this->metadata,
+        ];
+
+        return $data;
     }
 }

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Traits;
 
-use App\Models\System\Plan;
+
+use Modules\Payment\Models\Plan;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

@@ -1,25 +1,20 @@
-@extends('layouts.tenant.admin')
+@extends('tenant.layouts.app')
 
-
-@section('headerVariant', 'v2')
-@section('sidebarVariant', 'v2')
-
-
-@section('contenido')
-
-    {{-- @livewire('tenant.admin.taxis.pagos.index') --}}
-    @livewire('tenant.admin.taxis.pagos.create')
-
-
-@stop
-
-@push('modals')
-    @livewire('tenant.admin.taxis.pagos.create-subscription-invoice')
-    @livewire('tenant.admin.taxis.unidades.create')
+@section('content')
+    <tenant-taxis-pagos-form
+        :configuration="{{ \App\Models\Tenant\Configuration::getPublicConfig() }}"></tenant-taxis-pagos-form>
+@endsection
+@push('scripts')
+    <script type="text/javascript">
+        $(function() {
+            'use strict';
+            $(".tableScrollTop,.tableWide-wrapper").scroll(function() {
+                $(".tableWide-wrapper,.tableScrollTop")
+                    .scrollLeft($(this).scrollLeft());
+            });
+        });
+    </script>
 @endpush
-
-
-{{-- section de js --}}
 @section('js')
 
 @stop

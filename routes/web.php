@@ -10,14 +10,12 @@ if ($hostname) {
             'register' => false,
             'verify'   => false
         ]);
-
         Route::get('search', 'Tenant\SearchController@index')->name('search.index');
         Route::get('buscar', 'Tenant\SearchController@index')->name('search.index');
         Route::get('search/tables', 'Tenant\SearchController@tables');
         Route::post('search', 'Tenant\SearchController@store');
 
-
-
+        Route::get('taxis/pagos', 'Tenant\PagosController@index')->name('tenant.taxis.pagos.index');
 
         Route::get('downloads/{model}/{type}/{external_id}/{format?}', 'Tenant\DownloadController@downloadExternal')->name('tenant.download.external_id');
         Route::get('print/{model}/{external_id}/{format}/{filename?}', 'Tenant\DownloadController@toPrint');
@@ -398,6 +396,11 @@ if ($hostname) {
             Route::post('unidades', 'Tenant\UnidadesController@store');
             Route::delete('unidades/{unidad}', 'Tenant\UnidadesController@destroy');
             Route::get('unidades/baja', 'Tenant\UnidadesController@indexBajas')->name('tenant.taxi.unidades.baja');
+            Route::get('unidades/planes/tables', 'Tenant\UnidadesController@planes_tables');
+            Route::post('unidades/subscription/create', 'Tenant\UnidadesController@subscription_create');
+            Route::get('unidades/subscription-invoices/{id}', 'Tenant\UnidadesController@subscriptionInvoices');
+            Route::get('unidades/payment-colors/{id}', 'Tenant\UnidadesController@paymentColors');
+            Route::post('unidades/update-payment-color', 'Tenant\UnidadesController@updatePaymentColor');
 
             Route::get('marcas', 'Tenant\MarcasController@index')->name('tenant.taxi.marcas.index');
             Route::get('marcas/columns', 'Tenant\MarcasController@columns');
@@ -413,8 +416,6 @@ if ($hostname) {
             Route::get('modelos/por-marca/{marca_id}', 'Tenant\ModelosController@getModelosByMarca');
             Route::post('modelos', 'Tenant\ModelosController@store');
             Route::delete('modelos/{modelo}', 'Tenant\ModelosController@destroy');
-
-
             Route::get('planes', 'Tenant\PlanesController@index')->name('tenant.taxi.planes.index');
             Route::get('planes/columns', 'Tenant\PlanesController@columns');
             Route::get('planes/records', 'Tenant\PlanesController@records');
@@ -424,8 +425,8 @@ if ($hostname) {
             Route::get('planes/tables', 'Tenant\PlanesController@tables');
             Route::get('planes/search/vehiculos', 'Tenant\PlanesController@searchVehiculos');
             Route::get('planes/search/propietarios', 'Tenant\PlanesController@searchPropietarios');
-
-
+            Route::get('planes/last-sort-order', 'Tenant\PlanesController@lastSortOrder');
+            Route::get('planes/socio-plan-info/{vehicleId}', 'Tenant\PlanesController@getSocioPlanInfo');
 
             Route::get('condiciones', 'Tenant\CondicionesController@index')->name('tenant.taxi.condiciones.index');
             Route::get('condiciones/columns', 'Tenant\CondicionesController@columns');
@@ -435,6 +436,13 @@ if ($hostname) {
             Route::delete('condiciones/{condicion}', 'Tenant\CondicionesController@destroy');
 
             Route::get('pagos', 'Tenant\PagosController@index')->name('tenant.taxi.pagos.index');
+            Route::get('pagos/columns', 'Tenant\PagosController@columns');
+            Route::get('pagos/vehiculos/columns', 'Tenant\PagosController@columnsVehiculos');
+            Route::get('pagos/records', 'Tenant\PagosController@records');
+            Route::get('pagos/vehiculos/records', 'Tenant\PagosController@recordsVehiculos');
+            Route::post('pagos', 'Tenant\PagosController@store');
+            Route::get('pagos/record/{id}', 'Tenant\PagosController@record');
+
 
             Route::get('solicitudes', 'Tenant\SolicitudesController@index')->name('tenant.taxi.solicitudes.index');
             Route::get('solicitudes/columns', 'Tenant\SolicitudesController@columns');

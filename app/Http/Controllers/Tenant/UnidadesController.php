@@ -3,16 +3,22 @@
 namespace App\Http\Controllers\Tenant;
 
 use Exception;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Modules\Payment\Models\Plan;
+use App\Models\Tenant\Taxis\Marca;
+use Illuminate\Support\Facades\DB;
+use App\Models\Tenant\Taxis\Modelo;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\Configuration;
 use App\Models\Tenant\Taxis\Vehiculos;
+use Modules\Payment\Models\Subscription;
+use App\Models\Tenant\Taxis\Propietarios;
 use App\Http\Requests\Tenant\VehiculoRequest;
 use App\Http\Resources\Tenant\VehiculoResource;
+use Modules\Payment\Models\SubscriptionInvoice;
 use App\Http\Resources\Tenant\VehiculoCollection;
-use App\Models\Tenant\Taxis\Marca;
-use App\Models\Tenant\Taxis\Modelo;
-use App\Models\Tenant\Taxis\Propietarios;
+use App\Http\Resources\Tenant\SubscriptionCollection;
 
 class UnidadesController extends Controller
 {
@@ -57,6 +63,7 @@ class UnidadesController extends Controller
 
         return new VehiculoCollection($records->paginate(config('tenant.items_per_page')));
     }
+
     public function tables()
     {
 
@@ -91,6 +98,7 @@ class UnidadesController extends Controller
             return $propietarios;
         }
     }
+
     public function record($id)
     {
         $record = new VehiculoResource(Vehiculos::findOrFail($id));
@@ -249,5 +257,195 @@ class UnidadesController extends Controller
                 ];
             });
         return response()->json(['data' => $vehiculos]);
+    }
+
+    public function planes_tables()
+    {
+        $planes = \Modules\Payment\Models\Plan::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'description', 'price', 'currency', 'invoice_period', 'invoice_interval']);
+        return response()->json([
+            'planes' => $planes
+        ]);
+    }
+
+    public function subscription_create(Request $request)
+    {
+
+        $request->validate([
+            'plan_id' => 'required|exists:tenant.plans,id',
+            'vehiculo_id' => 'required|exists:tenant.vehiculos,id',
+            'fecha_inicio' => 'required_if:type,create',
+            'type' => 'required|in:create,change',
+        ]);
+
+        $vehiculo = \App\Models\Tenant\Taxis\Vehiculos::where('id', $request->vehiculo_id)->first();
+
+        if (!$vehiculo) {
+            return response()->json(['success' => false, 'message' => 'Unidad no encontrada'], 404);
+        }
+
+        $plan = Plan::find($request->plan_id);
+
+
+        if (!$plan) {
+            return response()->json(['success' => false, 'message' => 'Plan no encontrado'], 404);
+        }
+
+
+        try {
+            DB::connection('tenant')->beginTransaction();
+
+            if ($request->type === 'create') {
+                $fecha = Carbon::createFromFormat('Y-m-d', $request->fecha_inicio);
+                $sub = $vehiculo->newPlanSubscription('principal', $plan, $fecha);
+
+
+                $vehiculo->update([
+                    'plan_id' => $plan->id,
+                    'subscription_id' => $sub->id,
+                ]);
+                DB::connection('tenant')->commit();
+                return [
+                    'success' => true,
+                    'message' => 'Suscripción creada correctamente',
+                ];
+            } else {
+
+                if ($plan->id == $vehiculo->plan_id) {
+                    return [
+                        'success' => false,
+                        'message' => 'El plan ya está activo',
+                    ];
+                }
+
+                $subscription = Subscription::find($vehiculo->subscription_id);
+
+                if (!$subscription) {
+                    return [
+                        'success' => false,
+                        'message' => 'No se encontró la suscripción actual',
+                    ];
+                }
+
+
+                $vehiculo->update([
+                    'plan_id' => $plan->id,
+                    'subscription_id' => $subscription->id,
+                ]);
+
+                $subscription->changePlan($plan);
+                DB::connection('tenant')->commit();
+                return [
+                    'success' => true,
+                    'message' => 'Plan cambiado correctamente',
+                ];
+            }
+        } catch (\Exception $e) {
+            DB::connection('tenant')->rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    public function subscriptionInvoices($id)
+    {
+
+        $invoices = SubscriptionInvoice::where('subscription_id', $id);
+
+        return new SubscriptionCollection($invoices->get());
+    }
+
+    public function paymentColors($id)
+    {
+        // Obtiene el vehículo 
+        $vehiculo = Vehiculos::findOrFail($id);
+
+        // Obtiene los colores de pago usando la relación paymentColors
+        $paymentColors = $vehiculo->paymentColors()->get();
+        // Preparamos el array de colores por año y mes
+        $colors = [];
+
+        foreach ($paymentColors as $paymentColor) {
+            $year = $paymentColor->year;
+            $month = $paymentColor->month;
+
+            if (!isset($colors[$year])) {
+                $colors[$year] = [];
+            }
+
+            $colors[$year][$month] = $paymentColor->color;
+        }
+
+        // Si no hay colores específicos guardados, generamos algunos basados en las facturas
+        if (empty($paymentColors) && $vehiculo->subscription) {
+            $invoices = SubscriptionInvoice::where('subscription_id', $vehiculo->subscription->id)->get();
+
+            foreach ($invoices as $invoice) {
+                $year = $invoice->year;
+                $month = $invoice->month;
+
+                if (!isset($colors[$year])) {
+                    $colors[$year] = [];
+                }
+
+                // Define un color basado en el estado del pago
+                // Se pueden añadir más estados y colores según necesidad
+                if ($invoice->status === 'paid') {
+                    $colors[$year][$month] = '#d1fae5'; // Verde para pagos completos
+                } elseif ($invoice->status === 'partial') {
+                    $colors[$year][$month] = '#fef3c7'; // Amarillo para pagos parciales
+                } elseif ($invoice->status === 'pending') {
+                    $colors[$year][$month] = '#fee2e2'; // Rojo para pagos pendientes
+                }
+            }
+        }
+        return response()->json([
+            'success' => true,
+            'colors' => $colors,
+            'vehicle_id' => $id
+        ]);
+    }
+
+    /**
+     * Actualiza o crea un color para un pago específico de un vehículo
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updatePaymentColor(Request $request)
+    {
+        $request->validate([
+            'vehicle_id' => 'required|exists:vehiculos,id',
+            'year' => 'required|integer',
+            'month' => 'required|integer|min:1|max:12',
+            'color' => 'required|string'
+        ]);
+
+        $vehiculo = Vehiculos::findOrFail($request->vehicle_id);
+
+        // Busca si ya existe un color para este año y mes
+        $paymentColor = $vehiculo->paymentColors()
+            ->where('year', $request->year)
+            ->where('month', $request->month)
+            ->first();
+
+        if ($paymentColor) {
+            // Actualizar el color existente
+            $paymentColor->update(['color' => $request->color]);
+        } else {
+            // Crear un nuevo registro de color
+            $vehiculo->paymentColors()->create([
+                'year' => $request->year,
+                'month' => $request->month,
+                'color' => $request->color
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Color de pago actualizado correctamente'
+        ]);
     }
 }

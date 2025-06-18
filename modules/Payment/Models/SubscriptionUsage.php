@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Modules\Payment\Models;
 
 use Carbon\Carbon;
+use Modules\Payment\Models\Feature;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use Laravelcm\Subscriptions\Models\Feature;
+use Hyn\Tenancy\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SubscriptionUsage extends Model
 {
+    use UsesTenantConnection;
     use SoftDeletes;
 
     protected $fillable = [

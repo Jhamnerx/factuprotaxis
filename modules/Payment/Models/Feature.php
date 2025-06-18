@@ -2,18 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Laravelcm\Subscriptions\Models;
+namespace Modules\Payment\Models;
 
 use Carbon\Carbon;
 use App\Services\Period;
 use App\Traits\BelongsToPlan;
 use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
+use Hyn\Tenancy\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Feature extends Model
 {
+    use UsesTenantConnection;
+
     use BelongsToPlan;
     use SoftDeletes;
 
@@ -53,7 +56,7 @@ class Feature extends Model
 
     public function getTable(): string
     {
-        return config('laravel-subscriptions.tables.features', 'features');
+        return 'features';
     }
 
     protected static function boot(): void

@@ -26,8 +26,8 @@ class VehiculoRequest extends FormRequest
                 })
             ],
             'propietario_id' => 'required|exists:tenant.propietarios,id',
-            'marca_id' => 'nullable|exists:tenant.marcas,id',
-            'modelo_id' => 'nullable|exists:tenant.modelos,id',
+            'marca_id' => 'required|exists:tenant.marcas,id',
+            'modelo_id' => 'required|exists:tenant.modelos,id',
             'color' => 'nullable|string|max:50',
             'year' => 'nullable|integer|min:1900|max:' . date('Y'),
             'fecha_ingreso' => 'nullable|date',
@@ -73,6 +73,8 @@ class VehiculoRequest extends FormRequest
             'year.max' => 'El campo año no puede ser mayor al año actual.',
             'fecha_ingreso.date' => 'El campo fecha de ingreso debe ser una fecha válida.',
             'user_id.exists' => 'El usuario seleccionado no existe.',
+            'marca_id.required' => 'El campo marca es obligatorio.',
+            'modelo_id.required' => 'El campo modelo es obligatorio.',
         ];
         return $messages;
     }
