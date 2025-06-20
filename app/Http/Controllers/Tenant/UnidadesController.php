@@ -19,19 +19,20 @@ use App\Http\Resources\Tenant\VehiculoResource;
 use Modules\Payment\Models\SubscriptionInvoice;
 use App\Http\Resources\Tenant\VehiculoCollection;
 use App\Http\Resources\Tenant\SubscriptionCollection;
+use App\Models\Tenant\Taxis\Condicion;
 
 class UnidadesController extends Controller
 {
 
     public function index()
     {
-        $estado = '';
+        $estado = '1';
         return view('tenant.taxis.unidades.index', compact('estado'));
     }
 
     public function indexBajas()
     {
-        $estado = 'BAJA';
+        $estado = '0';
         return view('tenant.taxis.unidades.index', compact('estado'));
     }
 
@@ -76,11 +77,16 @@ class UnidadesController extends Controller
             ->orderBy('nombre')
             ->get();
 
+
+        $condiciones = Condicion::orderBy('descripcion')
+            ->get();
+
         return compact(
             'configuration',
             'propietarios',
             'marcas',
-            'modelos'
+            'modelos',
+            'condiciones'
         );
     }
 
@@ -145,10 +151,12 @@ class UnidadesController extends Controller
                 $records->where('year', $request->value);
                 break;
             case 'estado':
-                $records->where('estado', $request->value);
+                $records->where('estado', 'like', "%{$request->value}%");
                 break;
             case 'estado_tuc':
-                $records->where('estado_tuc', $request->value);
+                $records->whereHas('estadoTuc', function ($q) use ($request) {
+                    $q->where('descripcion', $request->value);
+                });
                 break;
 
             default:
@@ -156,6 +164,13 @@ class UnidadesController extends Controller
                     $records->where($request->column, 'like', "%{$request->value}%");
                 }
                 break;
+        }
+
+        if (isset($request->type)) {
+
+            if ($request->type == "0") {
+                $records->notActive();
+            }
         }
 
 

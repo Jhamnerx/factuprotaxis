@@ -147,6 +147,52 @@
                                     ></small>
                                 </div>
                             </div>
+                            <div v-if="form.state" class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label"
+                                        >Estado del Contribuyente</label
+                                    >
+                                    <template v-if="form.state == 'ACTIVO'">
+                                        <el-alert
+                                            :closable="false"
+                                            :title="`${form.state}`"
+                                            show-icon
+                                            type="success"
+                                        ></el-alert>
+                                    </template>
+                                    <template v-else>
+                                        <el-alert
+                                            :closable="false"
+                                            :title="`${form.state}`"
+                                            show-icon
+                                            type="error"
+                                        ></el-alert>
+                                    </template>
+                                </div>
+                            </div>
+                            <div v-if="form.condition" class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label"
+                                        >Condición del Contribuyente</label
+                                    >
+                                    <template v-if="form.condition == 'HABIDO'">
+                                        <el-alert
+                                            :closable="false"
+                                            :title="`${form.condition}`"
+                                            show-icon
+                                            type="success"
+                                        ></el-alert>
+                                    </template>
+                                    <template v-else>
+                                        <el-alert
+                                            :closable="false"
+                                            :title="`${form.condition}`"
+                                            show-icon
+                                            type="error"
+                                        ></el-alert>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </el-tab-pane>
                     <el-tab-pane class name="second">
@@ -337,6 +383,8 @@ export default {
         initForm() {
             this.errors = {};
             this.form = {
+                condition: null,
+                state: null,
                 identity_document_type_id: "6",
                 number: "",
                 name: null,
@@ -348,7 +396,8 @@ export default {
                 province_id: null,
                 district_id: null,
                 address: "",
-                enabled: true
+                enabled: true,
+                establishment_code: "0000"
             };
         },
         async opened() {
@@ -491,6 +540,7 @@ export default {
         },
         close() {
             this.$emit("update:showDialog", false);
+            this.$emit("close");
             this.initForm();
         }
     }

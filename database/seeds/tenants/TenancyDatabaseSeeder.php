@@ -18602,23 +18602,6 @@ class TenancyDatabaseSeeder extends Seeder
             ]);
         }
 
-        $condiciones = [
-            'TUC',
-            'RECIBO',
-            'TRAMITE BAJA',
-            'PAGO LOGO',
-            'NO REGISTRADO',
-            'DE BAJA',
-            'LIBRE'
-        ];
-
-
-        foreach ($condiciones as $condicion) {
-            Condicion::create([
-                'descripcion' => $condicion,
-            ]);
-        }
-
         $plans = [
             [
                 'id' => 4,
@@ -18835,6 +18818,23 @@ class TenancyDatabaseSeeder extends Seeder
                 ['id' => $data['id']],
                 $data
             );
+        }
+
+        $condiciones = [
+            ['descripcion' => 'TUC', 'color' => '#088a5d'],
+            ['descripcion' => 'RECIBO', 'color' => '#2ea5e7'],
+            ['descripcion' => 'TRAMITE BAJA', 'color' => '#40dd5b'],
+            ['descripcion' => 'PAGO LOGO', 'color' => '#f9962d'],
+            ['descripcion' => 'NO REGISTRADO', 'color' => '#C70039'],
+            ['descripcion' => 'DE BAJA', 'color' => '#000000'],
+            ['descripcion' => 'LIBRE', 'color' => '#00a6fd']
+        ];
+
+        foreach ($condiciones as $condicion) {
+            Condicion::create([
+                'descripcion' => $condicion['descripcion'],
+                'color' => $condicion['color'],
+            ]);
         }
     }
 }

@@ -1,8 +1,8 @@
 @extends('tenant.layouts.app')
 
 @section('content')
-    <tenant-taxis-unidades-index
-        :configuration="{{ \App\Models\Tenant\Configuration::getPublicConfig() }}"></tenant-taxis-unidades-index>
+    <tenant-taxis-unidades-index :configuration="{{ \App\Models\Tenant\Configuration::getPublicConfig() }}"
+        :estado="{{ $estado }}"></tenant-taxis-unidades-index>
 @endsection
 @push('scripts')
     <script type="text/javascript">

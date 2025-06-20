@@ -80,6 +80,10 @@ class Propietarios extends ModelTenant
         return $this->belongsTo(District::class);
     }
 
+    public function cliente()
+    {
+        return $this->belongsTo(\App\Models\Tenant\Person::class, 'person_id');
+    }
     /**
      * @param $query
      *

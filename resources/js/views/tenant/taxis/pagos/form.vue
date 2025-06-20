@@ -331,8 +331,74 @@
                 </div>
 
                 <div id="calendarContainer">
+                    <!-- Mensaje cuando no hay suscripción -->
                     <div
-                        v-if="selectedVehicleId"
+                        v-if="
+                            selectedVehicleId &&
+                                selectedVehicle &&
+                                (!selectedVehicle.subscription_id ||
+                                    !selectedVehicle.subscription)
+                        "
+                        class="bg-white dark:bg-gray-800 rounded-lg shadow p-3 text-center"
+                    >
+                        <div class="p-5">
+                            <svg
+                                style="width: 48px; height: 48px;"
+                                class="mx-auto mb-4 text-yellow-400 w-12 h-12"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                ></path>
+                            </svg>
+                            <h3
+                                class="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200"
+                            >
+                                Sin Suscripción Activa
+                            </h3>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">
+                                Este vehículo no tiene una suscripción activa.
+                                Debe asignarle un plan de suscripción antes de
+                                poder gestionar sus pagos.
+                            </p>
+                            <button
+                                class="btn btn-primary d-flex align-items-center mx-auto py-2 px-4"
+                                style="font-size: 0.9rem; font-weight: 600;"
+                                @click="gotoSubscription"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    style="width: 16px; height: 16px; margin-right: 0.5rem;"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                                Asignar Plan de Suscripción
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Calendario cuando hay suscripción -->
+                    <div
+                        v-if="
+                            selectedVehicleId &&
+                                selectedVehicle &&
+                                selectedVehicle.subscription_id &&
+                                selectedVehicle.subscription
+                        "
                         class="bg-white dark:bg-gray-800 rounded-lg shadow p-3"
                     >
                         <h3
@@ -895,6 +961,13 @@
                 <p>No hay información disponible para este pago.</p>
             </div>
         </el-dialog>
+
+        <!-- Modal de creación de unidades -->
+        <unidades-form
+            :showDialog="showUnidadDialog"
+            :recordId="recordId"
+            @close="closeUnidadDialog"
+        ></unidades-form>
     </div>
 </template>
 
@@ -904,6 +977,7 @@ import axios from "axios";
 import VehiculosPagoDataTable from "../../../../components/VehiculosPagoDataTable.vue";
 import RegisterPaymentModal from "../../../../components/payments/RegisterPaymentModal.vue";
 import AdvancedPaymentModal from "../../../../components/payments/AdvancedPaymentModal.vue";
+import UnidadesForm from "../../taxis/unidades/form.vue";
 import loginVue from "../../../system/configuration/login.vue";
 
 export default {
@@ -911,7 +985,8 @@ export default {
     components: {
         VehiculosPagoDataTable,
         RegisterPaymentModal,
-        AdvancedPaymentModal
+        AdvancedPaymentModal,
+        UnidadesForm
     },
     props: {
         configuration: {
@@ -937,6 +1012,8 @@ export default {
             monthlyPayments: {}, // Cambiado a objeto
             paymentColors: {}, // Cambiado a objeto
             paymentDetails: {}, // Nueva estructura para almacenar detalles del pago (estado, fecha, etc)
+            showUnidadDialog: false, // Controla la visibilidad del modal de unidades
+            recordId: null, // ID del registro a editar (null para creación)
             is_multiple: false,
             selectedMonths: [],
             divisa: "USD",
@@ -1051,21 +1128,31 @@ export default {
                     this.selectedVehicleId = data.id;
                     this.selectedVehicle = data;
 
-                    // Cargar datos de pagos
-                    this.loadPaymentsData();
+                    // Verificar que el vehículo tenga subscription_id y datos de subscription
+                    if (data.subscription_id && data.subscription) {
+                        // Cargar datos de pagos solo si hay una suscripción válida
+                        this.loadPaymentsData();
 
-                    // Cargar colores de pagos
-                    this.loadPaymentColors();
+                        // Cargar colores de pagos
+                        this.loadPaymentColors();
 
-                    // Forzar actualización del calendario después de cargar los datos
-                    this.$nextTick(() => {
+                        // Forzar actualización del calendario después de cargar los datos
+                        this.$nextTick(() => {
+                            console.log(
+                                "Forzando actualización del calendario después de cargar datos"
+                            );
+                            if (this.debug) {
+                                setTimeout(() => this.logCalendarData(), 500);
+                            }
+                        });
+                    } else {
                         console.log(
-                            "Forzando actualización del calendario después de cargar datos"
+                            "El vehículo no tiene una suscripción activa, no se cargará el calendario"
                         );
-                        if (this.debug) {
-                            setTimeout(() => this.logCalendarData(), 500);
-                        }
-                    });
+                        this.$message.warning(
+                            "Este vehículo no tiene una suscripción activa."
+                        );
+                    }
                 })
                 .catch(error => {
                     console.error(
@@ -1081,13 +1168,17 @@ export default {
                 });
         },
         loadPaymentsData() {
-            // Verificar que el vehículo y su suscripción existan
+            // Verificar que el vehículo tenga ID de suscripción y que los datos de suscripción existan
             if (
                 !this.selectedVehicleId ||
                 !this.selectedVehicle ||
-                !this.selectedVehicle.subscription
+                !this.selectedVehicle.subscription_id ||
+                !this.selectedVehicle.subscription ||
+                !this.selectedVehicle.subscription.id
             ) {
-                console.log("No hay vehículo seleccionado o sin suscripción");
+                console.log(
+                    "No hay vehículo seleccionado o sin suscripción válida"
+                );
                 return;
             }
 
@@ -1370,11 +1461,20 @@ export default {
             this.loadPaymentColors();
         },
         loadPaymentColors() {
-            // Si no hay vehículo seleccionado, no hacer nada
-            if (!this.selectedVehicleId) return;
+            // Si no hay vehículo seleccionado o no tiene suscripción, no hacer nada
+            if (
+                !this.selectedVehicleId ||
+                !this.selectedVehicle ||
+                !this.selectedVehicle.subscription_id ||
+                !this.selectedVehicle.subscription
+            ) {
+                return;
+            }
 
             console.log(
-                `Cargando colores para vehículo #${this.selectedVehicleId}`
+                `Cargando colores para vehículo #${
+                    this.selectedVehicleId
+                } con suscripción #${this.selectedVehicle.subscription_id}`
             );
 
             // Realizar petición para obtener los colores específicos de pagos para este vehículo
@@ -1783,13 +1883,9 @@ export default {
             }
         },
         openModalCreateUnidad() {
-            console.log("Abrir modal para crear unidad");
-
-            // Aquí abriría el modal en una implementación real
-            this.$message({
-                message: "Función para añadir dispositivo",
-                type: "info"
-            });
+            console.log("Abriendo modal para crear unidad");
+            this.recordId = null; // Aseguramos que sea null para crear un nuevo registro
+            this.showUnidadDialog = true;
         },
         closePaymentModal() {
             this.isPaymentModalOpen = false;
@@ -1798,6 +1894,12 @@ export default {
         },
         closeAdvancedModal() {
             this.isAdvancedModalOpen = false;
+        },
+        closeUnidadDialog() {
+            this.showUnidadDialog = false;
+            this.recordId = null;
+            // Recargamos la lista de vehículos después de crear uno nuevo
+            //  this.loadVehiculos(this.vehiculos.current_page, this.search);
         },
         handleSavePago(pago) {
             const year = pago.year;
@@ -2372,6 +2474,26 @@ export default {
 
                 console.log("Actualización del calendario completada");
             });
+        },
+
+        /**
+         * Redirige al usuario a la página de planes para asignar una suscripción al vehículo seleccionado
+         */
+        gotoSubscription() {
+            if (!this.selectedVehicleId || !this.selectedVehicle) {
+                this.$message.warning("No hay un vehículo seleccionado.");
+                return;
+            }
+
+            // Redireccionar a la página de planes para este vehículo
+            const url = `unidades`;
+            // Usar el router de Vue si está disponible
+            if (this.$router) {
+                this.$router.push(url);
+            } else {
+                // Alternativa: usar window.location
+                window.location.href = url;
+            }
         }
     }
 };

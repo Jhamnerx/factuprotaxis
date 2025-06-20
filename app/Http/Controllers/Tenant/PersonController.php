@@ -197,6 +197,13 @@ class PersonController extends Controller
 
             $person = Person::findOrFail($id);
             $person_type = ($person->type == 'customers') ? 'Cliente' : 'Proveedor';
+            //verificar si el cliente tiene un registro de propietario - si tiene no eliminar returna error
+            if ($person->type == 'customers' && $person->propietario) {
+                return [
+                    'success' => false,
+                    'message' => "El {$person_type} no puede eliminarse porque tiene un registro de propietario asociado"
+                ];
+            }
             $person->delete();
 
             return [

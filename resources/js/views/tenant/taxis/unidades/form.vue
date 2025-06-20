@@ -46,7 +46,18 @@
 
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label class="control-label">Propietario</label>
+                            <label
+                                class="control-label font-weight-bold text-info"
+                            >
+                                Propietario
+                                <a
+                                    href="#"
+                                    @click.prevent="
+                                        mostrarFormularioPropietario
+                                    "
+                                    >[+ Nuevo]</a
+                                >
+                            </label>
                             <el-select
                                 v-model="form.propietario_id"
                                 filterable
@@ -211,21 +222,21 @@
                         <div class="form-group">
                             <label class="control-label">Estado TUC</label>
                             <el-select
-                                v-model="form.estado_tuc"
+                                v-model="form.estado_tuc_id"
                                 placeholder="Seleccione un estado TUC"
                                 style="width: 100%"
                             >
                                 <el-option
-                                    v-for="(estadoTuc, index) in estadosTuc"
+                                    v-for="(estadoTuc, index) in condiciones"
                                     :key="index"
-                                    :label="estadoTuc"
-                                    :value="estadoTuc"
+                                    :label="estadoTuc.descripcion"
+                                    :value="estadoTuc.id"
                                 ></el-option>
                             </el-select>
                             <small
-                                v-if="errors.estado_tuc"
+                                v-if="errors.estado_tuc_id"
                                 class="text-danger"
-                                >{{ errors.estado_tuc[0] }}</small
+                                >{{ errors.estado_tuc_id[0] }}</small
                             >
                         </div>
                     </div>
@@ -380,11 +391,24 @@
                 </el-button>
             </div>
         </form>
+        <!-- Modal para crear nuevo propietario -->
+        <PropietariosForm
+            v-if="showDialogNewPropietario"
+            :api_service_token="api_service_token"
+            :showDialog.sync="showDialogNewPropietario"
+            :recordId="null"
+            @close="closeDialogNewPropietario"
+        />
     </el-dialog>
 </template>
 
 <script>
+import PropietariosForm from "../propietarios/form.vue";
+
 export default {
+    components: {
+        PropietariosForm
+    },
     props: ["showDialog", "recordId", "api_service_token"],
     data() {
         return {
@@ -404,7 +428,7 @@ export default {
                 numero_motor: null,
                 fecha_ingreso: null,
                 estado: "ACTIVO",
-                estado_tuc: null,
+                estado_tuc_id: null,
                 largo: null,
                 ancho: null,
                 alto: null,
@@ -417,8 +441,10 @@ export default {
                 user_id: null
             },
             propietarios: [],
+            propietariosAnteriores: [],
             marcas: [],
             modelos: [],
+            condiciones: [],
             loadingPropietarios: false,
             estadosTuc: [
                 "TUC",
@@ -429,6 +455,7 @@ export default {
                 "DE BAJA",
                 "LIBRE"
             ],
+            showDialogNewPropietario: false,
             estados: [
                 "ACTIVO",
                 "DE BAJA",
@@ -451,6 +478,7 @@ export default {
                 const data = response.data;
                 this.propietarios = data.propietarios || [];
                 this.marcas = data.marcas || [];
+                this.condiciones = data.condiciones || [];
             } catch (error) {
                 console.error("Error al cargar tablas:", error);
                 this.$message.error("Error al cargar datos de referencia");
@@ -473,7 +501,7 @@ export default {
                 numero_motor: null,
                 fecha_ingreso: new Date().toISOString().slice(0, 10),
                 estado: "ACTIVO",
-                estado_tuc: null,
+                estado_tuc_id: null,
                 largo: null,
                 ancho: null,
                 alto: null,
@@ -563,7 +591,7 @@ export default {
                             ? data.fecha_ingreso.substring(0, 10)
                             : null,
                         estado: data.estado || "ACTIVO",
-                        estado_tuc: data.estado_tuc || null,
+                        estado_tuc_id: data.estado_tuc_id || null,
                         largo: data.largo || null,
                         ancho: data.ancho || null,
                         alto: data.alto || null,
@@ -634,6 +662,64 @@ export default {
         close() {
             this.$emit("update:showDialog", false);
             this.$emit("close");
+        },
+
+        /**
+         * Muestra el formulario de propietarios
+         */
+        mostrarFormularioPropietario() {
+            // Guardar la lista actual de propietarios para comparar después
+            this.propietariosAnteriores = [...this.propietarios];
+            console.log(
+                "Propietarios antes de abrir el modal:",
+                this.propietariosAnteriores
+            );
+
+            // Mostrar el diálogo
+            this.showDialogNewPropietario = true;
+        },
+        /**
+         * Maneja el cierre del formulario de propietarios y actualiza la lista
+         */ closeDialogNewPropietario() {
+            console.log("Cerrando diálogo de nuevo propietario");
+            this.showDialogNewPropietario = false;
+
+            // Guardar los IDs de propietarios anteriores para comparación
+            const idsAnteriores = this.propietariosAnteriores.map(p => p.id);
+
+            // Recargar todas las tablas (incluidos los propietarios)
+            this.loadTables()
+                .then(() => {
+                    console.log(
+                        "Tablas recargadas, propietarios:",
+                        this.propietarios
+                    );
+
+                    // Buscar si hay algún propietario nuevo (que no existía en la lista anterior)
+                    if (
+                        this.propietariosAnteriores.length <
+                        this.propietarios.length
+                    ) {
+                        // Buscar el propietario con ID que no existía en la lista anterior
+                        const nuevoPropietario = this.propietarios.find(
+                            p => !idsAnteriores.includes(p.id)
+                        );
+
+                        // Si encontramos el nuevo propietario, seleccionarlo
+                        if (nuevoPropietario) {
+                            this.form.propietario_id = nuevoPropietario.id;
+                            this.$message.success(
+                                `Propietario "${
+                                    nuevoPropietario.name
+                                }" creado y seleccionado`
+                            );
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al recargar tablas:", error);
+                    this.$message.error("Error al actualizar los datos");
+                });
         }
     }
 };

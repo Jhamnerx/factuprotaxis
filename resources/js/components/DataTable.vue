@@ -154,6 +154,9 @@ export default {
             required: false,
             default: ""
         },
+        estadoVehiculo: {
+            type: Number
+        },
         resource: String,
         applyFilter: {
             type: Boolean,
@@ -258,6 +261,12 @@ export default {
                 // Debe listar solo productos
                 this.search.type = this.productType;
             }
+
+            if (this.estadoVehiculo == 0) {
+                this.search.type = 0;
+            }
+
+            console.log("search", this.search);
             return queryString.stringify({
                 page: this.pagination.current_page,
                 limit: this.limit,

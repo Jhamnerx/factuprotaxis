@@ -4,7 +4,12 @@
             <h2>Unidades</h2>
             <ol class="breadcrumbs">
                 <li class="active">
-                    <span>Listado de unidades</span>
+                    <span
+                        >Listado de unidades
+                        {{
+                            estado == "0" ? " - Inactivas" : " - Activas"
+                        }}</span
+                    >
                 </li>
             </ol>
             <div class="right-wrapper pull-right">
@@ -53,6 +58,7 @@
                     ref="dataTable"
                     :columns="columns"
                     :resource="resource"
+                    :estadoVehiculo="estado"
                     @click-create="clickCreate"
                     @click-edit="clickEdit"
                     @click-delete="clickDelete"
@@ -146,12 +152,14 @@
                         <td v-if="columns.carga_util.visible" class="numeric">
                             {{ formatNumber(row.carga_util) }} kg
                         </td>
+
                         <td>
                             <span
                                 :class="
-                                    'badge-estado ' + getEstadoClass(row.estado)
+                                    'badge-estado-tuc ' +
+                                        getEstadoClass(row.estado)
                                 "
-                                >{{ row.estado }}</span
+                                >{{ row.estado || "NO REGISTRADO" }}</span
                             >
                         </td>
                         <td>
@@ -170,7 +178,8 @@
                                             {{ row.subscription.plan.name }}
                                         </p>
                                         <p>
-                                            <strong>Precio:</strong> S/
+                                            <strong>Precio:</strong>
+                                            {{ row.subscription.plan.currency }}
                                             {{
                                                 formatNumber(
                                                     row.subscription.plan.price
@@ -287,14 +296,6 @@
                                                 gracia</el-tag
                                             >
                                         </div>
-                                        <p>
-                                            <strong>Fecha fin:</strong>
-                                            {{
-                                                formatDate(
-                                                    row.subscription.ends_at
-                                                )
-                                            }}
-                                        </p>
 
                                         <div
                                             v-if="
@@ -334,7 +335,8 @@
                                     </div>
                                 </div>
                                 <span slot="reference" class="badge badge-info">
-                                    {{ row.subscription.plan.name }} - S/
+                                    {{ row.subscription.plan.name }} -
+                                    {{ row.subscription.plan.currency }}
                                     {{
                                         formatNumber(
                                             row.subscription.plan.price
@@ -351,13 +353,26 @@
 
                         <td>
                             <span
-                                :class="
-                                    'badge-estado-tuc ' +
-                                        getEstadoTucClass(row.estado_tuc)
-                                "
-                                >{{ row.estado_tuc || "NO REGISTRADO" }}</span
+                                class="badge"
+                                :style="{
+                                    backgroundColor: row.estadoTuc.color
+                                        ? row.estadoTuc.color
+                                        : '#000000',
+                                    color: getContrastYIQ(
+                                        row.estadoTuc.color
+                                            ? row.estadoTuc.color
+                                            : '#000000'
+                                    ),
+                                    padding: '5px 8px',
+                                    borderRadius: '4px',
+                                    fontWeight: '500',
+                                    fontSize: '0.85em'
+                                }"
                             >
+                                {{ row.estadoTuc.descripcion }}
+                            </span>
                         </td>
+
                         <td class="text-right">
                             <div class="dropdown">
                                 <button
@@ -429,6 +444,7 @@
 <script>
 import DataTable from "../../../../components/DataTable.vue";
 import UnidadesForm from "./form.vue";
+
 import SubscriptionModal from "./subscription-modal.vue";
 import { deletable } from "../../../../mixins/deletable";
 
@@ -436,7 +452,11 @@ export default {
     name: "TenantTaxisUnidadesIndex",
     props: ["estado", "api_service_token", "configuration"],
     mixins: [deletable],
-    components: { DataTable, UnidadesForm, SubscriptionModal },
+    components: {
+        DataTable,
+        UnidadesForm,
+        SubscriptionModal
+    },
     created() {
         this.getColumnsToShow();
     },
@@ -666,6 +686,44 @@ export default {
                 expired: "Expirado"
             };
             return statusMap[status] || status;
+        },
+        /**
+         * Calcula si el texto debe ser blanco o negro basado en el color de fondo
+         * @param {string} hexcolor - Color en formato hexadecimal (#RRGGBB)
+         * @returns {string} - Devuelve '#000000' o '#FFFFFF' dependiendo del contraste
+         */
+        getContrastYIQ(hexcolor) {
+            // Si no hay color o no es un formato válido, usar texto oscuro
+            if (!hexcolor || !hexcolor.startsWith("#")) {
+                return "#000000";
+            }
+
+            // Eliminar el # si existe
+            hexcolor = hexcolor.replace("#", "");
+
+            // Si es formato corto #RGB, convertir a #RRGGBB
+            if (hexcolor.length === 3) {
+                hexcolor = hexcolor
+                    .split("")
+                    .map(char => char + char)
+                    .join("");
+            }
+
+            // Verificar que tengamos un color hexadecimal válido
+            if (!/^[0-9A-F]{6}$/i.test(hexcolor)) {
+                return "#000000";
+            }
+
+            // Convertir a RGB y calcular luminancia
+            const r = parseInt(hexcolor.substr(0, 2), 16);
+            const g = parseInt(hexcolor.substr(2, 2), 16);
+            const b = parseInt(hexcolor.substr(4, 2), 16);
+
+            // Fórmula YIQ para determinar brillo (más precisa para percepción humana)
+            const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+
+            // Usar texto blanco si es oscuro, negro si es claro
+            return yiq >= 128 ? "#000000" : "#FFFFFF";
         }
     }
 };

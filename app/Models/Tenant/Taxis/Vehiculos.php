@@ -7,6 +7,7 @@ use App\Enums\EstadoVehiculoEnum;
 use App\Models\Tenant\ModelTenant;
 use App\Enums\EstadoTucVehiculoEnum;
 use App\Traits\HasPlanSubscriptions;
+use App\Models\Tenant\Taxis\Condicion;
 use App\Models\Tenant\Taxis\Contratos;
 use App\Models\Tenant\Taxis\Solicitud;
 use Illuminate\Database\Eloquent\Model;
@@ -42,7 +43,7 @@ class Vehiculos extends ModelTenant
         'color',
         'year',
         'fecha_ingreso',
-        'estado_tuc',
+        'estado_tuc_id',
         'estado',
         'propietario_id',
         'plan_id',
@@ -53,7 +54,7 @@ class Vehiculos extends ModelTenant
     protected $casts = [
         'fecha_ingreso' => 'datetime',
         'estado' => 'string',
-        'estado_tuc' => 'string',
+        'estado_tuc_id' => 'integer',
         'largo' => 'float',
         'ancho' => 'float',
         'alto' => 'float',
@@ -88,12 +89,12 @@ class Vehiculos extends ModelTenant
      */
     public function scopeWhereIsActive($query)
     {
-        return $query->where('active', true);
+        return $query->where('estado', 'ACTIVO');
     }
 
     public function scopeNotActive($query)
     {
-        return $query->where('active', false);
+        return $query->where('estado', '!=', 'ACTIVO');
     }
 
     public function suscripciones()
@@ -143,6 +144,11 @@ class Vehiculos extends ModelTenant
     public function permisosUnidad()
     {
         return $this->hasMany(PermisoUnidad::class, 'vehiculo_id', 'id');
+    }
+
+    public function estadoTuc()
+    {
+        return $this->belongsTo(Condicion::class, 'estado_tuc_id', 'id');
     }
 
     /**
@@ -208,7 +214,8 @@ class Vehiculos extends ModelTenant
             'color' => $this->color,
             'year' => $this->year,
             'fecha_ingreso' => ($this->fecha_ingreso) ? $this->fecha_ingreso->format('Y-m-d') : null,
-            'estado_tuc' => $this->estado_tuc,
+            'estado_tuc_id' => $this->estado_tuc_id,
+            'estadoTuc' => $this->estadoTuc,
             'estado' => $this->estado,
             'propietario_id' => $this->propietario_id,
             'propietario' => $propietario,

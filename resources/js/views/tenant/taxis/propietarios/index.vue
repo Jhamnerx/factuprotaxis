@@ -86,7 +86,7 @@
                         <th class="text-right">Acciones</th>
                     </tr>
                     <tr
-                        slot-scope="{ index, row }"
+                        slot-scope="{ row }"
                         :class="{ disable_color: !row.enabled }"
                     >
                         <td>{{ row.name }}</td>
@@ -247,7 +247,7 @@ export default {
         },
         closeDialog() {
             this.showDialog = false;
-            this.$refs.dataTable.fetchData();
+            this.$eventHub.$emit("reloadData");
         },
         getColumnsToShow(updated) {
             this.$http

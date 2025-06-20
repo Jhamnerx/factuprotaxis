@@ -166,13 +166,13 @@ export default {
         },
         clickDelete(id) {
             this.destroy(`/${this.resource}/${id}`).then(() => {
-                this.$refs.dataTable.fetchData();
+                this.$eventHub.$emit("reloadData");
             });
         },
         closeDialog() {
             this.showDialog = false;
             this.recordId = null;
-            this.$refs.dataTable.fetchData();
+            this.$eventHub.$emit("reloadData");
         },
         getColumnsToShow(updated) {
             this.$http

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant;
 
+use Exception;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\Taxis\Condicion;
@@ -44,6 +45,7 @@ class CondicionesController extends Controller
 
     public function store(Request $request)
     {
+
         $data = $request->validate([
             'color' => 'required|string|max:20',
             'descripcion' => 'nullable|string|max:255',
@@ -60,11 +62,16 @@ class CondicionesController extends Controller
 
     public function destroy($id)
     {
-        $condicion = Condicion::findOrFail($id);
-        $condicion->delete();
-        return [
-            'success' => true,
-            'message' => 'Condición eliminada'
-        ];
+        try {
+            $condicion = Condicion::findOrFail($id);
+            $condicion->delete();
+            return [
+                'success' => true,
+                'message' => 'Condición eliminada'
+            ];
+        } catch (Exception $e) {
+
+            return ($e->getCode() == '23000') ? ['success' => false, 'message' => 'La condición está siendo usada por otros registros, no puede eliminar'] : ['success' => false, 'message' => 'Error inesperado, no se pudo eliminar la condición'];
+        }
     }
 }

@@ -1,267 +1,357 @@
 <template>
-    <el-dialog :visible.sync="showDialog" width="800px" :before-close="close">
-        <span slot="title">{{ recordId ? "Editar Plan" : "Nuevo Plan" }}</span>
+    <el-dialog
+        :visible.sync="showDialog"
+        width="800px"
+        :before-close="close"
+        class="plan-form-dialog"
+    >
+        <span slot="title" class="dialog-title">{{
+            recordId ? "Editar Plan" : "Nuevo Plan"
+        }}</span>
         <form autocomplete="off" @submit.prevent="submitForm">
-            <div class="row">
-                <div class="col-md-6 col-12">
-                    <div class="form-group">
-                        <label>Nombre<span class="text-danger">*</span></label>
-                        <el-input
-                            v-model="form.name"
-                            maxlength="255"
-                            placeholder="Nombre del plan"
-                        />
-                        <small
-                            v-if="errors.name"
-                            class="form-control-feedback"
-                            v-text="errors.name[0]"
-                        ></small>
-                    </div>
-                    <div class="form-group">
-                        <label>Slug</label>
-                        <el-input
-                            v-model="form.slug"
-                            maxlength="255"
-                            placeholder="Slug único"
-                            disabled
-                        />
-                        <small
-                            v-if="errors.slug"
-                            class="form-control-feedback"
-                            v-text="errors.slug[0]"
-                        ></small>
-                    </div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <div
-                        class="form-group d-flex align-items-center"
-                        style="gap: 32px;"
-                    >
-                        <div>
-                            <label class="mr-2">Activo</label>
-                            <el-switch v-model="form.is_active" />
-                        </div>
-                        <div>
-                            <label class="mr-2">Plan Socio?</label>
-                            <el-switch
-                                v-model="form.is_socio"
-                                @change="onIsSocioChange"
-                                active-color="#13ce66"
-                                inactive-color="#ff4949"
-                                :active-value="true"
-                                :inactive-value="false"
+            <!-- Sección: Información Básica -->
+            <div class="form-section">
+                <h5 class="section-title">Información Básica</h5>
+                <div class="row">
+                    <div class="col-md-7 col-12">
+                        <div class="form-group">
+                            <label class="form-label"
+                                >Nombre<span class="text-danger">*</span></label
+                            >
+                            <el-input
+                                v-model="form.name"
+                                maxlength="255"
+                                placeholder="Nombre del plan"
+                                class="form-control-custom"
                             />
                             <small
-                                class="form-text text-muted"
-                                v-if="form.is_socio"
-                            >
-                                Activado (se mostrarán características)
-                            </small>
-                            <small class="form-text text-muted" v-else>
-                                Desactivado (se mostrarán descuentos)
-                            </small>
+                                v-if="errors.name"
+                                class="form-control-feedback text-danger"
+                                v-text="errors.name[0]"
+                            ></small>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label">Slug</label>
+                            <el-input
+                                v-model="form.slug"
+                                maxlength="255"
+                                placeholder="Slug único"
+                                disabled
+                                class="form-control-custom"
+                            />
+                            <small
+                                v-if="errors.slug"
+                                class="form-control-feedback text-danger"
+                                v-text="errors.slug[0]"
+                            ></small>
+                        </div>
+                    </div>
+                    <div class="col-md-5 col-12">
+                        <div class="form-group switch-group">
+                            <div class="switch-item">
+                                <label class="form-label">Activo</label>
+                                <div class="switch-control">
+                                    <el-switch v-model="form.is_active" />
+                                </div>
+                            </div>
+                            <div class="switch-item mt-4">
+                                <label class="form-label">Plan Socio</label>
+                                <div class="switch-control">
+                                    <el-switch
+                                        v-model="form.is_socio"
+                                        @change="onIsSocioChange"
+                                        active-color="#13ce66"
+                                        inactive-color="#ff4949"
+                                        :active-value="true"
+                                        :inactive-value="false"
+                                    />
+                                </div>
+                                <small
+                                    class="form-text text-muted mt-1"
+                                    v-if="form.is_socio"
+                                >
+                                    Activado (se mostrarán características)
+                                </small>
+                                <small class="form-text text-muted mt-1" v-else>
+                                    Desactivado (se mostrarán descuentos)
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-12">
-                    <div class="form-group">
-                        <label>Descripción</label>
-                        <el-input
-                            v-model="form.description"
-                            type="textarea"
-                            placeholder="Descripción detallada del plan"
-                        />
-                        <small
-                            v-if="errors.description"
-                            class="form-control-feedback"
-                            v-text="errors.description[0]"
-                        ></small>
-                    </div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <div class="form-group">
-                        <label>Precio</label>
-                        <el-input-number
-                            v-model="form.price"
-                            :min="0"
-                            :step="0.01"
-                            placeholder="Precio"
-                        />
-                        <small
-                            v-if="errors.price"
-                            class="form-control-feedback"
-                            v-text="errors.price[0]"
-                        ></small>
-                    </div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <div class="form-group">
-                        <label>Cuota de Registro</label>
-                        <el-input-number
-                            v-model="form.signup_fee"
-                            :min="0"
-                            :step="0.01"
-                            placeholder="Cuota de Registro"
-                        />
-                        <small
-                            v-if="errors.signup_fee"
-                            class="form-control-feedback"
-                            v-text="errors.signup_fee[0]"
-                        ></small>
-                    </div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <div class="form-group">
-                        <label>Moneda</label>
-                        <el-select
-                            v-model="form.currency"
-                            placeholder="Selecciona una opción"
-                        >
-                            <el-option label="PEN" value="PEN" />
-                            <el-option label="USD" value="USD" />
-                        </el-select>
-                        <small
-                            v-if="errors.currency"
-                            class="form-control-feedback"
-                            v-text="errors.currency[0]"
-                        ></small>
-                    </div>
-                </div>
-                <div
-                    v-if="form.invoice_interval !== 'indeterminate'"
-                    class="col-md-6 col-12"
-                >
-                    <div class="form-group">
-                        <label>Periodo de Facturación</label>
-                        <el-input-number
-                            v-model="form.invoice_period"
-                            :min="1"
-                            @change="onInvoicePeriodChange"
-                        />
-                        <small
-                            v-if="errors.invoice_period"
-                            class="form-control-feedback"
-                            v-text="errors.invoice_period[0]"
-                        ></small>
-                    </div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <div class="form-group">
-                        <label>Intervalo de Facturación</label>
-                        <el-select
-                            v-model="form.invoice_interval"
-                            @change="onInvoiceIntervalChange"
-                            :disabled="form.is_socio"
-                        >
-                            <el-option
-                                label="Mes"
-                                value="month"
-                                :disabled="form.is_socio"
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group mt-3">
+                            <label class="form-label">Descripción</label>
+                            <el-input
+                                v-model="form.description"
+                                type="textarea"
+                                :rows="4"
+                                placeholder="Descripción detallada del plan"
+                                class="form-control-custom"
                             />
-                            <el-option label="Año" value="year" />
-                            <el-option
-                                label="Indeterminado"
-                                value="indeterminate"
-                                :disabled="form.is_socio"
+                            <small
+                                v-if="errors.description"
+                                class="form-control-feedback text-danger"
+                                v-text="errors.description[0]"
+                            ></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Condiciones Financieras -->
+            <div class="form-section">
+                <h5 class="section-title">Condiciones Financieras</h5>
+                <div class="row">
+                    <div class="col-md-6 col-12">
+                        <div class="form-group">
+                            <label class="form-label">Precio</label>
+                            <el-input-number
+                                v-model="form.price"
+                                :min="0"
+                                :step="0.01"
+                                placeholder="Precio"
+                                class="form-control-custom"
+                                style="width: 100%"
                             />
-                        </el-select>
-                        <small
-                            v-if="errors.invoice_interval"
-                            class="form-control-feedback"
-                            v-text="errors.invoice_interval[0]"
-                        ></small>
-                        <small
-                            v-if="form.is_socio"
-                            class="form-text text-muted"
-                        >
-                            Para planes socio, el intervalo siempre es anual
-                        </small>
+                            <small
+                                v-if="errors.price"
+                                class="form-control-feedback text-danger"
+                                v-text="errors.price[0]"
+                            ></small>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <div class="form-group">
+                            <label class="form-label">Cuota de Registro</label>
+                            <el-input-number
+                                v-model="form.signup_fee"
+                                :min="0"
+                                :step="0.01"
+                                placeholder="Cuota de Registro"
+                                class="form-control-custom"
+                                style="width: 100%"
+                            />
+                            <small
+                                v-if="errors.signup_fee"
+                                class="form-control-feedback text-danger"
+                                v-text="errors.signup_fee[0]"
+                            ></small>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6 col-12">
-                    <div class="form-group">
-                        <label>Orden de Clasificación</label>
-                        <el-input-number
-                            v-model="form.sort_order"
-                            :min="0"
-                            disabled
-                        />
-                        <small
-                            v-if="errors.sort_order"
-                            class="form-control-feedback"
-                            v-text="errors.sort_order[0]"
-                        ></small>
+
+                <div class="row mt-3">
+                    <div class="col-md-4 col-12">
+                        <div class="form-group">
+                            <label class="form-label">Moneda</label>
+                            <el-select
+                                v-model="form.currency"
+                                placeholder="Selecciona una opción"
+                                class="form-control-custom"
+                                style="width: 100%"
+                            >
+                                <el-option label="PEN" value="PEN" />
+                                <el-option label="USD" value="USD" />
+                            </el-select>
+                            <small
+                                v-if="errors.currency"
+                                class="form-control-feedback text-danger"
+                                v-text="errors.currency[0]"
+                            ></small>
+                        </div>
                     </div>
-                </div>
-                <div v-if="showFeatures" class="col-12 mt-2">
-                    <label
-                        >Características
-                        <span class="badge badge-info">Plan Socio</span></label
+
+                    <div class="col-md-4 col-12">
+                        <div class="form-group">
+                            <label class="form-label"
+                                >Intervalo de Facturación</label
+                            >
+                            <el-select
+                                v-model="form.invoice_interval"
+                                @change="onInvoiceIntervalChange"
+                                :disabled="form.is_socio"
+                                class="form-control-custom"
+                                style="width: 100%"
+                            >
+                                <el-option
+                                    label="Mes"
+                                    value="month"
+                                    :disabled="form.is_socio"
+                                />
+                                <el-option label="Año" value="year" />
+                                <el-option
+                                    label="Indeterminado"
+                                    value="indeterminate"
+                                    :disabled="form.is_socio"
+                                />
+                            </el-select>
+                            <small
+                                v-if="errors.invoice_interval"
+                                class="form-control-feedback text-danger"
+                                v-text="errors.invoice_interval[0]"
+                            ></small>
+                            <small
+                                v-if="form.is_socio"
+                                class="form-text text-muted mt-1"
+                            >
+                                Para planes socio, el intervalo siempre es anual
+                            </small>
+                        </div>
+                    </div>
+
+                    <div
+                        v-if="form.invoice_interval !== 'indeterminate'"
+                        class="col-md-4 col-12"
                     >
+                        <div class="form-group">
+                            <label class="form-label"
+                                >Periodo de Facturación</label
+                            >
+                            <el-input-number
+                                v-model="form.invoice_period"
+                                :min="1"
+                                @change="onInvoicePeriodChange"
+                                class="form-control-custom"
+                                style="width: 100%"
+                            />
+                            <small
+                                v-if="errors.invoice_period"
+                                class="form-control-feedback text-danger"
+                                v-text="errors.invoice_period[0]"
+                            ></small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-4 col-12">
+                        <div class="form-group">
+                            <label class="form-label"
+                                >Orden de Clasificación</label
+                            >
+                            <el-input-number
+                                v-model="form.sort_order"
+                                :min="0"
+                                disabled
+                                class="form-control-custom"
+                                style="width: 100%"
+                            />
+                            <small
+                                v-if="errors.sort_order"
+                                class="form-control-feedback text-danger"
+                                v-text="errors.sort_order[0]"
+                            ></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sección: Características o Descuentos según tipo de plan -->
+            <div class="form-section">
+                <div v-if="showFeatures">
+                    <h5 class="section-title">
+                        Características
+                        <span class="badge bg-info text-white">Plan Socio</span>
+                    </h5>
                     <div
                         v-for="(feature, idx) in form.features || []"
                         :key="'feature-' + idx"
-                        class="border rounded p-3 mb-2"
+                        class="feature-card"
                     >
                         <div class="row">
                             <div class="col-md-6 col-12">
-                                <el-input
-                                    v-model="feature.name"
-                                    placeholder="Nombre"
-                                    readonly
-                                />
+                                <div class="form-group">
+                                    <label class="form-label">Nombre</label>
+                                    <el-input
+                                        v-model="feature.name"
+                                        placeholder="Nombre"
+                                        readonly
+                                        class="form-control-custom"
+                                    />
+                                </div>
                             </div>
                             <div class="col-md-6 col-12">
-                                <el-input-number
-                                    v-model="feature.value"
-                                    placeholder="Valor"
-                                />
+                                <div class="form-group">
+                                    <label class="form-label">Valor</label>
+                                    <el-input-number
+                                        v-model="feature.value"
+                                        placeholder="Valor"
+                                        class="form-control-custom"
+                                        style="width: 100%"
+                                    />
+                                </div>
                             </div>
                         </div>
-                        <div class="row mt-2">
+                        <div class="row mt-3">
                             <div class="col-12">
-                                <el-input
-                                    v-model="feature.description"
-                                    placeholder="Descripción"
-                                />
+                                <div class="form-group">
+                                    <label class="form-label"
+                                        >Descripción</label
+                                    >
+                                    <el-input
+                                        v-model="feature.description"
+                                        placeholder="Descripción"
+                                        class="form-control-custom"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div v-else class="col-12 mt-2">
-                    <label
-                        >Descuentos
-                        <span class="badge badge-secondary"
+                <div v-else>
+                    <h5 class="section-title">
+                        Descuentos
+                        <span class="badge bg-secondary text-white"
                             >Plan Regular</span
-                        ></label
-                    >
+                        >
+                    </h5>
                     <div
                         v-for="(discount, idx) in form.discounts"
                         :key="'discount-' + idx"
-                        class="border rounded p-3 mb-2"
+                        class="discount-card"
                     >
                         <div class="row align-items-center">
                             <div class="col-md-8 col-12">
-                                <el-input v-model="discount.name" readonly />
+                                <div class="form-group">
+                                    <label class="form-label"
+                                        >Tipo de Descuento</label
+                                    >
+                                    <el-input
+                                        v-model="discount.name"
+                                        readonly
+                                        class="form-control-custom"
+                                    />
+                                </div>
                             </div>
                             <div class="col-md-4 col-12">
-                                <el-input-number
-                                    v-model="discount.value"
-                                    :min="0"
-                                    controls-position="right"
-                                    :step="1"
-                                />
+                                <div class="form-group">
+                                    <label class="form-label">Valor</label>
+                                    <el-input-number
+                                        v-model="discount.value"
+                                        :min="0"
+                                        controls-position="right"
+                                        :step="1"
+                                        class="form-control-custom"
+                                        style="width: 100%"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="form-actions text-right pt-2">
-                <el-button @click.prevent="close()">Cancelar</el-button>
+
+            <!-- Botones de acción -->
+            <div class="form-actions">
+                <el-button @click.prevent="close()" class="btn-cancel"
+                    >Cancelar</el-button
+                >
                 <el-button
                     :loading="loading_submit"
                     native-type="submit"
                     type="primary"
+                    class="btn-submit"
                     @click.prevent="submitForm"
                 >
                     {{ form.id ? "Actualizar" : "Guardar" }}
@@ -717,3 +807,176 @@ export default {
     }
 };
 </script>
+
+<style scoped>
+/* Estilos generales del formulario */
+.plan-form-dialog {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Arial, sans-serif;
+}
+
+:deep(.el-dialog__header) {
+    padding: 20px 24px;
+    border-bottom: 1px solid #ebeef5;
+    background-color: #f8f9fa;
+}
+
+:deep(.el-dialog__title) {
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: #2c3e50;
+}
+
+:deep(.el-dialog__body) {
+    padding: 24px;
+}
+
+:deep(.el-dialog__footer) {
+    padding: 16px 24px;
+    border-top: 1px solid #ebeef5;
+    background-color: #f8f9fa;
+}
+
+/* Secciones del formulario */
+.form-section {
+    margin-bottom: 30px;
+    padding: 24px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid #ebeef5;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #ebeef5;
+}
+
+/* Etiquetas y campos de formulario */
+.form-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #5a6774;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-text {
+    font-size: 0.8rem;
+    color: #8896a4;
+}
+
+.form-control-custom {
+    width: 100%;
+}
+
+:deep(.el-input__inner) {
+    height: 40px;
+    line-height: 40px;
+    border-radius: 4px;
+    border: 1px solid #dcdfe6;
+    transition: border-color 0.2s ease;
+}
+
+:deep(.el-input__inner:focus),
+:deep(.el-input__inner:hover) {
+    border-color: #409eff;
+}
+
+:deep(.el-textarea__inner) {
+    padding: 10px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    min-height: 100px;
+}
+
+:deep(.el-input-number) {
+    width: 100%;
+}
+
+:deep(.el-input-number .el-input__inner) {
+    text-align: left;
+    padding-right: 75px;
+}
+
+:deep(.el-switch) {
+    margin-top: 4px;
+}
+
+.text-danger {
+    color: #f56c6c !important;
+}
+
+/* Grupos de switches */
+.switch-group {
+    background-color: #f9fafb;
+    border-radius: 6px;
+    padding: 16px;
+    height: 100%;
+}
+
+.switch-item {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.switch-control {
+    margin-top: 8px;
+}
+
+/* Tarjetas para características y descuentos */
+.feature-card,
+.discount-card {
+    background-color: #f9fafb;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid #ebeef5;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover,
+.discount-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #d1dbe5;
+}
+
+/* Acciones del formulario */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.btn-submit {
+    padding: 10px 24px;
+    font-weight: 500;
+}
+
+.btn-cancel {
+    padding: 10px 20px;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.bg-info {
+    background-color: #409eff;
+}
+
+.bg-secondary {
+    background-color: #909399;
+}
+</style>

@@ -30,10 +30,12 @@ class CreateVehiculosTable extends Migration
             $table->string('color')->nullable();
             $table->year('year')->nullable();
             $table->date('fecha_ingreso')->nullable(); // Fecha de ingreso del vehículo
-            $table->enum('estado_tuc', ['TUC', 'RECIBO', 'TRAMITE BAJA', 'PAGO LOGO', 'NO REGISTRADO', 'DE BAJA', 'LIBRE'])->nullable(); // Estado del vehículo en el sistema TUC
+            $table->unsignedBigInteger('estado_tuc_id'); // ID del estado TUC
+            $table->foreign('estado_tuc_id')->references('id')->on('condiciones');
+            //$table->enum('estado_tuc', ['TUC', 'RECIBO', 'TRAMITE BAJA', 'PAGO LOGO', 'NO REGISTRADO', 'DE BAJA', 'LIBRE'])->nullable(); // Estado del vehículo en el sistema TUC
             $table->enum('estado', ['ACTIVO', 'DE BAJA', 'DE BAJA POR PAGO', 'SUSPECION POR TRABAJO', 'RETIRO']); // Ejemplo: ACTIVO, INACTIVO
             $table->unsignedBigInteger('propietario_id');
-            $table->foreign('propietario_id')->references('id')->on('propietarios')->onDelete('cascade');
+            $table->foreign('propietario_id')->references('id')->on('propietarios');
             $table->unsignedBigInteger('plan_id')->nullable(); // ID del plan de suscripción
             $table->unsignedBigInteger('subscription_id')->nullable(); // ID de la suscripción
             $table->unsignedInteger('user_id');

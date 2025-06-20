@@ -99,7 +99,6 @@ class PagosController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
-
         // Determinar si es un pago único o múltiple
         if (isset($data[0]) && is_array($data[0])) {
             // Es un pago de múltiples meses (array de arrays)

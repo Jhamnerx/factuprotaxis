@@ -191,6 +191,7 @@ export default {
                     this.closeModal();
                 } else {
                     this.$message.error(res.data.message || "Error al guardar");
+                    this.errors = res.data.errors || {};
                 }
             } catch (e) {
                 if (e.response && e.response.data) {

@@ -2,29 +2,30 @@
 
 namespace App\Models\Tenant;
 
-use App\Models\Tenant\Catalogs\AddressType;
-use App\Models\Tenant\Catalogs\Country;
-use App\Models\Tenant\Catalogs\Department;
-use App\Models\Tenant\Catalogs\District;
-use App\Models\Tenant\Catalogs\IdentityDocumentType;
-use App\Models\Tenant\Catalogs\Province;
-use Hyn\Tenancy\Traits\UsesTenantConnection;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Modules\DocumentaryProcedure\Models\DocumentaryFile;
+use Modules\Sale\Models\Contract;
 use Modules\Expense\Models\Expense;
 use Modules\Order\Models\OrderForm;
 use Modules\Order\Models\OrderNote;
-use Modules\Purchase\Models\FixedAssetPurchase;
-use Modules\Purchase\Models\PurchaseOrder;
-use Modules\Sale\Models\Contract;
-use Modules\Sale\Models\SaleOpportunity;
-use Modules\Sale\Models\TechnicalService;
 use App\Models\Tenant\Configuration;
-use Modules\FullSuscription\Models\Tenant\FullSuscriptionServerDatum;
-use Modules\FullSuscription\Models\Tenant\FullSuscriptionUserDatum;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Models\Tenant\Catalogs\Country;
+use App\Models\Tenant\Catalogs\District;
+use App\Models\Tenant\Catalogs\Province;
 use Illuminate\Notifications\Notifiable;
+use Modules\Sale\Models\SaleOpportunity;
+use App\Models\Tenant\Taxis\Propietarios;
+use Illuminate\Database\Eloquent\Builder;
+use Modules\Sale\Models\TechnicalService;
+use App\Models\Tenant\Catalogs\Department;
+use Modules\Purchase\Models\PurchaseOrder;
+use App\Models\Tenant\Catalogs\AddressType;
+use Hyn\Tenancy\Traits\UsesTenantConnection;
+use Illuminate\Database\Eloquent\Collection;
+use Modules\Purchase\Models\FixedAssetPurchase;
+use App\Models\Tenant\Catalogs\IdentityDocumentType;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Modules\DocumentaryProcedure\Models\DocumentaryFile;
+use Modules\FullSuscription\Models\Tenant\FullSuscriptionUserDatum;
+use Modules\FullSuscription\Models\Tenant\FullSuscriptionServerDatum;
 
 /**
  * App\Models\Tenant\Person
@@ -284,6 +285,11 @@ class Person extends Authenticatable
     public function address_type()
     {
         return $this->belongsTo(AddressType::class);
+    }
+
+    public function propietario()
+    {
+        return $this->hasOne(Propietarios::class, 'person_id', 'id');
     }
 
     /**

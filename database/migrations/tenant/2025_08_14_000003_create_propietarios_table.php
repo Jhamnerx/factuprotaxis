@@ -30,7 +30,10 @@ class CreatePropietariosTable extends Migration
             $table->boolean('enabled')->default(true)->index();
             $table->text('website')->nullable()->comment('Sitio Web');
             $table->unsignedInteger('user_id')->nullable();
+            $table->unsignedInteger('person_id');
             $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('person_id')->references('id')->on('persons');
+
             $table->softDeletes();
             $table->timestamps();
 

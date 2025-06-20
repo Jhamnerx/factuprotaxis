@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Tenant;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PropietarioRequest extends FormRequest
 {
@@ -13,13 +14,30 @@ class PropietarioRequest extends FormRequest
 
     public function rules()
     {
+        $id = $this->input('id');
+
         return [
             'identity_document_type_id' => 'required|string',
-            'number' => 'required|string|max:11',
-            'name' => 'required|string|max:255',
+            'number' => [
+                'required',
+                Rule::unique('tenant.propietarios')->where(function ($query) use ($id) {
+                    return $query->where('id', '<>', $id);
+                })
+            ],
+            'name' => [
+                'required',
+                Rule::unique('tenant.propietarios')->where(function ($query) use ($id) {
+                    return $query->where('id', '<>', $id);
+                })
+            ],
             'telephone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'country_id' => 'required|string|max:2',
+            'email' => [
+                'nullable',
+                'email',
+            ],
+            'country_id' => [
+                'required',
+            ],
             'department_id' => 'nullable|string|max:2',
             'province_id' => 'nullable|string|max:4',
             'district_id' => 'nullable|string|max:6',
