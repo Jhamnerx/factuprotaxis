@@ -60,6 +60,12 @@ class CompanyResource extends JsonResource
             'qr_api_enable_ws' => $configuration->qr_api_enable,
             'qr_api_url_ws' => $configuration->qr_api_url,
             'qr_api_key_ws' => $configuration->qr_api_apiKey,
+            'codigo' => $this->codigo,
+            'partida_registral' => $this->partida_registral,
+            'representante_legal_name' => $this->representante_legal_name,
+            'representante_legal_dni' => $this->representante_legal_dni,
+            'representante_legal_email' => $this->representante_legal_email,
+            'representante_legal_phone' => $this->representante_legal_phone,
         ];
     }
 }

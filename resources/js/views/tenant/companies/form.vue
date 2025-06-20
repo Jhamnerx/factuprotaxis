@@ -1,7 +1,9 @@
 <template>
     <div>
         <div class="page-header pr-0">
-            <h2><a href="#"><i class="fas fa-cogs"></i></a></h2>
+            <h2>
+                <a href="#"><i class="fas fa-cogs"></i></a>
+            </h2>
             <ol class="breadcrumbs">
                 <li class="active"><span>Configuración</span></li>
                 <li><span class="text-muted">Empresa</span></li>
@@ -10,11 +12,12 @@
         <div class="card">
             <div class="card-header bg-info">
                 <h3 class="my-0">Datos de la Empresa</h3>
-                <h4 class="d-flex m-0 align-items-center">RUC: {{ form.number }}</h4>
+                <h4 class="d-flex m-0 align-items-center">
+                    RUC: {{ form.number }}
+                </h4>
             </div>
             <div class="card-body">
-                <form autocomplete="off"
-                      @submit.prevent="submit">
+                <form autocomplete="off" @submit.prevent="submit">
                     <div class="form-body">
                         <div class="row">
                             <!-- <div class="col-md-6">
@@ -30,66 +33,150 @@
                                 </div>
                             </div> -->
                             <div class="col-md-6">
-                                <div :class="{'has-danger': errors.name}"
-                                     class="form-group">
-                                    <label class="control-label">Nombre <span class="text-danger">*</span></label>
+                                <div
+                                    :class="{ 'has-danger': errors.name }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Nombre
+                                        <span class="text-danger"
+                                            >*</span
+                                        ></label
+                                    >
                                     <el-input v-model="form.name"></el-input>
-                                    <small v-if="errors.name"
-                                           class="form-control-feedback"
-                                           v-text="errors.name[0]"></small>
+                                    <small
+                                        v-if="errors.name"
+                                        class="form-control-feedback"
+                                        v-text="errors.name[0]"
+                                    ></small>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div :class="{'has-danger': errors.trade_name}"
-                                     class="form-group">
-                                    <label class="control-label">Nombre comercial
-                                        <span class="text-danger">*</span></label>
-                                    <el-input v-model="form.trade_name"></el-input>
-                                    <small v-if="errors.trade_name"
-                                           class="form-control-feedback"
-                                           v-text="errors.trade_name[0]"></small>
+                                <div
+                                    :class="{ 'has-danger': errors.trade_name }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Nombre comercial
+                                        <span class="text-danger"
+                                            >*</span
+                                        ></label
+                                    >
+                                    <el-input
+                                        v-model="form.trade_name"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.trade_name"
+                                        class="form-control-feedback"
+                                        v-text="errors.trade_name[0]"
+                                    ></small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div
+                                    :class="{ 'has-danger': errors.codigo }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Código Empresa
+                                        <span class="text-danger"
+                                            >*</span
+                                        ></label
+                                    >
+                                    <el-input v-model="form.codigo"></el-input>
+                                    <small
+                                        v-if="errors.codigo"
+                                        class="form-control-feedback"
+                                        v-text="errors.codigo[0]"
+                                    ></small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div
+                                    :class="{
+                                        'has-danger': errors.partida_registral
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Partida Registral
+                                        <span class="text-danger"
+                                            >*</span
+                                        ></label
+                                    >
+                                    <el-input
+                                        v-model="form.partida_registral"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.partida_registral"
+                                        class="form-control-feedback"
+                                        v-text="errors.partida_registral[0]"
+                                    ></small>
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Logo(modo claro)</label>
-                                    <el-input v-model="form.logo"
-                                              :readonly="true">
-                                        <el-upload slot="append"
-                                                   :data="{'type': 'logo'}"
-                                                   :headers="headers"
-                                                   :on-success="successUpload"
-                                                   :on-error="errorUpload"
-                                                   :show-file-list="false"
-                                                   action="/companies/uploads">
-                                            <el-button icon="el-icon-upload"
-                                                       type="primary"></el-button>
+                                    <label class="control-label"
+                                        >Logo(modo claro)</label
+                                    >
+                                    <el-input
+                                        v-model="form.logo"
+                                        :readonly="true"
+                                    >
+                                        <el-upload
+                                            slot="append"
+                                            :data="{ type: 'logo' }"
+                                            :headers="headers"
+                                            :on-success="successUpload"
+                                            :on-error="errorUpload"
+                                            :show-file-list="false"
+                                            action="/companies/uploads"
+                                        >
+                                            <el-button
+                                                icon="el-icon-upload"
+                                                type="primary"
+                                            ></el-button>
                                         </el-upload>
                                     </el-input>
-                                    <div class="sub-title text-danger"><small>Se recomienda resoluciones 700x300</small>
+                                    <div class="sub-title text-danger">
+                                        <small
+                                            >Se recomienda resoluciones
+                                            700x300</small
+                                        >
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Logo (modo oscuro)</label>
-                                    <el-input v-model="form.logo_dark"
-                                              :readonly="true">
-                                        <el-upload slot="append"
-                                                   :data="{'type': 'logo_dark'}"
-                                                   :headers="headers"
-                                                   :on-success="successUpload"
-                                                   :on-error="errorUpload"
-                                                   :show-file-list="false"
-                                                   action="/companies/uploads">
-                                            <el-button icon="el-icon-upload"
-                                                       type="primary"></el-button>
+                                    <label class="control-label"
+                                        >Logo (modo oscuro)</label
+                                    >
+                                    <el-input
+                                        v-model="form.logo_dark"
+                                        :readonly="true"
+                                    >
+                                        <el-upload
+                                            slot="append"
+                                            :data="{ type: 'logo_dark' }"
+                                            :headers="headers"
+                                            :on-success="successUpload"
+                                            :on-error="errorUpload"
+                                            :show-file-list="false"
+                                            action="/companies/uploads"
+                                        >
+                                            <el-button
+                                                icon="el-icon-upload"
+                                                type="primary"
+                                            ></el-button>
                                         </el-upload>
                                     </el-input>
                                     <div class="sub-title text-danger">
-                                        <small>Se recomienda resoluciones 700x300</small>
+                                        <small
+                                            >Se recomienda resoluciones
+                                            700x300</small
+                                        >
                                     </div>
                                 </div>
                             </div>
@@ -110,144 +197,237 @@
                                 </div>
                             </div> -->
                             <div class="col-md-6">
-                                <div :class="{'has-danger': errors.detraction_account}"
-                                     class="form-group">
-                                    <label class="control-label">N° Cuenta de detracción</label>
-                                    <el-input v-model="form.detraction_account"></el-input>
-                                    <small v-if="errors.detraction_account"
-                                           class="form-control-feedback"
-                                           v-text="errors.detraction_account[0]"></small>
+                                <div
+                                    :class="{
+                                        'has-danger': errors.detraction_account
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >N° Cuenta de detracción</label
+                                    >
+                                    <el-input
+                                        v-model="form.detraction_account"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.detraction_account"
+                                        class="form-control-feedback"
+                                        v-text="errors.detraction_account[0]"
+                                    ></small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Rúbrica (Firma digital)</label>
-                                    <el-input v-model="form.img_firm"
-                                              :readonly="true">
-                                        <el-upload slot="append"
-                                                   :data="{'type': 'img_firm'}"
-                                                   :headers="headers"
-                                                   :on-success="successUpload"
-                                                   :on-error="errorUpload"
-                                                   :show-file-list="false"
-                                                   action="/companies/uploads">
-                                            <el-button icon="el-icon-upload"
-                                                       type="primary"></el-button>
+                                    <label class="control-label"
+                                        >Rúbrica (Firma digital)</label
+                                    >
+                                    <el-input
+                                        v-model="form.img_firm"
+                                        :readonly="true"
+                                    >
+                                        <el-upload
+                                            slot="append"
+                                            :data="{ type: 'img_firm' }"
+                                            :headers="headers"
+                                            :on-success="successUpload"
+                                            :on-error="errorUpload"
+                                            :show-file-list="false"
+                                            action="/companies/uploads"
+                                        >
+                                            <el-button
+                                                icon="el-icon-upload"
+                                                type="primary"
+                                            ></el-button>
                                         </el-upload>
                                     </el-input>
-                                    <div class="sub-title text-danger"><small>Se recomienda resoluciones 700x300</small>
+                                    <div class="sub-title text-danger">
+                                        <small
+                                            >Se recomienda resoluciones
+                                            700x300</small
+                                        >
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Favicon (ícono web)</label>
-                                    <el-input v-model="form.favicon"
-                                              :readonly="true">
-                                        <el-upload slot="append"
-                                                   :data="{'type': 'favicon'}"
-                                                   :headers="headers"
-                                                   :on-success="successUpload"
-                                                   :on-error="errorUpload"
-                                                   :show-file-list="false"
-                                                   action="/companies/uploads">
-                                            <el-button icon="el-icon-upload"
-                                                       type="primary"></el-button>
+                                    <label class="control-label"
+                                        >Favicon (ícono web)</label
+                                    >
+                                    <el-input
+                                        v-model="form.favicon"
+                                        :readonly="true"
+                                    >
+                                        <el-upload
+                                            slot="append"
+                                            :data="{ type: 'favicon' }"
+                                            :headers="headers"
+                                            :on-success="successUpload"
+                                            :on-error="errorUpload"
+                                            :show-file-list="false"
+                                            action="/companies/uploads"
+                                        >
+                                            <el-button
+                                                icon="el-icon-upload"
+                                                type="primary"
+                                            ></el-button>
                                         </el-upload>
                                     </el-input>
-                                    <div class="sub-title text-danger"><small>Se recomienda una imagen con fondo transparente y cuadrada en PNG</small></div>
+                                    <div class="sub-title text-danger">
+                                        <small
+                                            >Se recomienda una imagen con fondo
+                                            transparente y cuadrada en
+                                            PNG</small
+                                        >
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Título (nombre web)</label>
-                                    <el-input v-model="form.title_web"></el-input>
-                                    <div class="sub-title text-muted"><small>Requiere recargar la página</small></div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="control-label">Logo APP</label>
-                                    <el-input v-model="form.app_logo"
-                                              :readonly="true">
-                                        <el-upload slot="append"
-                                                   :data="{'type': 'app_logo'}"
-                                                   :headers="headers"
-                                                   :on-success="successUpload"
-                                                   :on-error="errorUpload"
-                                                   :show-file-list="false"
-                                                   action="/companies/uploads">
-                                            <el-button icon="el-icon-upload"
-                                                       type="primary"></el-button>
-                                        </el-upload>
-                                    </el-input>
-                                    <div class="sub-title text-danger"><small>Se recomienda color blanco</small>
+                                    <label class="control-label"
+                                        >Título (nombre web)</label
+                                    >
+                                    <el-input
+                                        v-model="form.title_web"
+                                    ></el-input>
+                                    <div class="sub-title text-muted">
+                                        <small
+                                            >Requiere recargar la página</small
+                                        >
                                     </div>
                                 </div>
                             </div>
 
-                            <div v-if="form.soap_type_id == '02'"
-                                 class="col-md-6">
-                                <div :class="{'has-danger': errors.certificate_due}"
-                                     class="form-group">
-                                    <label class="control-label">Vencimiento de Certificado</label>
-                                    <el-date-picker v-model="form.certificate_due"
-                                                    :clearable="true"
-                                                    type="date"
-                                                    value-format="yyyy-MM-dd"></el-date-picker>
-                                    <small v-if="errors.certificate_due"
-                                           class="form-control-feedback"
-                                           v-text="errors.certificate_due[0]"></small>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label"
+                                        >Logo APP</label
+                                    >
+                                    <el-input
+                                        v-model="form.app_logo"
+                                        :readonly="true"
+                                    >
+                                        <el-upload
+                                            slot="append"
+                                            :data="{ type: 'app_logo' }"
+                                            :headers="headers"
+                                            :on-success="successUpload"
+                                            :on-error="errorUpload"
+                                            :show-file-list="false"
+                                            action="/companies/uploads"
+                                        >
+                                            <el-button
+                                                icon="el-icon-upload"
+                                                type="primary"
+                                            ></el-button>
+                                        </el-upload>
+                                    </el-input>
+                                    <div class="sub-title text-danger">
+                                        <small
+                                            >Se recomienda color blanco</small
+                                        >
+                                    </div>
                                 </div>
                             </div>
-                            <div v-show="false"
-                                 class="col-md-6 mt-4">
-                                <div :class="{'has-danger': errors.operation_amazonia}"
-                                     class="form-group">
-                                    <el-checkbox v-model="form.operation_amazonia">¿Emite en la Amazonía?</el-checkbox>
+
+                            <div
+                                v-if="form.soap_type_id == '02'"
+                                class="col-md-6"
+                            >
+                                <div
+                                    :class="{
+                                        'has-danger': errors.certificate_due
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Vencimiento de Certificado</label
+                                    >
+                                    <el-date-picker
+                                        v-model="form.certificate_due"
+                                        :clearable="true"
+                                        type="date"
+                                        value-format="yyyy-MM-dd"
+                                    ></el-date-picker>
+                                    <small
+                                        v-if="errors.certificate_due"
+                                        class="form-control-feedback"
+                                        v-text="errors.certificate_due[0]"
+                                    ></small>
+                                </div>
+                            </div>
+                            <div v-show="false" class="col-md-6 mt-4">
+                                <div
+                                    :class="{
+                                        'has-danger': errors.operation_amazonia
+                                    }"
+                                    class="form-group"
+                                >
+                                    <el-checkbox
+                                        v-model="form.operation_amazonia"
+                                        >¿Emite en la Amazonía?</el-checkbox
+                                    >
                                 </div>
                             </div>
                         </div>
                         <!-- Datos de farmacia -->
-                        <div v-show="form.is_pharmacy"
-                             class="row">
+                        <div v-show="form.is_pharmacy" class="row">
                             <div class="col-md-12 mt-2">
                                 <h4 class="border-bottom">Datos de farmacia</h4>
                             </div>
                         </div>
-                        <div v-show="form.is_pharmacy"
-                             class="row">
+                        <div v-show="form.is_pharmacy" class="row">
                             <div class="col-md-12">
-                                <div :class="{'has-danger': errors.cod_digemid}"
-                                     class="form-group">
-                                    <label class="control-label">Código de observación DIGEMID</label>
+                                <div
+                                    :class="{
+                                        'has-danger': errors.cod_digemid
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Código de observación DIGEMID</label
+                                    >
                                     <!-- :disabled="!form.config_system_env" -->
-                                    <el-input v-model="form.cod_digemid"></el-input>
+                                    <el-input
+                                        v-model="form.cod_digemid"
+                                    ></el-input>
                                     <!-- <div class="sub-title text-muted"><small>RUC + Usuario. Ejemplo: 01234567890ELUSUARIO</small></div>-->
-                                    <small v-if="errors.cod_digemid"
-                                           class="form-control-feedback"
-                                           v-text="errors.cod_digemid[0]"></small>
+                                    <small
+                                        v-if="errors.cod_digemid"
+                                        class="form-control-feedback"
+                                        v-text="errors.cod_digemid[0]"
+                                    ></small>
                                 </div>
                             </div>
                         </div>
                         <!-- Entorno del sistema -->
                         <div class="row">
                             <div class="col-md-12 mt-2">
-                                <h4 class="border-bottom">Entorno del sistema</h4>
+                                <h4 class="border-bottom">
+                                    Entorno del sistema
+                                </h4>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
-                                <div :class="{'has-danger': errors.soap_type_id}"
-                                     class="form-group">
-                                    <label class="control-label">SOAP Tipo</label>
-                                    <el-select v-model="form.soap_type_id"
-                                               :disabled="!form.config_system_env">
-                                        <el-option v-for="option in soap_types"
-                                                   :key="option.id"
-                                                   :label="option.description"
-                                                   :value="option.id"></el-option>
+                                <div
+                                    :class="{
+                                        'has-danger': errors.soap_type_id
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >SOAP Tipo</label
+                                    >
+                                    <el-select
+                                        v-model="form.soap_type_id"
+                                        :disabled="!form.config_system_env"
+                                    >
+                                        <el-option
+                                            v-for="option in soap_types"
+                                            :key="option.id"
+                                            :label="option.description"
+                                            :value="option.id"
+                                        ></el-option>
                                     </el-select>
 
                                     <!-- <el-checkbox
@@ -255,83 +435,144 @@
                                            v-model="toggle"
                                            label="Ingresar Usuario">
                                     </el-checkbox> -->
-                                    <small v-if="errors.soap_type_id"
-                                           class="form-control-feedback"
-                                           v-text="errors.soap_type_id[0]"></small>
+                                    <small
+                                        v-if="errors.soap_type_id"
+                                        class="form-control-feedback"
+                                        v-text="errors.soap_type_id[0]"
+                                    ></small>
                                 </div>
                             </div>
-                            <div v-if="form.soap_type_id != '03'"
-                                 class="col-md-6">
-                                <div :class="{'has-danger': errors.soap_send_id}"
-                                     class="form-group">
-                                    <label class="control-label">SOAP Envio</label>
-                                    <el-select v-model="form.soap_send_id"
-                                               :disabled="!form.config_system_env">
-                                        <el-option v-for="(option, index) in soap_sends"
-                                                   :key="index"
-                                                   :label="option"
-                                                   :value="index"></el-option>
+                            <div
+                                v-if="form.soap_type_id != '03'"
+                                class="col-md-6"
+                            >
+                                <div
+                                    :class="{
+                                        'has-danger': errors.soap_send_id
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >SOAP Envio</label
+                                    >
+                                    <el-select
+                                        v-model="form.soap_send_id"
+                                        :disabled="!form.config_system_env"
+                                    >
+                                        <el-option
+                                            v-for="(option,
+                                            index) in soap_sends"
+                                            :key="index"
+                                            :label="option"
+                                            :value="index"
+                                        ></el-option>
                                     </el-select>
-                                    <small v-if="errors.soap_send_id"
-                                           class="form-control-feedback"
-                                           v-text="errors.soap_send_id[0]"></small>
+                                    <small
+                                        v-if="errors.soap_send_id"
+                                        class="form-control-feedback"
+                                        v-text="errors.soap_send_id[0]"
+                                    ></small>
                                 </div>
                             </div>
                         </div>
-                        <template v-if="form.soap_type_id == '02' || form.soap_send_id == '02'">
+                        <template
+                            v-if="
+                                form.soap_type_id == '02' ||
+                                    form.soap_send_id == '02'
+                            "
+                        >
                             <div class="row">
                                 <div class="col-md-12 mt-2">
-                                    <h4 class="border-bottom">Usuario Secundario Sunat/OSE</h4>
+                                    <h4 class="border-bottom">
+                                        Usuario Secundario Sunat/OSE
+                                    </h4>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div :class="{'has-danger': errors.soap_username}"
-                                         class="form-group">
-                                        <label class="control-label">SOAP Usuario <span
-                                            class="text-danger">*</span></label>
-                                        <el-input v-model="form.soap_username"
-                                                  :disabled="!form.config_system_env"></el-input>
-                                        <div class="sub-title text-muted"><small>RUC + Usuario. Ejemplo:
-                                                                                 01234567890ELUSUARIO</small></div>
-                                        <small v-if="errors.soap_username"
-                                               class="form-control-feedback"
-                                               v-text="errors.soap_username[0]"></small>
+                                    <div
+                                        :class="{
+                                            'has-danger': errors.soap_username
+                                        }"
+                                        class="form-group"
+                                    >
+                                        <label class="control-label"
+                                            >SOAP Usuario
+                                            <span class="text-danger"
+                                                >*</span
+                                            ></label
+                                        >
+                                        <el-input
+                                            v-model="form.soap_username"
+                                            :disabled="!form.config_system_env"
+                                        ></el-input>
+                                        <div class="sub-title text-muted">
+                                            <small
+                                                >RUC + Usuario. Ejemplo:
+                                                01234567890ELUSUARIO</small
+                                            >
+                                        </div>
+                                        <small
+                                            v-if="errors.soap_username"
+                                            class="form-control-feedback"
+                                            v-text="errors.soap_username[0]"
+                                        ></small>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div :class="{'has-danger': errors.soap_password}"
-                                         class="form-group">
-                                        <label class="control-label">SOAP Password
-                                            <span class="text-danger">*</span></label>
-                                        <el-input v-model="form.soap_password"
-                                                  :disabled="!form.config_system_env"></el-input>
-                                        <small v-if="errors.soap_password"
-                                               class="form-control-feedback"
-                                               v-text="errors.soap_password[0]"></small>
+                                    <div
+                                        :class="{
+                                            'has-danger': errors.soap_password
+                                        }"
+                                        class="form-group"
+                                    >
+                                        <label class="control-label"
+                                            >SOAP Password
+                                            <span class="text-danger"
+                                                >*</span
+                                            ></label
+                                        >
+                                        <el-input
+                                            v-model="form.soap_password"
+                                            :disabled="!form.config_system_env"
+                                        ></el-input>
+                                        <small
+                                            v-if="errors.soap_password"
+                                            class="form-control-feedback"
+                                            v-text="errors.soap_password[0]"
+                                        ></small>
                                     </div>
                                 </div>
                             </div>
                         </template>
 
-                        <div v-if="form.soap_send_id == '02'"
-                             class="row">
+                        <div v-if="form.soap_send_id == '02'" class="row">
                             <div class="col-md-12">
-                                <div :class="{'has-danger': errors.soap_url}"
-                                     class="form-group">
-                                    <label class="control-label">SOAP Url</label>
-                                    <el-input v-model="form.soap_url"></el-input>
-                                    <small v-if="errors.soap_url"
-                                           class="form-control-feedback"
-                                           v-text="errors.soap_url[0]"></small>
+                                <div
+                                    :class="{ 'has-danger': errors.soap_url }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >SOAP Url</label
+                                    >
+                                    <el-input
+                                        v-model="form.soap_url"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.soap_url"
+                                        class="form-control-feedback"
+                                        v-text="errors.soap_url[0]"
+                                    ></small>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="form-actions text-right pt-2">
-                        <el-button :loading="loading_submit"
-                                   native-type="submit"
-                                   type="primary">Guardar
+                        <el-button
+                            :loading="loading_submit"
+                            native-type="submit"
+                            type="primary"
+                            >Guardar
                         </el-button>
                     </div>
                 </form>
@@ -339,44 +580,181 @@
         </div>
         <div class="card">
             <div class="card-header bg-info">
-                <h3 class="my-0">Consulta integrada de CPE - Validador de documentos
-                    <el-tooltip class="item"
-                                content="Obtener los datos desde el portal de Sunat"
-                                effect="dark"
-                                placement="top-start">
+                <h3 class="my-0">
+                    Consulta integrada de CPE - Validador de documentos
+                    <el-tooltip
+                        class="item"
+                        content="Obtener los datos desde el portal de Sunat"
+                        effect="dark"
+                        placement="top-start"
+                    >
                         <i class="fa fa-info-circle"></i>
                     </el-tooltip>
                 </h3>
             </div>
             <div class="card-body">
-                <form autocomplete="off"
-                      @submit.prevent="submit">
+                <form autocomplete="off" @submit.prevent="submit">
                     <div class="row">
                         <div class="col-md-6">
-                            <div :class="{'has-danger': errors.integrated_query_client_id}"
-                                 class="form-group">
+                            <div
+                                :class="{
+                                    'has-danger':
+                                        errors.integrated_query_client_id
+                                }"
+                                class="form-group"
+                            >
                                 <label class="control-label">Client ID</label>
-                                <el-input v-model="form.integrated_query_client_id"></el-input>
-                                <small v-if="errors.integrated_query_client_id"
-                                       class="form-control-feedback"
-                                       v-text="errors.integrated_query_client_id[0]"></small>
+                                <el-input
+                                    v-model="form.integrated_query_client_id"
+                                ></el-input>
+                                <small
+                                    v-if="errors.integrated_query_client_id"
+                                    class="form-control-feedback"
+                                    v-text="
+                                        errors.integrated_query_client_id[0]
+                                    "
+                                ></small>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div :class="{'has-danger': errors.integrated_query_client_secret}"
-                                 class="form-group">
-                                <label class="control-label">Client Secret (Clave)</label>
-                                <el-input v-model="form.integrated_query_client_secret"></el-input>
-                                <small v-if="errors.integrated_query_client_secret"
-                                       class="form-control-feedback"
-                                       v-text="errors.integrated_query_client_secret[0]"></small>
+                            <div
+                                :class="{
+                                    'has-danger':
+                                        errors.integrated_query_client_secret
+                                }"
+                                class="form-group"
+                            >
+                                <label class="control-label"
+                                    >Client Secret (Clave)</label
+                                >
+                                <el-input
+                                    v-model="
+                                        form.integrated_query_client_secret
+                                    "
+                                ></el-input>
+                                <small
+                                    v-if="errors.integrated_query_client_secret"
+                                    class="form-control-feedback"
+                                    v-text="
+                                        errors.integrated_query_client_secret[0]
+                                    "
+                                ></small>
                             </div>
                         </div>
                     </div>
                     <div class="form-actions text-right pt-2">
-                        <el-button :loading="loading_submit"
-                                   native-type="submit"
-                                   type="primary">Guardar
+                        <el-button
+                            :loading="loading_submit"
+                            native-type="submit"
+                            type="primary"
+                            >Guardar
+                        </el-button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-info">
+                <h3 class="my-0">
+                    Datos de modulo de Taxis
+                    <el-tooltip
+                        class="item"
+                        content="Datos del representante legal de la empresa"
+                        effect="dark"
+                        placement="top-start"
+                    >
+                        <i class="fa fa-info-circle"></i>
+                    </el-tooltip>
+                </h3>
+            </div>
+            <div class="card-body">
+                <form autocomplete="off" @submit.prevent="submit">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div
+                                :class="{
+                                    'has-danger':
+                                        errors.representante_legal_name
+                                }"
+                                class="form-group"
+                            >
+                                <label class="control-label"
+                                    >Nombre del representante legal</label
+                                >
+                                <el-input
+                                    v-model="form.representante_legal_name"
+                                ></el-input>
+                                <small
+                                    v-if="errors.representante_legal_name"
+                                    class="form-control-feedback"
+                                    v-text="errors.representante_legal_name[0]"
+                                ></small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div
+                                :class="{
+                                    'has-danger': errors.representante_legal_dni
+                                }"
+                                class="form-group"
+                            >
+                                <label class="control-label">DNI </label>
+                                <el-input
+                                    v-model="form.representante_legal_dni"
+                                ></el-input>
+                                <small
+                                    v-if="errors.representante_legal_dni"
+                                    class="form-control-feedback"
+                                    v-text="errors.representante_legal_dni[0]"
+                                ></small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div
+                                :class="{
+                                    'has-danger':
+                                        errors.representante_legal_email
+                                }"
+                                class="form-group"
+                            >
+                                <label class="control-label">Email </label>
+                                <el-input
+                                    v-model="form.representante_legal_email"
+                                ></el-input>
+                                <small
+                                    v-if="errors.representante_legal_email"
+                                    class="form-control-feedback"
+                                    v-text="errors.representante_legal_email[0]"
+                                ></small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div
+                                :class="{
+                                    'has-danger':
+                                        errors.representante_legal_phone
+                                }"
+                                class="form-group"
+                            >
+                                <label class="control-label">N° Celular </label>
+                                <el-input
+                                    v-model="form.representante_legal_phone"
+                                ></el-input>
+                                <small
+                                    v-if="errors.representante_legal_phone"
+                                    class="form-control-feedback"
+                                    v-text="errors.representante_legal_phone[0]"
+                                ></small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions text-right pt-2">
+                        <el-button
+                            :loading="loading_submit"
+                            native-type="submit"
+                            type="primary"
+                            >Guardar
                         </el-button>
                     </div>
                 </form>
@@ -387,67 +765,114 @@
                 <h3 class="my-0">Guías electrónicas</h3>
             </div>
             <div class="card-body">
-                <form autocomplete="off"
-                      @submit.prevent="submit">
+                <form autocomplete="off" @submit.prevent="submit">
                     <div class="form-body">
                         <div class="row">
                             <div class="col-md-12">
-                                <h4 class="border-bottom">Usuario Secundario Sunat</h4>
+                                <h4 class="border-bottom">
+                                    Usuario Secundario Sunat
+                                </h4>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
-                                <div :class="{'has-danger': errors.soap_sunat_username}"
-                                     class="form-group">
-                                    <label class="control-label">SOAP Usuario</label>
-                                    <el-input v-model="form.soap_sunat_username"
-                                              :disabled="!form.config_system_env"></el-input>
-                                    <div class="sub-title text-muted"><small>RUC + Usuario. Ejemplo:
-                                        01234567890ELUSUARIO</small></div>
-                                    <small v-if="errors.soap_sunat_username"
-                                           class="form-control-feedback"
-                                           v-text="errors.soap_sunat_username[0]"></small>
+                                <div
+                                    :class="{
+                                        'has-danger': errors.soap_sunat_username
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >SOAP Usuario</label
+                                    >
+                                    <el-input
+                                        v-model="form.soap_sunat_username"
+                                        :disabled="!form.config_system_env"
+                                    ></el-input>
+                                    <div class="sub-title text-muted">
+                                        <small
+                                            >RUC + Usuario. Ejemplo:
+                                            01234567890ELUSUARIO</small
+                                        >
+                                    </div>
+                                    <small
+                                        v-if="errors.soap_sunat_username"
+                                        class="form-control-feedback"
+                                        v-text="errors.soap_sunat_username[0]"
+                                    ></small>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div :class="{'has-danger': errors.soap_sunat_password}"
-                                     class="form-group">
-                                    <label class="control-label">SOAP Password</label>
-                                    <el-input v-model="form.soap_sunat_password"
-                                              :disabled="!form.config_system_env"></el-input>
-                                    <small v-if="errors.soap_sunat_password"
-                                           class="form-control-feedback"
-                                           v-text="errors.soap_sunat_password[0]"></small>
+                                <div
+                                    :class="{
+                                        'has-danger': errors.soap_sunat_password
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >SOAP Password</label
+                                    >
+                                    <el-input
+                                        v-model="form.soap_sunat_password"
+                                        :disabled="!form.config_system_env"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.soap_sunat_password"
+                                        class="form-control-feedback"
+                                        v-text="errors.soap_sunat_password[0]"
+                                    ></small>
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
-                                <div :class="{'has-danger': errors.api_sunat_id}"
-                                     class="form-group">
-                                    <label class="control-label">Client ID</label>
-                                    <el-input v-model="form.api_sunat_id"></el-input>
-                                    <small v-if="errors.api_sunat_id"
-                                           class="form-control-feedback"
-                                           v-text="errors.api_sunat_id[0]"></small>
+                                <div
+                                    :class="{
+                                        'has-danger': errors.api_sunat_id
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Client ID</label
+                                    >
+                                    <el-input
+                                        v-model="form.api_sunat_id"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.api_sunat_id"
+                                        class="form-control-feedback"
+                                        v-text="errors.api_sunat_id[0]"
+                                    ></small>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div :class="{'has-danger': errors.api_sunat_secret}"
-                                     class="form-group">
-                                    <label class="control-label">Client Secret (Clave)</label>
-                                    <el-input v-model="form.api_sunat_secret"></el-input>
-                                    <small v-if="errors.api_sunat_secret"
-                                           class="form-control-feedback"
-                                           v-text="errors.api_sunat_secret[0]"></small>
+                                <div
+                                    :class="{
+                                        'has-danger': errors.api_sunat_secret
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Client Secret (Clave)</label
+                                    >
+                                    <el-input
+                                        v-model="form.api_sunat_secret"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.api_sunat_secret"
+                                        class="form-control-feedback"
+                                        v-text="errors.api_sunat_secret[0]"
+                                    ></small>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="form-actions text-right pt-2">
-                        <el-button :loading="loading_submit"
-                                   native-type="submit"
-                                   type="primary">Guardar
+                        <el-button
+                            :loading="loading_submit"
+                            native-type="submit"
+                            type="primary"
+                            >Guardar
                         </el-button>
                     </div>
                 </form>
@@ -460,82 +885,70 @@
 </template>
 
 <script>
-import {mapActions, mapState} from "vuex";
-import TokenRucDni from './token_ruc_dni.vue'
-import SireConfiguration from '../sire/partials/configuration.vue'
-
+import { mapActions, mapState } from "vuex";
+import TokenRucDni from "./token_ruc_dni.vue";
+import SireConfiguration from "../sire/partials/configuration.vue";
 
 export default {
     components: {
         TokenRucDni,
-        SireConfiguration,
+        SireConfiguration
     },
     computed: {
-        ...mapState([
-            'config',
-        ]),
+        ...mapState(["config"])
     },
     data() {
         return {
             loading_submit: false,
             headers: headers_token,
-            resource: 'companies',
+            resource: "companies",
             errors: {},
             form: {},
             soap_sends: [],
             soap_types: [],
-            toggle: false, //Creando el objeto a retornar con v-model
-        }
+            toggle: false //Creando el objeto a retornar con v-model
+        };
     },
     async created() {
-        await this.initForm()
-        await this.$http.get(`/${this.resource}/tables`)
-            .then(response => {
-                this.soap_sends = response.data.soap_sends
-                this.soap_types = response.data.soap_types
-                // console.log(1)
-            })
-        await this.$http.get(`/${this.resource}/record`)
-            .then(response => {
-                if (response.data !== '') {
-                    this.form = response.data.data
-                }
-                // console.log(2)
+        await this.initForm();
+        await this.$http.get(`/${this.resource}/tables`).then(response => {
+            this.soap_sends = response.data.soap_sends;
+            this.soap_types = response.data.soap_types;
+            // console.log(1)
+        });
+        await this.$http.get(`/${this.resource}/record`).then(response => {
+            if (response.data !== "") {
+                this.form = response.data.data;
+            }
+            // console.log(2)
+        });
 
-            })
-
-        this.events()
+        this.events();
     },
     methods: {
-        ...mapActions([
-            'loadConfiguration',
-        ]),
-        events(){
-
-            this.$eventHub.$on('reloadDataCompany', () => {
-                this.getRecord()
-            })
-
+        ...mapActions(["loadConfiguration"]),
+        events() {
+            this.$eventHub.$on("reloadDataCompany", () => {
+                this.getRecord();
+            });
         },
-        async getRecord(){
-
-            await this.$http.get(`/${this.resource}/record`)
-                    .then(response => {
-                        if (response.data !== '') {
-                            this.form = response.data.data
-                        }
-                    })
+        async getRecord() {
+            await this.$http.get(`/${this.resource}/record`).then(response => {
+                if (response.data !== "") {
+                    this.form = response.data.data;
+                }
+            });
         },
         initForm() {
-            this.errors = {}
+            this.errors = {};
             this.form = {
                 id: null,
-                identity_document_type_id: '06000006',
+                identity_document_type_id: "06000006",
                 number: null,
                 name: null,
                 trade_name: null,
-                soap_send_id: '01',
-                soap_type_id: '01',
+                soap_send_id: "01",
+                soap_type_id: "01",
                 soap_username: null,
                 soap_password: null,
                 soap_url: null,
@@ -558,43 +971,54 @@ export default {
                 soap_sunat_password: null,
                 api_sunat_id: null,
                 api_sunat_secret: null,
-                title_web: null
-            }
+                title_web: null,
+                codigo: null,
+                partida_registral: null,
+                representante_legal_name: null,
+                representante_legal_dni: null,
+                representante_legal_email: null,
+                representante_legal_phone: null
+            };
         },
         submit() {
-            this.loading_submit = true
-            this.$http.post(`/${this.resource}`, this.form)
+            this.loading_submit = true;
+            this.$http
+                .post(`/${this.resource}`, this.form)
                 .then(response => {
                     if (response.data.success) {
-                        this.$message.success(response.data.message)
+                        this.$message.success(response.data.message);
                     } else {
-                        this.$message.error(response.data.message)
+                        this.$message.error(response.data.message);
                     }
                 })
                 .catch(error => {
                     if (error.response.status === 422) {
-                        this.errors = error.response.data
+                        this.errors = error.response.data;
                     } else {
-                        console.log(error)
+                        console.log(error);
                     }
                 })
                 .then(() => {
-                    this.loading_submit = false
-                })
+                    this.loading_submit = false;
+                });
         },
         successUpload(response, file, fileList) {
-
             if (response.success) {
-                this.$message.success(response.message)
-                this.form[response.type] = response.name
+                this.$message.success(response.message);
+                this.form[response.type] = response.name;
             } else {
-                this.$message({message: 'Error al subir el archivo', type: 'error'})
+                this.$message({
+                    message: "Error al subir el archivo",
+                    type: "error"
+                });
             }
         },
-        errorUpload(error)
-        {
-            this.$message({message: 'Error al subir el archivo', type: 'error'})
+        errorUpload(error) {
+            this.$message({
+                message: "Error al subir el archivo",
+                type: "error"
+            });
         }
     }
-}
+};
 </script>

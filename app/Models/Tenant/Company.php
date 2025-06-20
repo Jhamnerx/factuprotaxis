@@ -53,7 +53,13 @@ class Company extends ModelTenant
         'soap_sunat_password',
         'api_sunat_id',
         'api_sunat_secret',
-        'title_web'
+        'title_web',
+        'codigo',
+        'partida_registral',
+        'representante_legal_name',
+        'representante_legal_dni',
+        'representante_legal_email',
+        'representante_legal_phone',
     ];
 
     protected $casts = [
