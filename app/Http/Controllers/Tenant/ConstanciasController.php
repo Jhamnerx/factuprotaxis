@@ -92,6 +92,50 @@ class ConstanciasController extends Controller
         $constancia->delete();
         return response()->json(['success' => true, 'message' => 'Constancia eliminada correctamente']);
     }
+    /**
+     * Busca constancias por número o fecha de emisión y filtra por vehículo ID
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function searchConstancias(Request $request)
+    {
+        $q = $request->input('q');
+        $v = $request->input('v');
+
+        $query = ConstanciaBaja::query();
+
+        // Primero filtramos por vehiculo_id
+        if ($v) {
+            $query->whereHas('detalle', function ($q) use ($v) {
+                $q->where('vehiculo_id', $v);
+            });
+        }
+
+        // Luego aplicamos el filtro de búsqueda si se proporciona
+        if ($q) {
+            $query->where(function ($subquery) use ($q) {
+                $subquery->where('numero', 'like', "%{$q}%")
+                    ->orWhere('fecha_emision', 'like', "%{$q}%");
+            });
+        }
+
+        $constancias = $query->orderBy('id', 'desc')
+            ->take(15)
+            ->get()
+            ->map(function ($constancia) {
+                return $constancia->getCollectionData();
+            });
+
+        return response()->json([
+            'data' => $constancias,
+            'debug' => [
+                'query' => $q,
+                'vehiculo_id' => $v,
+                'count' => count($constancias)
+            ]
+        ]);
+    }
 
     public function tables()
     {

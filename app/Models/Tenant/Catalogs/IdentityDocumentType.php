@@ -2,16 +2,17 @@
 
 namespace App\Models\Tenant\Catalogs;
 
-use App\Models\Tenant\Company;
 use App\Models\Tenant\Person;
-use Hyn\Tenancy\Traits\UsesTenantConnection;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Modules\BusinessTurn\Models\DocumentHotel;
-use Modules\BusinessTurn\Models\DocumentTransport;
-use Modules\Order\Models\Dispatcher;
+use App\Models\Tenant\Company;
 use Modules\Order\Models\Driver;
+use Modules\Dispatch\Models\Dispatcher;
+use Illuminate\Database\Eloquent\Builder;
+use Hyn\Tenancy\Traits\UsesTenantConnection;
+use Illuminate\Database\Eloquent\Collection;
+use Modules\BusinessTurn\Models\DocumentHotel;
+
+use Modules\BusinessTurn\Models\DocumentTransport;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Class CatIdentityDocumentType

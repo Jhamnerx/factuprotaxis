@@ -14,6 +14,7 @@ class CreateVehiculosTable extends Migration
         Schema::create('vehiculos', function (Blueprint $table) {
             $table->unsignedBigInteger('id')->autoIncrement();
             $table->string('numero_interno')->unique();
+            $table->string('flota')->nullable(); // Flota del vehículo
             $table->string('placa')->unique();
             $table->decimal('largo', 8, 2)->nullable(); // Largo del vehículo
             $table->decimal('ancho', 8, 2)->nullable();

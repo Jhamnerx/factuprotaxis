@@ -30,6 +30,10 @@ class SolicitudDetalle extends ModelTenant
         'correcciones' => 'array',
     ];
 
+    protected $with = [
+        'infoVehiculo',
+    ];
+
     public function solicitud()
     {
         return $this->belongsTo(Solicitud::class);
@@ -37,6 +41,6 @@ class SolicitudDetalle extends ModelTenant
 
     public function infoVehiculo()
     {
-        return $this->belongsTo(Vehiculos::class);
+        return $this->belongsTo(Vehiculos::class, 'vehiculo_id', 'id');
     }
 }

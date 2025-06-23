@@ -19,6 +19,7 @@ class SolicitudUpdateRequest extends FormRequest
             'descripcion' => 'nullable|string',
             'motivo' => 'nullable|string',
             'tipo_baja' => 'nullable|string',
+            'constancia_id' => 'required_if:tipo_baja,constancia',
             'observaciones' => 'nullable|string',
             'estado' => 'nullable|string',
             'fecha' => 'nullable|date',
@@ -39,6 +40,7 @@ class SolicitudUpdateRequest extends FormRequest
             'fecha.date' => 'La fecha debe ser una fecha válida.',
             'documentos_adjuntos.array' => 'Los documentos adjuntos deben ser un arreglo.',
             'detalles.array' => 'Los detalles deben ser un arreglo.',
+            'constancia_id.required_if' => 'El campo constancia_id es obligatorio cuando el tipo de baja es constancia.',
         ];
     }
 }

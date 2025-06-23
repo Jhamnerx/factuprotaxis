@@ -171,7 +171,11 @@ export default {
             this.showDocs = true;
         },
         descargarPDF(row) {
-            window.open(`/solicitudes/pdf/${row.id}`);
+            if (row.download_solicitud) {
+                window.open(row.download_solicitud, "_blank");
+            } else {
+                this.$message.error("No se ha encontrado la URL del contrato");
+            }
         },
         getColumnsToShow(updated) {
             this.$http

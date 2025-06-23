@@ -481,7 +481,7 @@ if ($hostname) {
             Route::delete('constancias/{constancia}', 'Tenant\ConstanciasController@destroy');
             Route::get('constancias/tables', 'Tenant\ConstanciasController@tables');
             Route::get('constancias/search/vehiculos', 'Tenant\ConstanciasController@searchVehiculos');
-
+            Route::get('constancias/search', 'Tenant\ConstanciasController@searchConstancias');
 
 
             Route::get('declaraciones', 'Tenant\DeclaracionesController@index')->name('tenant.taxi.declaraciones.index');
@@ -493,6 +493,9 @@ if ($hostname) {
             Route::get('declaraciones/tables', 'Tenant\DeclaracionesController@tables');
             Route::get('declaraciones/search/vehiculos', 'Tenant\DeclaracionesController@searchVehiculos');
 
+
+            Route::get('pdf/contrato/{vehiculo}', 'Tenant\PdfController@contrato')->name('tenant.pdf.contrato');
+            Route::get('pdf/solicitudes/{vehiculo}', 'Tenant\PdfController@solicitudes')->name('tenant.pdf.solicitud');
 
             /** Dispatches
              * dispatches

@@ -15,6 +15,8 @@ class CreateSolicitudesTable extends Migration
             $table->unsignedBigInteger('id')->autoIncrement();
             $table->enum('tipo', ['registro', 'baja', 'cambio_propietario', 'emision', 'correccion_datos']);
             $table->text('tipo_baja')->nullable();
+            $table->unsignedBigInteger('constancia_id')->nullable();
+            $table->foreign('constancia_id')->references('id')->on('constancias_baja')->onDelete('set null');
             $table->text('descripcion')->nullable(); // Descripción del motivo o contexto de la solicitud
             $table->text('motivo')->nullable(); // Motivo de la solicitud
             $table->unsignedInteger('usuario_id')->nullable(); // ID del usuario que realiza la solicitud

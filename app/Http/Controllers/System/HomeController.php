@@ -28,7 +28,7 @@ class HomeController extends Controller
         }
         $i_used = $i_used != "" ? substr($i_used, 0, -1) : 0;
 
-        $df = new Process('du -sh '.storage_path().' | cut -f1');
+        $df = new Process('du -sh ' . storage_path() . ' | cut -f1');
         $df->run();
         $storage_size = $df->getOutput();
         $storage_size = $storage_size != "" ? substr($storage_size, 0, -1) : 0;
@@ -38,14 +38,17 @@ class HomeController extends Controller
         $version = $id->getOutput();
         // $tag = new Process('git tag | sort -V | tail -1');
         // $tag->run();
-        // $res_tag = $tag->getOutput();
-        // $version = $res_tag.' - '.$res_id;
 
-        return view('system.dashboard')->with('clients', count($clients))
-                ->with('delete_permission', $delete_permission)
-                ->with('disc_used', $disc_used)
-                ->with('i_used', $i_used)
-                ->with('storage_size', $storage_size)
-                ->with('version', $version);
+        return view('system.dashboard', compact('clients', 'delete_permission', 'disc_used', 'i_used', 'storage_size', 'version'));
+    }
+
+    /**
+     * Redirect to dashboard
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function redirectToDashboard()
+    {
+        return redirect()->route('system.dashboard');
     }
 }

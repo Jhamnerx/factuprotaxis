@@ -5,6 +5,7 @@ namespace App\Http\Requests\Tenant;
 
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 
 class VehiculoRequest extends FormRequest
 {
@@ -28,21 +29,21 @@ class VehiculoRequest extends FormRequest
             'propietario_id' => 'required|exists:tenant.propietarios,id',
             'marca_id' => 'required|exists:tenant.marcas,id',
             'modelo_id' => 'required|exists:tenant.modelos,id',
-            'color' => 'nullable|string|max:50',
-            'year' => 'nullable|integer|min:1900|max:' . date('Y'),
-            'fecha_ingreso' => 'nullable|date',
+            'color' => 'required|string|max:80',
+            'year' => 'required|integer|min:1900|max:' . date('Y'),
+            'fecha_ingreso' => 'required|date',
             'estado' => 'required|string',
-            'estado_tuc' => 'nullable|string',
-            'largo' => 'nullable|numeric',
-            'ancho' => 'nullable|numeric',
-            'alto' => 'nullable|numeric',
-            'peso' => 'nullable|numeric',
-            'carga_util' => 'nullable|numeric',
-            'ccn' => 'nullable|string|max:50',
-            'numero_motor' => 'nullable|string|max:50',
-            'ejes' => 'nullable|integer',
-            'asientos' => 'nullable|integer',
-            'categoria' => 'nullable|string|max:50',
+            'estado_tuc_id' => 'required',
+            'largo' => 'required|numeric',
+            'ancho' => 'required|numeric',
+            'alto' => 'required|numeric',
+            'peso' => 'required|numeric',
+            'carga_util' => 'required|numeric',
+            'ccn' => 'required|string|max:50',
+            'numero_motor' => 'required|string|max:50',
+            'ejes' => 'required|integer',
+            'asientos' => 'required|integer',
+            'categoria' => 'required|string|max:50',
             'user_id' => 'nullable|exists:users,id',
         ];
 

@@ -74,7 +74,7 @@
 
 <body>
     <div class="header">
-        <h1>SOLICITUD DE {{ strtoupper($solicitud->getTipoTexto()) }}</h1>
+        <h1>SOLICITUD DE</h1>
         <h2>N° {{ str_pad($solicitud->id, 6, '0', STR_PAD_LEFT) }}</h2>
         <p>Fecha: {{ $solicitud->fecha->format('d/m/Y') }}</p>
     </div>
@@ -84,9 +84,9 @@
         <table>
             <tr>
                 <th>Tipo de Solicitud</th>
-                <td>{{ $solicitud->getTipoTexto() }}</td>
+                <td></td>
                 <th>Estado</th>
-                <td>{{ $solicitud->getEstadoTexto() }}</td>
+                <td></td>
             </tr>
             <tr>
                 <th>Fecha</th>

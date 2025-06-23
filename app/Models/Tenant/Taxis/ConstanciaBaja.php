@@ -22,7 +22,6 @@ class ConstanciaBaja extends ModelTenant
     protected $fillable = [
         'numero',
         'vehiculo_id',
-
         'estado',
         'fecha_emision',
         'observaciones',

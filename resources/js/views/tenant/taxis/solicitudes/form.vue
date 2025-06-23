@@ -120,6 +120,47 @@
                             </div>
                             <div
                                 class="col-md-6"
+                                v-if="
+                                    form.tipo_baja === 'constancia' &&
+                                        vehiculoSeleccionado
+                                "
+                            >
+                                <div class="form-group">
+                                    <label class="control-label"
+                                        >Constancia
+                                        <span class="text-danger"
+                                            >*</span
+                                        ></label
+                                    >
+                                    <el-select
+                                        v-model="form.constancia_id"
+                                        placeholder="Seleccione una constancia"
+                                        filterable
+                                        remote
+                                        reserve-keyword
+                                        :remote-method="searchRemoteConstancias"
+                                        :loading="loadingConstancias"
+                                    >
+                                        <el-option
+                                            v-for="constancia in constancias"
+                                            :key="constancia.id"
+                                            :label="
+                                                constancia.vehiculo.placa +
+                                                    ' - ' +
+                                                    constancia.fecha_emision
+                                            "
+                                            :value="constancia.id"
+                                        />
+                                    </el-select>
+                                    <small
+                                        v-if="errors.constancia_id"
+                                        class="form-control-feedback"
+                                        v-text="errors.constancia_id[0]"
+                                    />
+                                </div>
+                            </div>
+                            <div
+                                class="col-md-6"
                                 v-if="form.tipo === 'emision'"
                             >
                                 <div class="form-group">
@@ -409,6 +450,7 @@ export default {
                 descripcion: null,
                 motivo: null,
                 tipo_baja: null,
+                constancia_id: null,
                 unidades_emision: [],
                 correcciones: [],
                 observaciones: null,
@@ -428,10 +470,12 @@ export default {
             },
             vehiculos: [],
             all_vehiculos: [],
+            constancias: [],
             propietarioActual: "",
             fileList: [],
             vehiculoDetalleId: null,
             loadingVehiculos: false,
+            loadingConstancias: false,
             selectAllEmision: false,
             errors: {},
             vehiculoSeleccionado: null
@@ -444,10 +488,22 @@ export default {
             );
         }
     },
+    watch: {
+        "form.tipo_baja"(newVal) {
+            if (newVal !== "constancia") {
+                this.form.constancia_id = null;
+                this.constancias = [];
+            } else if (newVal === "constancia" && this.vehiculoSeleccionado) {
+                // Si cambia a constancia y ya hay un vehículo seleccionado, cargar las constancias
+                this.searchRemoteConstancias("");
+            }
+        }
+    },
     async created() {
         await this.$http.get(`/${this.resource}/tables`).then(response => {
             this.vehiculos = response.data.vehiculos;
             this.all_vehiculos = response.data.vehiculos;
+            //this.constancias = response.data.constancias_baja;
         });
         await this.fetchVehiculos();
         if (this.recordId) this.fetchRecord();
@@ -460,6 +516,7 @@ export default {
                 descripcion: null,
                 motivo: null,
                 tipo_baja: null,
+                constancia_id: null,
                 unidades_emision: [],
                 correcciones: [],
                 observaciones: null,
@@ -533,10 +590,56 @@ export default {
                 this.loadingVehiculos = false;
             }
         },
+        searchRemoteConstancias(query) {
+            console.log(
+                "Buscando constancias con query:",
+                query,
+                "para vehículo:",
+                this.vehiculoSeleccionado
+            );
+
+            if (this.vehiculoSeleccionado) {
+                this.loadingConstancias = true;
+
+                // Enviar el ID del vehículo seleccionado como parámetro v
+                this.$http
+                    .get("/constancias/search", {
+                        params: {
+                            q: query,
+                            v: this.vehiculoSeleccionado
+                        }
+                    })
+                    .then(r => {
+                        console.log("Constancias recibidas:", r.data.data);
+                        this.constancias = r.data.data;
+                    })
+                    .catch(error => {
+                        console.error("Error al cargar constancias:", error);
+                        this.constancias = [];
+                    })
+                    .finally(() => {
+                        this.loadingConstancias = false;
+                    });
+            } else {
+                // Si no hay vehículo seleccionado, limpiar la lista de constancias
+                console.log(
+                    "No hay vehículo seleccionado, no se cargan constancias"
+                );
+                this.constancias = [];
+                this.loadingConstancias = false;
+            }
+        },
         changeVehiculo(val) {
             const v = this.vehiculos.find(x => x.id === val);
             this.propietarioActual =
                 v && v.propietario ? v.propietario.name : "";
+
+            // Si es tipo constancia, resetear el valor de constancia_id y cargar constancias
+            if (this.form.tipo_baja === "constancia") {
+                this.form.constancia_id = null;
+                // Usar searchRemoteConstancias con string vacío para cargar todas las constancias disponibles
+                this.searchRemoteConstancias("");
+            }
             // Para todos los tipos, siempre que se seleccione un vehículo, agregarlo a detalle (si no existe)
             if (v && !this.form.detalle.some(d => d.id === v.id)) {
                 this.form.detalle = [

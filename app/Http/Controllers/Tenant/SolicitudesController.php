@@ -4,20 +4,21 @@ namespace App\Http\Controllers\Tenant;
 
 use Exception;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\Facade\PDF;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\Configuration;
 use App\Models\Tenant\Taxis\Vehiculo;
 use App\Models\Tenant\Taxis\Solicitud;
 use App\Models\Tenant\Taxis\Vehiculos;
+use Illuminate\Support\Facades\Storage;
+use App\Models\Tenant\Taxis\ConstanciaBaja;
 use App\Models\Tenant\Taxis\SolicitudDetalle;
 use Modules\Finance\Helpers\UploadFileHelper;
 use App\Http\Resources\Tenant\SolicitudResource;
 use App\Http\Resources\Tenant\SolicitudCollection;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\Tenant\SolicitudUpdateRequest;
 
 class SolicitudesController extends Controller
@@ -90,9 +91,20 @@ class SolicitudesController extends Controller
                 return $row->getCollectionData();
             });
 
+        $constancias_baja = ConstanciaBaja::query()
+            ->whereHas('datosVehiculo', function ($q) {
+                $q->where('estado', 'activo');
+            })
+            ->orderBy('id', 'desc')
+            ->take(20)
+            ->get()->transform(function ($row) {
+                /** @var ConstanciaBaja $row */
+                return $row->getCollectionData();
+            });
+
         $configuration = Configuration::first();
 
-        return compact('vehiculos', 'configuration');
+        return compact('vehiculos', 'configuration', 'constancias_baja');
     }
 
     public function record($id)

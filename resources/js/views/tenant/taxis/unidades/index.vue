@@ -418,6 +418,16 @@
                                                 : "Registrar plan"
                                         }}
                                     </button>
+                                    <button
+                                        class="dropdown-item"
+                                        @click.prevent="
+                                            downloadContrato(
+                                                row.download_contrato
+                                            )
+                                        "
+                                    >
+                                        Descargar Contrato
+                                    </button>
                                 </div>
                             </div>
                         </td>
@@ -560,6 +570,13 @@ export default {
             this.destroy(`/${this.resource}/${id}`).then(() =>
                 this.$eventHub.$emit("reloadData")
             );
+        },
+        downloadContrato(url) {
+            if (url) {
+                window.open(url, "_blank");
+            } else {
+                this.$message.error("No se ha encontrado la URL del contrato");
+            }
         },
         closeDialog() {
             this.showDialog = false;

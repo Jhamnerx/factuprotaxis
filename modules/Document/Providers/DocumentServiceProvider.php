@@ -39,10 +39,11 @@ class DocumentServiceProvider extends ServiceProvider
     protected function registerConfig()
     {
         $this->publishes([
-            __DIR__.'/../Config/config.php' => config_path('document.php'),
+            __DIR__ . '/../Config/config.php' => config_path('document.php'),
         ], 'config');
         $this->mergeConfigFrom(
-            __DIR__.'/../Config/config.php', 'document'
+            __DIR__ . '/../Config/config.php',
+            'document'
         );
     }
 
@@ -55,12 +56,11 @@ class DocumentServiceProvider extends ServiceProvider
     {
         $viewPath = resource_path('views/modules/document');
 
-        $sourcePath = __DIR__.'/../Resources/views';
+        $sourcePath = __DIR__ . '/../Resources/views';
 
         $this->publishes([
             $sourcePath => $viewPath
-        ],'views');
-
+        ], 'views');
         $this->loadViewsFrom(array_merge(array_map(function ($path) {
             return $path . '/modules/document';
         }, \Config::get('view.paths')), [$sourcePath]), 'document');
@@ -78,7 +78,7 @@ class DocumentServiceProvider extends ServiceProvider
         if (is_dir($langPath)) {
             $this->loadTranslationsFrom($langPath, 'document');
         } else {
-            $this->loadTranslationsFrom(__DIR__ .'/../Resources/lang', 'document');
+            $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'document');
         }
     }
 
