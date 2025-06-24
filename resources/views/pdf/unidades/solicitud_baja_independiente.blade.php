@@ -86,11 +86,6 @@
             padding: 15px;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
         .titulo-solicito {
             font-weight: bold;
             margin: 30px 0 20px 0;

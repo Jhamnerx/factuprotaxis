@@ -22,6 +22,7 @@ class ConstanciaBaja extends ModelTenant
     protected $fillable = [
         'numero',
         'vehiculo_id',
+        'vehiculo',
         'estado',
         'fecha_emision',
         'observaciones',
@@ -33,12 +34,19 @@ class ConstanciaBaja extends ModelTenant
         'estado' => 'string',
         'vehiculo_id' => 'integer',
         'user_id' => 'integer',
+        'vehiculo' => 'array',
     ];
 
     public function datosVehiculo()
     {
         return $this->belongsTo(Vehiculos::class, 'vehiculo_id', 'id');
     }
+
+    public function getDownloadConstanciaAttribute()
+    {
+        return route('tenant.pdf.constancia', ['constancia' => $this]);
+    }
+
 
     public function getCollectionData()
     {
@@ -52,6 +60,7 @@ class ConstanciaBaja extends ModelTenant
             'estado' => $this->estado,
             'fecha_emision' => $this->fecha_emision ? $this->fecha_emision->format('Y-m-d') : null,
             'observaciones' => $this->observaciones,
+            'download_constancia' => $this->download_constancia,
             'user_id' => $this->user_id,
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,

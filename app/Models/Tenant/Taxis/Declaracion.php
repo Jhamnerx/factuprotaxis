@@ -41,6 +41,13 @@ class Declaracion extends ModelTenant
         return $this->belongsTo(User::class, 'user_id');
     }
 
+
+    public function getDownloadDeclaracionAttribute()
+    {
+        return route('tenant.pdf.declaracion', ['declaracion' => $this]);
+    }
+
+
     public function getCollectionData()
     {
         $vehiculo = $this->datosVehiculo ? $this->datosVehiculo->getCollectionData() : null;
@@ -54,6 +61,7 @@ class Declaracion extends ModelTenant
             'observaciones' => $this->observaciones,
             'creador' => $this->creator ? $this->creator->getCollectionData() : null,
             'user_id' => $this->user_id,
+            'download_declaracion' => $this->download_declaracion,
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d') : null,
         ];

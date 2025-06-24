@@ -12,14 +12,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitud de Baja por Constancia de Empresa</title>
     <style>
-        @page {
+        {!! $stylesheet !!} @page {
             margin-top: 0.5cm;
             margin-bottom: 1.5cm;
             margin-left: 2cm;
             margin-right: 2cm;
-            size: 21cm 29.7cm;
-            /* A4 */
         }
+
 
         * {
             box-sizing: border-box;
@@ -45,7 +44,6 @@
             height: 1.2cm;
             text-align: center;
             padding-top: 3px;
-            background-color: rgba(255, 255, 255, 0.98);
         }
 
         footer {
@@ -70,8 +68,7 @@
             margin-top: 1.7cm;
             margin-bottom: 1.2cm;
             text-align: justify;
-            color: #333;
-            background-color: white;
+
         }
 
         /* Contenido principal centrado */
@@ -285,7 +282,7 @@
                 <tr>
                     <td width="80" valign="top"><strong>SOLICITO:</strong></td>
                     <td class="solicito-contenido">
-                        Baja de vehículo POR CONSTANCIA DE BAJA DE EMPRESA
+                        Baja de vehículo
                     </td>
                 </tr>
             </table>

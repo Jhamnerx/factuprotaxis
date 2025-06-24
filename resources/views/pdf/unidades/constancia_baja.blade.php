@@ -2,6 +2,7 @@
 <html lang="es">
 @php
     $logo = "storage/uploads/logos/{$company->logo}";
+    $img_firm = "storage/uploads/firms/{$company->img_firm}";
 @endphp
 
 <head>
@@ -26,7 +27,7 @@
             top: 0cm;
             left: 0cm;
             right: 0cm;
-            height: a.2cm;
+            height: 1.2cm;
             text-align: center;
             padding-top: 3px;
         }
@@ -46,11 +47,13 @@
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 10px;
-            line-height: 1.4;
+            line-height: 1.5;
             position: relative;
             margin-top: 1.7cm;
             margin-bottom: 1.2cm;
             text-align: justify;
+            orphans: 2;
+            widows: 2;
         }
 
         /* Contenido principal centrado */
@@ -74,88 +77,152 @@
             display: block;
         }
 
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .titulo {
+            font-weight: bold;
+            text-align: center;
+            margin: 30px 0;
+            font-size: 11px;
+        }
+
         .text-center {
             text-align: center;
         }
 
         .title {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 20px;
+            margin: 0.5cm 0;
             text-transform: uppercase;
+            position: relative;
         }
 
         .subtitle {
-            font-size: 16px;
+            font-size: 11px;
             font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        .content {
-            font-size: 14px;
-            line-height: 1.5;
-            text-align: justify;
-        }
-
-        .fecha {
-            margin-top: 30px;
-            text-align: right;
-        }
-
-        .firma {
-            margin-top: 80px;
+            margin: 0.5cm 0;
+            text-transform: uppercase;
             text-align: center;
         }
 
-        .linea-firma {
-            border-top: 1px solid #000;
-            width: 250px;
-            margin: 0 auto;
+        .content {
+            font-size: 10px;
+            line-height: 1.5;
+            text-align: justify;
+            margin: 0.5cm 0;
         }
 
-        .nombre-firma {
-            margin-top: 5px;
-            font-weight: bold;
+        .fecha {
+            text-align: left;
+            margin: 0.2cm 0 0.5cm 0;
+            font-size: 10px;
         }
 
-        .header {
-            margin-bottom: 30px;
-        }
-
-        .logo {
-            max-width: 150px;
-            max-height: 100px;
-        }
-
-        table.detalles {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        table.detalles th,
-        table.detalles td {
-            border: 1px solid #ddd;
-            padding: 8px;
+        .firma {
+            width: 40%;
+            display: table-cell;
+            vertical-align: top;
             text-align: left;
         }
 
-        table.detalles th {
-            background-color: #f2f2f2;
+        .firma img {
+            max-width: 180px;
+            max-height: 80px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .logo {
+            text-align: center;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .table-vehiculo {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.5cm 0;
+        }
+
+        .table-vehiculo td {
+            padding: 0.15cm;
+            font-size: 10px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+
+        .table-vehiculo td:first-child {
+            width: 5.5cm;
             font-weight: bold;
+            background-color: #f9f9f9;
+        }
+
+        .baja-enfasis {
+            font-weight: bold;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .destaque {
+            font-weight: bold;
+            margin: 0.5cm 0 0.3cm 0;
+            font-size: 11px;
+            text-align: left;
+        }
+
+        /* Sección inferior con firma y adjuntos */
+        .bottom-section {
+            width: 100%;
+            margin-top: 0.2cm;
+            display: table;
+        }
+
+        .adjuntos {
+            width: 50%;
+            display: table-cell;
+            vertical-align: top;
+            border: 1px dashed #aaa;
+            padding: 0.1cm;
+            border-radius: 4px;
+        }
+
+        .adjuntos ul {
+            margin: 0;
+            padding-left: 15px;
+            columns: 2;
+        }
+
+        .adjuntos li {
+            margin-bottom: 2px;
+            font-size: 8px;
+        }
+
+        .seccion-titulo {
+            font-weight: bold;
+            font-size: 8px;
+            margin-bottom: 0.1cm;
+            background-color: #eaeaea;
+            padding: 1px 2px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ddd;
         }
     </style>
 </head>
 
 <body>
     <header>
-        <div class="center-logo">
+        <div class="logo">
             <img src="data:{{ mime_content_type(public_path("{$logo}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$logo}"))) }}"
                 alt="{{ $company->name }}" class="company_logo" style="max-width: 90px; margin: 0 auto;">
         </div>
     </header>
-
     <footer>
         <div>
             RUC: {{ $company->number }} | {{ $establishment->address }} | {{ $establishment->email }}
@@ -167,89 +234,140 @@
 
     <!-- Este div mantiene el espacio adecuado entre el header y el contenido en todas las páginas -->
     <div class="header-space"></div>
-
     <main>
-        <div class="header">
-            <table width="100%">
+        <div class="title">CONSTANCIA DE BAJA</div>
+
+        <div class="subtitle">
+            EL GERENTE DE LA EMPRESA {{ strtoupper($company->name) }} QUE SUSCRIBE:
+        </div>
+
+        <div class="content">
+            <p class="destaque">HACE CONSTAR:</p>
+            @php
+                // Determinar si estamos usando $constancia o $solicitud
+                if (isset($constancia) && !is_null($constancia)) {
+                    $unidad = $constancia->vehiculo;
+                    $fecha_doc = $constancia->fecha_emision;
+                } else {
+                    $unidad = $solicitud->detalle->first()->infoVehiculo;
+                    $fecha_doc = $solicitud->fecha;
+                }
+            @endphp
+            <table class="table-vehiculo">
                 <tr>
-                    <td width="100%" class="text-center">
-                        <h1>{{ $company->name }}</h1>
-                        <p>{{ $establishment->address }} - {{ $establishment->department }},
-                            {{ $establishment->province }},
-                            {{ $establishment->district }}</p>
+                    <td>Placa de Rodaje N°</td>
+                    <td>
+                        @if (isset($unidad['placa']))
+                            {{ $unidad['placa'] }}
+                        @else
+                            {{ $unidad->placa }}
+                        @endif
                     </td>
-                    <td width="20%">
-                        <div class="text-center">
-                            <span>Fecha de emisión:</span>
-                            <br>
-                            <span><strong>{{ \App\Helpers\DateHelper::formatoEspanol(now(), true, false) }}</strong></span>
-                        </div>
+                </tr>
+                <tr>
+                    <td>Categoría</td>
+                    <td>
+                        @if (isset($unidad['categoria']))
+                            {{ $unidad['categoria'] }}
+                        @else
+                            {{ $unidad->categoria }}
+                        @endif
+                    </td>
+                </tr>
+                <tr>
+                    <td>Marca</td>
+                    <td>
+                        @if (isset($unidad['marca']['nombre']))
+                            {{ $unidad['marca']['nombre'] }}
+                        @else
+                            {{ $unidad->marca->nombre }}
+                        @endif
+                    </td>
+                </tr>
+                <tr>
+                    <td>Año</td>
+                    <td>
+                        @if (isset($unidad['year']))
+                            {{ $unidad['year'] }}
+                        @else
+                            {{ $unidad->year }}
+                        @endif
+                    </td>
+                </tr>
+                <tr>
+                    <td>Modelo</td>
+                    <td>
+                        @if (isset($unidad['modelo']['nombre']))
+                            {{ $unidad['modelo']['nombre'] }}
+                        @else
+                            {{ $unidad->modelo->nombre }}
+                        @endif
+                    </td>
+                </tr>
+                <tr>
+                    <td>N° Interno</td>
+                    <td>
+                        @if (isset($unidad['numero_interno']))
+                            {{ $unidad['numero_interno'] }}
+                        @else
+                            {{ $unidad->numero_interno }}
+                        @endif
+                    </td>
+                </tr>
+                <tr>
+                    <td>Motor N°</td>
+                    <td>
+                        @if (isset($unidad['numero_motor']))
+                            {{ $unidad['numero_motor'] }}
+                        @else
+                            {{ $unidad->numero_motor }}
+                        @endif
+                    </td>
+                </tr>
+                <tr>
+                    <td>Color</td>
+                    <td>
+                        @if (isset($unidad['color']))
+                            {{ $unidad['color'] }}
+                        @else
+                            {{ $unidad->color }}
+                        @endif
                     </td>
                 </tr>
             </table>
-        </div>
-
-        <div class="title">Constancia de Baja</div>
-
-        <div class="content">
             <p>
-                Por medio de la presente, <strong>{{ $company->name }}</strong>, con RUC
-                <strong>{{ $company->number }}</strong>,
-                HACE CONSTAR que la(s) siguiente(s) unidad(es) vehicular(es) ha(n) sido dada(s) de baja en nuestro
-                sistema
-                de registro
-                según la solicitud N° <strong>{{ $solicitud->id }}</strong> con fecha
-                <strong>{{ \App\Helpers\DateHelper::formatoEspanol($solicitud->fecha, true, false) }}</strong>.
-            </p>
-
-            <table class="detalles">
-                <thead>
-                    <tr>
-                        <th>Placa</th>
-                        <th>Propietario</th>
-                        <th>Motivo de Baja</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($solicitud->detalle as $detalle)
-                        <tr>
-                            <td>{{ $detalle->vehiculo ? $detalle->vehiculo['placa'] : 'N/A' }}</td>
-                            <td>{{ $detalle->propietario ? $detalle->propietario['name'] : 'N/A' }}</td>
-                            <td>{{ $solicitud->motivo }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-            <p>
-                Esta constancia certifica que la(s) unidad(es) vehicular(es) mencionada(s) ya no forma(n) parte de
-                nuestra
-                flota
-                de taxis registrados y ha(n) sido dada(s) de baja en nuestro sistema para todos los efectos
-                administrativos
-                y legales.
+                inscrita y registrada en Gerencia Transito y Transportes de la provincia de
+                {{ $establishment->province->description }} en la empresa {{ $company->name }},
+                <span class="baja-enfasis">HA SIDO DADO DE BAJA</span> de mi representado.
             </p>
 
             <p>
-                La presente constancia se expide a solicitud de la parte interesada para los fines que estime
-                conveniente.
+                Se expide la presente constancia a solicitud de la parte interesada para los fines
+                convenientes.
             </p>
         </div>
-        <div class="fecha">
+
+        <div class="fecha" style="text-align: right; margin-bottom: 0.5cm;">
             {{ $establishment->district->description }},
-            {{ \App\Helpers\DateHelper::formatoEspanol($solicitud->fecha) }}
+            {{ \App\Helpers\DateHelper::formatoEspanol($fecha_doc) }}.
         </div>
 
-        <div class="firma">
-            <div class="linea-firma"></div>
-            <div class="nombre-firma">{{ $company->name }}</div>
-            <div>{{ $company->trade_name }}</div>
-            <div>RUC: {{ $company->number }}</div>
+        <div class="bottom-section">
+            <div class="adjuntos">
+                <div class="seccion-titulo">DOCUMENTOS ADJUNTOS</div>
+                <ul>
+                    <li>Solicitud de Baja</li>
+                    <li>Copia de Tarjeta de propiedad</li>
+                </ul>
+            </div>
+            <div class="firma">
+                <img src="data:{{ mime_content_type(public_path("{$img_firm}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$img_firm}"))) }}"
+                    style="max-width: 180px; margin: 10px auto;">
+            </div>
         </div>
 
         <!-- Reservar espacio para el footer -->
         <div class="footer-space"></div>
-        </div>
     </main>
 </body>
 

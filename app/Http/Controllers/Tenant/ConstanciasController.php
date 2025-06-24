@@ -107,7 +107,7 @@ class ConstanciasController extends Controller
 
         // Primero filtramos por vehiculo_id
         if ($v) {
-            $query->whereHas('detalle', function ($q) use ($v) {
+            $query->whereHas('datosVehiculo', function ($q) use ($v) {
                 $q->where('vehiculo_id', $v);
             });
         }
@@ -174,7 +174,7 @@ class ConstanciasController extends Controller
 
         $vehiculos = Vehiculos::where('placa', 'like', "%{$request->input}%")
             ->orWhere('numero_interno', 'like', "%{$request->input}%")
-            ->whereIsEnabled()
+            ->whereIsActive()
             ->get()->transform(function ($row) {
                 /** @var  Vehiculos $row */
                 return $row->getCollectionData();

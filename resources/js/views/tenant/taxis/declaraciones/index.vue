@@ -102,7 +102,7 @@
                                 size="mini"
                                 type="danger"
                                 icon="el-icon-document"
-                                @click="downloadPdf(row.id)"
+                                @click="downloadPdf(row.download_declaracion)"
                             >
                                 PDF
                             </el-button>
@@ -215,8 +215,8 @@ export default {
                     console.error(error);
                 });
         },
-        downloadPdf(id) {
-            window.open(`/declaraciones/${id}/pdf`, "_blank");
+        downloadPdf(download_declaracion) {
+            window.open(download_declaracion, "_blank");
         }
     }
 };

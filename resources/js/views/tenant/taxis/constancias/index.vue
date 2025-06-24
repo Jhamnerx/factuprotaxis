@@ -105,7 +105,7 @@
                                 size="mini"
                                 type="danger"
                                 icon="el-icon-document"
-                                @click="downloadPdf(row.id)"
+                                @click="downloadPdf(row.download_constancia)"
                             >
                                 PDF
                             </el-button>
@@ -218,8 +218,8 @@ export default {
                     console.error(error);
                 });
         },
-        downloadPdf(id) {
-            window.open(`/constancias/${id}/pdf`, "_blank");
+        downloadPdf(download_constancia) {
+            window.open(download_constancia, "_blank");
         }
     }
 };

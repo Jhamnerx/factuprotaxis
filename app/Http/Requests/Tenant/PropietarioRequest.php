@@ -35,13 +35,14 @@ class PropietarioRequest extends FormRequest
                 'nullable',
                 'email',
             ],
+            'location_id' => 'required',
             'country_id' => [
                 'required',
             ],
             'department_id' => 'nullable|string|max:2',
             'province_id' => 'nullable|string|max:4',
             'district_id' => 'nullable|string|max:6',
-            'address' => 'nullable|string|max:255',
+            'address' => 'required|string|max:255',
             'enabled' => 'required|boolean',
         ];
     }

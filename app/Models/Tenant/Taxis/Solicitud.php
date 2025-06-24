@@ -38,6 +38,7 @@ class Solicitud extends ModelTenant
         'fecha',
         'documentos_adjuntos',
         'user_id',
+        'constancia_id',
     ];
 
     protected $casts = [
@@ -58,7 +59,7 @@ class Solicitud extends ModelTenant
 
     public function constanciaBaja()
     {
-        return $this->hasOne(ConstanciaBaja::class, 'solicitud_id', 'id');
+        return $this->belongsTo(ConstanciaBaja::class, 'constancia_id', 'id');
     }
 
     public function getDownloadSolicitudAttribute()

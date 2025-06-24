@@ -90,7 +90,7 @@ class Vehiculos extends ModelTenant
      */
     public function scopeWhereIsActive($query)
     {
-        return $query->where('estado', 'ACTIVO');
+        return $query->where('estado', '=', 'ACTIVO');
     }
 
     public function scopeNotActive($query)

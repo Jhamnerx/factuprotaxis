@@ -141,7 +141,7 @@
                                 size="mini"
                                 type="danger"
                                 icon="el-icon-document"
-                                @click="downloadPdf(row.id)"
+                                @click="downloadPdf(row.download_permiso)"
                             >
                                 PDF
                             </el-button>
@@ -259,8 +259,8 @@ export default {
             const date = new Date(dateString);
             return date.toLocaleDateString("es-ES");
         },
-        downloadPdf(id) {
-            window.open(`/permisos-unidad/${id}/pdf`, "_blank");
+        downloadPdf(download_permiso) {
+            window.open(download_permiso, "_blank");
         }
     }
 };

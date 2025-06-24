@@ -44,6 +44,12 @@ class PermisoUnidad extends ModelTenant
         return $this->belongsTo(Vehiculos::class, 'vehiculo_id', 'id');
     }
 
+
+    public function getDownloadPermisoAttribute()
+    {
+        return route('tenant.pdf.permiso-viaje', ['permiso' => $this]);
+    }
+
     public function getCollectionData()
     {
         $v = $this->datosVehiculo;
@@ -63,6 +69,7 @@ class PermisoUnidad extends ModelTenant
             'personas_autorizadas' => $this->personas_autorizadas,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'download_permiso' => $this->download_permiso,
             'user_id' => $this->user_id,
             'creador' => $this->creator ? $this->creator->getCollectionData() : null,
             'created_at_formatted' => $this->created_at ? $this->created_at->format('Y-m-d') : null,

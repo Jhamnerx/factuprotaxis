@@ -495,7 +495,11 @@ if ($hostname) {
 
 
             Route::get('pdf/contrato/{vehiculo}', 'Tenant\PdfController@contrato')->name('tenant.pdf.contrato');
-            Route::get('pdf/solicitudes/{vehiculo}', 'Tenant\PdfController@solicitudes')->name('tenant.pdf.solicitud');
+            Route::get('pdf/solicitudes/{solicitud}', 'Tenant\PdfController@solicitudes')->name('tenant.pdf.solicitud');
+            Route::get('pdf/constancia/{constancia}', 'Tenant\PdfController@constancias')->name('tenant.pdf.constancia');
+            Route::get('pdf/declaracion/{declaracion}', 'Tenant\PdfController@declaraciones')->name('tenant.pdf.declaracion');
+            Route::get('pdf/permiso-viaje/{permiso}', 'Tenant\PdfController@permisoViaje')->name('tenant.pdf.permiso-viaje');
+
 
             /** Dispatches
              * dispatches
