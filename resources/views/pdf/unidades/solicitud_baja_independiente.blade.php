@@ -3,6 +3,8 @@
 @php
     $logo = "storage/uploads/logos/{$company->logo}";
     $img_firm = "storage/uploads/firms/{$company->img_firm}";
+    $unidad = $solicitud->detalle->first()->infoVehiculo;
+    $propietario = $unidad->propietario;
 @endphp
 
 <head>
@@ -227,6 +229,12 @@
             font-size: 10px;
         }
 
+        .logo {
+            text-align: center;
+            margin: 0 auto;
+            display: block;
+        }
+
         .firma-dni {
             text-align: center;
             font-size: 10px;
@@ -237,7 +245,7 @@
 
 <body>
     <header>
-        <div class="center-logo">
+        <div class="logo">
             <img src="data:{{ mime_content_type(public_path("{$logo}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$logo}"))) }}"
                 alt="{{ $company->name }}" class="company_logo" style="max-width: 90px; margin: 0 auto;">
         </div>
@@ -280,7 +288,7 @@
         </div>
 
         <div class="texto">
-            <p>Que, habiendo realizado la COMPRA del vehículo de placa <strong>{{ $vehiculo->placa }}</strong> y
+            <p>Que, habiendo realizado la COMPRA del vehículo de placa <strong>{{ $unidad->placa }}</strong> y
                 encontrándose
                 registrado
                 en taxis independiente, por lo que solicito <span class="texto-baja">BAJA CON LA FINALIDAD DE REGISTRAR
