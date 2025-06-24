@@ -2,6 +2,7 @@
 <html lang="es">
 @php
     $logo = "storage/uploads/logos/{$company->logo}";
+    $img_firm = "storage/uploads/firms/{$company->img_firm}";
 @endphp
 
 <head>
@@ -155,73 +156,81 @@
         }
 
         .fecha {
-            text-align: right;
-            margin: 40px 0 20px 0;
-            font-style: normal;
-        }
-
-        .adjuntos {
-            margin-top: 25px;
+            text-align: left;
+            margin: 0.2cm 0 0.5cm 0;
+            /* Añado margen inferior de 0.5cm */
             font-size: 10px;
-            border-top: 1px dotted #aaa;
-            padding-top: 10px;
+            /* Ajustado al tamaño base del documento */
         }
 
-        .adjuntos ul {
-            margin: 5px 0 0 0;
-            padding-left: 25px;
-        }
-
-        .adjuntos-titulo {
-            font-weight: bold;
-            margin-bottom: 5px;
+        /* Sección inferior con firma y adjuntos */
+        .bottom-section {
+            width: 100%;
+            margin-top: 0.2cm;
+            display: table;
         }
 
         .firma {
+            width: 50%;
+            display: table-cell;
+            vertical-align: top;
             text-align: center;
-            margin-top: 80px;
-            margin-bottom: 30px;
+        }
+
+        .adjuntos {
+            width: 50%;
+            display: table-cell;
+            vertical-align: top;
+            border: 1px dashed #aaa;
+            padding: 0.1cm;
+            border-radius: 4px;
+        }
+
+        .adjuntos ul {
+            margin: 0;
+            padding-left: 15px;
+            columns: 2;
+        }
+
+        .adjuntos li {
+            margin-bottom: 2px;
+            font-size: 8px;
+        }
+
+        .seccion-titulo {
+            font-weight: bold;
+            font-size: 8px;
+            margin-bottom: 0.1cm;
+            background-color: #eaeaea;
+            padding: 1px 2px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .firma {
+            width: 40%;
+            display: table-cell;
+            vertical-align: top;
+            text-align: left;
         }
 
         .firma-linea {
-            border-top: 1px solid #000;
-            width: 250px;
-            margin: 0 auto;
+            border-top: 1px dashed #000;
+            width: 180px;
+            margin: 0 auto 15px auto;
         }
 
         .firma-nombre {
             text-align: center;
-            margin-top: 8px;
+            margin-top: 5px;
             font-weight: bold;
+            font-size: 10px;
         }
 
         .firma-dni {
             text-align: center;
-            font-size: 11px;
-        }
-
-        .firma-empresa {
-            text-align: center;
-            margin-top: 80px;
-            margin-bottom: 20px;
-        }
-
-        .firma-empresa img {
-            max-width: 150px;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .firma-empresa-nombre {
-            text-align: center;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-
-        .firma-empresa-cargo {
-            text-align: center;
             font-size: 10px;
-            text-transform: uppercase;
+            margin-top: 3px;
         }
     </style>
 </head>
@@ -262,13 +271,17 @@
             SEÑOR ALCALDE DE LA MUNICIPALIDAD PROVINCIAL DE HUANCAYO.
         </div>
         <div class="datos-solicitante">
-            <span class="nombre-solicitante">Gregorio MALLQUI MEZA</span>, identificado con DNI N°19804301, CELULAR N°
-            <strong>984760460</strong> con domicilio en el Jr. Manco Capac s/n Psj Sanchez Cerro 160, distrito de
-            Pilcomayo Huancayo, provincia de Huancayo Huancayo, ante usted, con debido respeto, me presento y expongo:
+            <span class="nombre-solicitante">{{ $propietario->name }}</span>, identificado con DNI
+            N°{{ $propietario->number }}, CELULAR N°
+            <strong>{{ $propietario->telephone }}</strong> con domicilio en {{ $propietario->address }}, distrito
+            de
+            {{ $propietario->district->description }}, provincia de {{ $propietario->province->description }}, ante
+            usted, con debido respeto, me presento y expongo:
         </div>
 
         <div class="texto">
-            <p>Que, habiendo realizado la COMPRA del vehículo de placa <strong>W2B-255</strong> y encontrándose
+            <p>Que, habiendo realizado la COMPRA del vehículo de placa <strong>{{ $vehiculo->placa }}</strong> y
+                encontrándose
                 registrado
                 en taxis independiente, por lo que solicito <span class="texto-baja">BAJA CON LA FINALIDAD DE REGISTRAR
                     EN
@@ -282,28 +295,24 @@
         <div class="cierre">
             <p>Ruego a usted Sr. alcalde, acceder a mi petición, por considerarlo de justicia que espero alcanzar.</p>
         </div>
-        <div class="fecha">
-            Huancayo, {{ \App\Helpers\DateHelper::formatoEspanol(now()) }}
+        <div class="fecha" style="text-align: right; margin-bottom: 1cm;">
+            {{ $establishment->district->description }},
+            {{ \App\Helpers\DateHelper::formatoEspanol(now()) }}
         </div>
 
-        <div class="adjuntos">
-            <div class="adjuntos-titulo">DOCUMENTOS ADJUNTOS:</div>
-            <ul>
-                <li>Copia de DNI</li>
-                <li>Copia de Tarjeta de propiedad</li>
-            </ul>
-        </div>
-
-        <div class="firma">
-            <div class="firma-linea"></div>
-            <div class="firma-nombre">Gregorio MALLQUI MEZA</div>
-            <div class="firma-dni">DNI N°19804301</div>
-        </div>
-
-        <div class="firma-empresa">
-            <img src="{{ public_path('images/firma_gerente.png') }}" alt="Firma Gerente">
-            <div class="firma-empresa-nombre">Eder Pedro Hidalgo Hilario</div>
-            <div class="firma-empresa-cargo">GERENTE GENERAL</div>
+        <div class="bottom-section">
+            <div class="adjuntos">
+                <div class="seccion-titulo">DOCUMENTOS ADJUNTOS</div>
+                <ul>
+                    <li>Copia de DNI</li>
+                    <li>Copia de Tarjeta de propiedad</li>
+                </ul>
+            </div>
+            <div class="firma">
+                <div class="firma-linea"></div>
+                <div class="firma-nombre">{{ $propietario->name }}</div>
+                <div class="firma-dni">DNI N°{{ $propietario->number }}</div>
+            </div>
         </div><!-- Reservar espacio para el footer -->
         <div class="footer-space"></div>
     </main>

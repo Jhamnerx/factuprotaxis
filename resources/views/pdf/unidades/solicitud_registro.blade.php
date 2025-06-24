@@ -186,13 +186,17 @@
 
         .fecha {
             text-align: left;
-            margin: 0.2cm 0;
-            font-size: 8px;
+            margin: 0.2cm 0 0.5cm 0;
+            /* Añado margen inferior de 0.5cm */
+            font-size: 10px;
+            /* Ajustado al tamaño base del documento */
         }
 
         .firma img {
-            max-width: 100px;
-            max-height: 30px;
+            max-width: 130px;
+            /* Aumentado de 100px a 130px */
+            max-height: 40px;
+            /* Aumentado de 30px a 40px */
             margin: 0;
             display: block;
         }

@@ -143,7 +143,7 @@
             width: 70px !important;
         }
 
-        .center-logo {
+        .logo {
             text-align: center;
             margin: 0 auto;
             display: block;
@@ -164,7 +164,7 @@
 
 <body>
     <header>
-        <div class="center-logo">
+        <div class="logo">
             <img src="data:{{ mime_content_type(public_path("{$logo}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$logo}"))) }}"
                 alt="{{ $company->name }}" class="company_logo" style="max-width: 90px; margin: 0 auto;">
         </div>
