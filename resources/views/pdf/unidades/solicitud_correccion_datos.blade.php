@@ -246,7 +246,8 @@
                 <p>1.-COPIA DE SOLICITUD DE REGISTRO</p>
             </div>
             <div style="margin-top: 1rem; margin-bottom: 1.5rem; text-align: right;width: 100%;">
-                <p> {{ $establishment->district->description }}, {{ \App\Helpers\DateHelper::formatoEspanol(now()) }}
+                <p> {{ $establishment->district->description }},
+                    {{ \App\Helpers\DateHelper::formatoEspanol($solicitud->fecha) }}
                 </p>
             </div>
             <table class="full-width" style="margin-top: 2rem !important; width: 100%;">

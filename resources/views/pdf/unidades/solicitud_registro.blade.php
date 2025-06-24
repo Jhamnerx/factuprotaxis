@@ -332,8 +332,8 @@
         <div class="bottom-section">
             <div class="firma">
                 <div class="fecha">
-                    {{ $establishment->district->description ?? 'Huancayo' }},
-                    {{ \App\Helpers\DateHelper::formatoEspanol(now()) }}
+                    {{ $establishment->district->description }},
+                    {{ \App\Helpers\DateHelper::formatoEspanol($solicitud->fecha) }}
                 </div>
                 <img
                     src="data:{{ mime_content_type(public_path("{$img_firm}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$img_firm}"))) }}">

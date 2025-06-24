@@ -330,7 +330,8 @@
             </div>
 
             <div class="fecha">
-                {{ $establishment->district->description }}, {{ \App\Helpers\DateHelper::formatoEspanol(now()) }}
+                {{ $establishment->district->description }},
+                {{ \App\Helpers\DateHelper::formatoEspanol($solicitud->fecha) }}
             </div>
 
             <div class="firma-container">

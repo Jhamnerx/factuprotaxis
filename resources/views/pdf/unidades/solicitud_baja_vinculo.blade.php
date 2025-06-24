@@ -255,7 +255,8 @@
             Ruego a usted Sr. alcalde, acceder a mi petición, por considerarlo de justicia que espero alcanzar.
         </div>
         <div class="fecha">
-            Huancayo, {{ \App\Helpers\DateHelper::formatoEspanol(now()) }}.
+            {{ $establishment->district->description }},
+            {{ \App\Helpers\DateHelper::formatoEspanol($solicitud->fecha) }}.
         </div>
 
         <div class="adjuntos">

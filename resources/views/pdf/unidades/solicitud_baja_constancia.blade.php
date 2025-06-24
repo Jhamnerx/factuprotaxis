@@ -2,6 +2,9 @@
 <html lang="es">
 @php
     $logo = "storage/uploads/logos/{$company->logo}";
+    $img_firm = "storage/uploads/firms/{$company->img_firm}";
+    $unidad = $solicitud->detalle->first()->infoVehiculo;
+    $propietario = $unidad->propietario;
 @endphp
 
 <head>
@@ -9,16 +12,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitud de Baja por Constancia de Empresa</title>
     <style>
-        {!! $stylesheet !!} @page {
+        @page {
             margin-top: 0.5cm;
             margin-bottom: 1.5cm;
             margin-left: 2cm;
             margin-right: 2cm;
+            size: 21cm 29.7cm;
+            /* A4 */
         }
 
         * {
-            orphans: 2;
-            widows: 2;
+            box-sizing: border-box;
+            orphans: 3;
+            widows: 3;
+        }
+
+        /* Control de saltos de página */
+        tr,
+        td,
+        th,
+        table,
+        thead,
+        tbody {
+            page-break-inside: auto;
         }
 
         header {
@@ -29,6 +45,7 @@
             height: 1.2cm;
             text-align: center;
             padding-top: 3px;
+            background-color: rgba(255, 255, 255, 0.98);
         }
 
         footer {
@@ -41,16 +58,20 @@
             font-size: 8px;
             padding-top: 5px;
             border-top: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.98);
+            color: #444;
         }
 
         body {
-            font-family: DejaVu Sans, sans-serif;
+            font-family: 'DejaVu Serif', serif;
             font-size: 10px;
-            line-height: 1.4;
+            line-height: 1.5;
             position: relative;
             margin-top: 1.7cm;
             margin-bottom: 1.2cm;
             text-align: justify;
+            color: #333;
+            background-color: white;
         }
 
         /* Contenido principal centrado */
@@ -76,39 +97,45 @@
 
         .container {
             width: 100%;
-            max-width: 800px;
             margin: 0 auto;
             padding: 15px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
+            background-color: white;
         }
 
         .titulo-solicito {
+            text-align: right;
+            margin: 30px 0 20px 0;
             font-weight: bold;
-            margin: 50px 0 20px 0;
+            font-size: 11px;
+            color: #222;
         }
 
         .solicito-contenido {
-            margin-left: 120px;
-            margin-right: 120px;
+            margin-left: 20px;
+            font-weight: bold;
         }
 
         .titulo {
-            font-weight: bold;
             text-align: center;
+            font-weight: bold;
             margin: 30px 0;
+            font-size: 11px;
+            letter-spacing: 0.4px;
+            color: #000;
+            text-transform: uppercase;
         }
 
         .datos-solicitante {
             text-align: justify;
             margin: 20px 0;
+            line-height: 1.6;
+            color: #333;
         }
 
         .nombre-solicitante {
             font-weight: bold;
+            color: #000;
+            text-transform: uppercase;
         }
 
         .dni-texto {
@@ -118,90 +145,123 @@
         .texto {
             text-align: justify;
             margin: 20px 0;
+            line-height: 1.6;
+        }
+
+        .texto p {
+            margin-bottom: 0.3cm;
+            text-align: justify;
+            page-break-inside: auto;
         }
 
         .texto-baja {
             font-weight: bold;
             text-transform: uppercase;
+            color: #000;
         }
 
         .subtitulo {
             font-weight: bold;
-            margin: 20px 0 10px 0;
+            font-size: 11px;
             text-align: center;
+            margin: 25px 0 15px 0;
+            color: #222;
         }
 
         .cierre {
             text-align: justify;
             margin: 20px 0;
+            line-height: 1.6;
+        }
+
+        .cierre p {
+            margin-bottom: 0.3cm;
+            text-align: justify;
         }
 
         .fecha {
             text-align: right;
-            margin: 30px 0;
+            margin: 0.2cm 0 1.2cm 0;
+            /* Aumentado el margen inferior de 0.5cm a 1.2cm */
+            font-size: 10px;
+            color: #444;
+        }
+
+        /* Sección inferior con firma y adjuntos */
+        .bottom-section {
+            width: 100%;
+            margin-top: 0.8cm;
+            /* Aumentado de 0.5cm a 0.8cm */
+            display: table;
+        }
+
+        .firma {
+            width: 40%;
+            display: table-cell;
+            vertical-align: top;
+            text-align: left;
         }
 
         .adjuntos {
-            margin-top: 15px;
-            font-size: 10px;
+            width: 50%;
+            display: table-cell;
+            vertical-align: top;
+            border: 1px dashed #aaa;
+            padding: 0.1cm;
+            border-radius: 4px;
         }
 
         .adjuntos ul {
             margin: 0;
-            padding-left: 20px;
+            padding-left: 15px;
+            columns: 2;
         }
 
-        .firma {
-            text-align: center;
-            margin-top: 60px;
-            margin-bottom: 20px;
+        .adjuntos li {
+            margin-bottom: 2px;
+            font-size: 8px;
+        }
+
+        .seccion-titulo {
+            font-weight: bold;
+            font-size: 8px;
+            margin-bottom: 0.1cm;
+            background-color: #eaeaea;
+            padding: 1px 2px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ddd;
         }
 
         .firma-linea {
-            border-top: 1px solid #000;
-            width: 250px;
-            margin: 0 auto;
+            border-top: 1px dashed #000;
+            width: 180px;
+            margin: 0 auto 5px auto;
         }
 
         .firma-nombre {
             text-align: center;
-            margin-top: 5px;
+            margin-top: 3px;
+            font-weight: bold;
+            font-size: 10px;
         }
 
         .firma-dni {
             text-align: center;
-            font-size: 11px;
-        }
-
-        .firma-empresa {
-            text-align: center;
-            margin-top: 60px;
-            margin-bottom: 20px;
-        }
-
-        .firma-empresa img {
-            max-width: 150px;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .firma-empresa-nombre {
-            text-align: center;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-
-        .firma-empresa-cargo {
-            text-align: center;
             font-size: 10px;
-            text-transform: uppercase;
+            margin-top: 3px;
+        }
+
+        .logo {
+            text-align: center;
+            margin: 0 auto;
+            display: block;
         }
     </style>
 </head>
 
 <body>
     <header>
-        <div class="center-logo">
+        <div class="logo">
             <img src="data:{{ mime_content_type(public_path("{$logo}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$logo}"))) }}"
                 alt="{{ $company->name }}" class="company_logo" style="max-width: 90px; margin: 0 auto;">
         </div>
@@ -223,7 +283,7 @@
         <div class="titulo-solicito">
             <table width="100%">
                 <tr>
-                    <td width="100" valign="top"><strong>SOLICITO:</strong></td>
+                    <td width="80" valign="top"><strong>SOLICITO:</strong></td>
                     <td class="solicito-contenido">
                         Baja de vehículo POR CONSTANCIA DE BAJA DE EMPRESA
                     </td>
@@ -236,19 +296,18 @@
         </div>
 
         <div class="datos-solicitante">
-            <span class="nombre-solicitante">{{ $solicitud->nombres_propietario }}</span>, identificado con DNI
-            N°{{ $solicitud->dni_propietario }}, CELULAR N°
-            <strong>{{ $solicitud->celular_propietario }}</strong> con domicilio en el
-            {{ $solicitud->direccion_propietario }}, distrito de {{ $solicitud->distrito_propietario }}, provincia de
-            {{ $solicitud->provincia_propietario }}, ante usted, con debido respeto, me presento y expongo:
+            <span class="nombre-solicitante">{{ $propietario->name }}</span>, identificado con DNI
+            N°{{ $propietario->number }}, CELULAR N°
+            <strong>{{ $propietario->telephone }}</strong> con domicilio en el
+            {{ $propietario->address }}, distrito de {{ $propietario->district->description }}, provincia de
+            {{ $propietario->province->description }}, ante usted, con debido respeto, me presento y expongo:
         </div>
 
         <div class="texto">
-            Que, habiendo realizado la compra del vehículo de placa <strong>{{ $solicitud->placa }}</strong> y
-            encontrándose registrado
-            en empresa de taxis, por lo que solicito <span class="texto-baja">BAJA DE LA EMPRESA REGISTRADA CON
-                CONSTANCIA</span>, a
-            fin de realizar los trámites y registrar mi unidad en otra empresa.
+            <p>Que, habiendo realizado la compra del vehículo de placa <strong>{{ $unidad->placa }}</strong> y
+                encontrándose registrado en empresa de taxis, por lo que solicito <span class="texto-baja">BAJA DE LA
+                    EMPRESA REGISTRADA CON
+                    CONSTANCIA</span>, a fin de realizar los trámites y registrar mi unidad en otra empresa.</p>
         </div>
 
         <div class="subtitulo">
@@ -256,32 +315,29 @@
         </div>
 
         <div class="cierre">
-            Ruego a usted Sr. alcalde, acceder a mi petición, por considerarlo de justicia que espero alcanzar.
+            <p>Ruego a usted Sr. alcalde, acceder a mi petición, por considerarlo de justicia que espero alcanzar.</p>
         </div>
         <div class="fecha">
-            Huancayo, {{ \App\Helpers\DateHelper::formatoEspanol(now()) }}.
+            {{ $establishment->district->description }},
+            {{ \App\Helpers\DateHelper::formatoEspanol($solicitud->fecha) }}
         </div>
 
-        <div class="adjuntos">
-            DOCUMENTOS ADJUNTO
-            <ul>
-                <li>Constancia de Baja</li>
-                <li>Copia de DNI</li>
-                <li>Copia de Tarjeta de propiedad</li>
-            </ul>
+        <div class="bottom-section" style="margin-bottom:15px; padding-top:10px;">
+            <div class="adjuntos">
+                <div class="seccion-titulo">DOCUMENTOS ADJUNTOS</div>
+                <ul>
+                    <li>Constancia de Baja</li>
+                </ul>
+            </div>
+            <div class="firma">
+                <div style="height:50px; margin-bottom:10px;"></div>
+                <div class="firma-linea"></div>
+                <div class="firma-nombre">{{ $propietario->name }}</div>
+                <div class="firma-dni">DNI N°{{ $propietario->number }}</div>
+            </div>
         </div>
 
-        <div class="firma">
-            <div class="firma-linea"></div>
-            <div class="firma-nombre">{{ $solicitud->nombres_propietario }}</div>
-            <div class="firma-dni">DNI N°{{ $solicitud->dni_propietario }}</div>
-        </div>
-
-        <div class="firma-empresa">
-            <img src="{{ public_path('images/firma_gerente.png') }}" alt="Firma Gerente">
-            <div class="firma-empresa-nombre">Eder Pedro Hidalgo Hilario</div>
-            <div class="firma-empresa-cargo">GERENTE GENERAL</div>
-        </div> <!-- Reservar espacio para el footer -->
+        <!-- Reservar espacio para el footer -->
         <div class="footer-space"></div>
     </main>
 </body>

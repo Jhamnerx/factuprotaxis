@@ -236,7 +236,8 @@
             </p>
         </div>
         <div class="fecha">
-            {{ $establishment->district }}, {{ \App\Helpers\DateHelper::formatoEspanol(now()) }}
+            {{ $establishment->district->description }},
+            {{ \App\Helpers\DateHelper::formatoEspanol($solicitud->fecha) }}
         </div>
 
         <div class="firma">

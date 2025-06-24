@@ -305,7 +305,7 @@
         </div>
         <div class="fecha" style="text-align: right; margin-bottom: 1cm;">
             {{ $establishment->district->description }},
-            {{ \App\Helpers\DateHelper::formatoEspanol(now()) }}
+            {{ \App\Helpers\DateHelper::formatoEspanol($solicitud->fecha) }}
         </div>
 
         <div class="bottom-section">
