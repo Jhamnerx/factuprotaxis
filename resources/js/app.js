@@ -1295,6 +1295,10 @@ Vue.component(
 
 // Taxis
 Vue.component(
+    "tenant-taxis-web-form",
+    require("./views/tenant/taxis/web/form.vue")
+);
+Vue.component(
     "tenant-taxis-propietarios-index",
     require("./views/tenant/taxis/propietarios/index.vue")
 );

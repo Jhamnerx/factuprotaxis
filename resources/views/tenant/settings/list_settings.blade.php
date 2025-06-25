@@ -213,6 +213,7 @@
                 </div>
             @endif
         @endif
+
         <div class="col-6 col-md-4 mb-4">
             <div class="card card-dashboard card-reports">
                 <div class="card-body">
@@ -230,5 +231,21 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-6 col-md-4 mb-4">
+            <div class="card card-dashboard card-reports">
+                <div class="card-body">
+                    <h6 class="card-title">Web page Taxis</h6>
+                    <ul class="card-report-links">
+                        <li>
+                            <a href="{{ route('tenant.taxis.config.index') }}">
+                                Taxis
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
     </div>
 @endsection

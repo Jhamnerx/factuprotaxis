@@ -15,9 +15,9 @@ class UpdateModulesTable extends Migration
     public function up()
     {
         DB::table('modules')->insert([
-            ['id'=>'50','value' => 'preventa', 'description' => 'PreVenta', 'order_menu' => 2],
-            ['id'=>'51','value' => 'guia', 'description' => 'Guías de Remisión', 'order_menu' => 9],
-            ['id'=>'52','value' => 'comprobante', 'description' => 'Comprobantes Pendientes', 'order_menu' => 10],
+            ['id' => '50', 'value' => 'preventa', 'description' => 'PreVenta', 'order_menu' => 2],
+            ['id' => '51', 'value' => 'guia', 'description' => 'Guías de Remisión', 'order_menu' => 9],
+            ['id' => '52', 'value' => 'comprobante', 'description' => 'Comprobantes Pendientes', 'order_menu' => 10],
         ]);
         DB::table('modules')->where('value', 'dashboard')->update(['order_menu' => 1]);
         DB::table('modules')->where('value', 'preventa')->update(['order_menu' => 2]);
@@ -80,6 +80,5 @@ class UpdateModulesTable extends Migration
         DB::table('modules')->where('value', 'digemid')->update(['order_menu' => 15]);
         DB::table('modules')->where('value', 'documentary-procedure')->update(['order_menu' => 15]);
         DB::table('modules')->where('value', 'establishments')->update(['order_menu' => 7]);
-
     }
 }

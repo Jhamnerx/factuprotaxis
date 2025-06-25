@@ -351,97 +351,125 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                                 </ul>
                             </li>
                         @endif
+                        @if (in_array('taxis', $vc_modules))
+                            <li
+                                class="nav-parent {{ in_array($firstLevel, ['unidades', 'propietarios', 'marcas', 'modelos', 'planes', 'condiciones', 'solicitudes', 'pagos', 'permisos', 'constancias', 'declaraciones']) ? 'nav-active nav-expanded' : '' }}">
+                                <a class="nav-link" href="#">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round"
+                                        class="icon icon-tabler icons-tabler-outline icon-tabler-category-2">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M14 4h6v6h-6z" />
+                                        <path d="M4 14h6v6h-6z" />
+                                        <path d="M17 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                                        <path d="M7 7m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                                    </svg>
+                                    <span>Gestión Taxis</span>
+                                </a>
+                                <ul class="nav nav-children">
 
-                        <li
-                            class="nav-parent {{ in_array($firstLevel, ['unidades', 'propietarios', 'marcas', 'modelos', 'planes', 'condiciones', 'solicitudes', 'pagos', 'permisos', 'constancias', 'declaraciones']) ? 'nav-active nav-expanded' : '' }}">
-                            <a class="nav-link" href="#">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round"
-                                    class="icon icon-tabler icons-tabler-outline icon-tabler-category-2">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                    <path d="M14 4h6v6h-6z" />
-                                    <path d="M4 14h6v6h-6z" />
-                                    <path d="M17 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
-                                    <path d="M7 7m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
-                                </svg>
-                                <span>Gestión Taxis</span>
-                            </a>
-                            <ul class="nav nav-children">
+                                    <li
+                                        class="nav-parent {{ $firstLevel === 'unidades' || $firstLevel === 'propietarios' ? 'nav-active nav-expanded' : '' }}">
+                                        <a class="nav-link" href="#">
+                                            <span>Unidades</span>
+                                        </a>
 
-                                <li
-                                    class="nav-parent {{ $firstLevel === 'unidades' || $firstLevel === 'propietarios' ? 'nav-active nav-expanded' : '' }}">
-                                    <a class="nav-link" href="#">
-                                        <span>Unidades</span>
-                                    </a>
-
-                                    <ul class="nav nav-children" style="">
-                                        <li class="{{ $firstLevel === 'propietarios' ? 'nav-active' : '' }}">
-                                            <a class="nav-link"
-                                                href="{{ route('tenant.taxi.propietarios') }}">Propietarios</a>
-                                        </li>
+                                        <ul class="nav nav-children" style="">
+                                            @if (in_array('propietarios', $vc_module_levels))
+                                                <li class="{{ $firstLevel === 'propietarios' ? 'nav-active' : '' }}">
+                                                    <a class="nav-link"
+                                                        href="{{ route('tenant.taxi.propietarios') }}">Propietarios</a>
+                                                </li>
+                                            @endif
+                                            @if (in_array('unidades', $vc_module_levels))
+                                                <li
+                                                    class="{{ $firstLevel === 'unidades' && $secondLevel === '' ? 'nav-active' : '' }}">
+                                                    <a class="nav-link"
+                                                        href="{{ route('tenant.taxi.unidades') }}">Listado de
+                                                        unidades</a>
+                                                </li>
+                                            @endif
+                                            @if (in_array('unidades', $vc_module_levels))
+                                                <li class="{{ $secondLevel === 'baja' ? 'nav-active' : '' }}">
+                                                    <a class="nav-link"
+                                                        href="{{ route('tenant.taxi.unidades.baja') }}">Unidades
+                                                        de baja</a>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </li>
+                                    @if (in_array('marcas', $vc_module_levels) || in_array('modelos', $vc_module_levels))
+                                        {{-- Catálogos --}}
                                         <li
-                                            class="{{ $firstLevel === 'unidades' && $secondLevel === '' ? 'nav-active' : '' }}">
-                                            <a class="nav-link" href="{{ route('tenant.taxi.unidades') }}">Listado de
-                                                unidades</a>
+                                            class="nav-parent {{ $firstLevel === 'marcas' || $firstLevel === 'modelos' ? 'nav-active nav-expanded' : '' }}">
+                                            <a class="nav-link" href="#">
+                                                <span>Catálogos</span>
+                                            </a>
+                                            <ul class="nav nav-children" style="">
+                                                @if (in_array('marcas', $vc_module_levels))
+                                                    <li class="{{ $firstLevel === 'marcas' ? 'nav-active' : '' }}">
+                                                        <a class="nav-link"
+                                                            href="{{ route('tenant.taxi.marcas.index') }}">Marcas</a>
+                                                    </li>
+                                                @endif
+                                                @if (in_array('unidades', $vc_module_levels))
+                                                    <li class="{{ $firstLevel === 'modelos' ? 'nav-active' : '' }}">
+                                                        <a class="nav-link"
+                                                            href="{{ route('tenant.taxi.modelos.index') }}">Modelos</a>
+                                                    </li>
+                                                @endif
+                                            </ul>
                                         </li>
-                                        <li class="{{ $secondLevel === 'baja' ? 'nav-active' : '' }}">
+                                    @endif
+
+                                    @if (in_array('planes', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'planes' ? 'nav-active' : '' }}">
                                             <a class="nav-link"
-                                                href="{{ route('tenant.taxi.unidades.baja') }}">Unidades
-                                                de baja</a>
+                                                href="{{ route('tenant.taxi.planes.index') }}">Planes</a>
                                         </li>
-                                    </ul>
-                                </li>
-
-                                <li
-                                    class="nav-parent {{ $firstLevel === 'marcas' || $firstLevel === 'modelos' ? 'nav-active nav-expanded' : '' }}">
-                                    <a class="nav-link" href="#">
-                                        <span>Catálogos</span>
-                                    </a>
-                                    <ul class="nav nav-children" style="">
-                                        <li class="{{ $firstLevel === 'marcas' ? 'nav-active' : '' }}">
+                                    @endif
+                                    @if (in_array('condiciones', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'condiciones' ? 'nav-active' : '' }}">
                                             <a class="nav-link"
-                                                href="{{ route('tenant.taxi.marcas.index') }}">Marcas</a>
+                                                href="{{ route('tenant.taxi.condiciones.index') }}">Condiciones</a>
                                         </li>
-                                        <li class="{{ $firstLevel === 'modelos' ? 'nav-active' : '' }}">
+                                    @endif
+                                    @if (in_array('pagos', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'pagos' ? 'nav-active' : '' }}">
                                             <a class="nav-link"
-                                                href="{{ route('tenant.taxi.modelos.index') }}">Modelos</a>
+                                                href="{{ route('tenant.taxi.pagos.index') }}">Pagos</a>
                                         </li>
-                                    </ul>
-                                </li>
-
-                                <li class="{{ $firstLevel === 'planes' ? 'nav-active' : '' }}">
-                                    <a class="nav-link" href="{{ route('tenant.taxi.planes.index') }}">Planes</a>
-                                </li>
-
-                                <li class="{{ $firstLevel === 'condiciones' ? 'nav-active' : '' }}">
-                                    <a class="nav-link"
-                                        href="{{ route('tenant.taxi.condiciones.index') }}">Condiciones</a>
-                                </li>
-
-                                <li class="{{ $firstLevel === 'pagos' ? 'nav-active' : '' }}">
-                                    <a class="nav-link" href="{{ route('tenant.taxi.pagos.index') }}">Pagos</a>
-                                </li>
-
-                                <li class="{{ $firstLevel === 'solicitudes' ? 'nav-active' : '' }}">
-                                    <a class="nav-link"
-                                        href="{{ route('tenant.taxi.solicitudes.index') }}">Solicitudes</a>
-                                </li>
-                                <li class="{{ $firstLevel === 'permisos' ? 'nav-active' : '' }}">
-                                    <a class="nav-link" href="{{ route('tenant.taxi.permisos.index') }}">Permiso
-                                        de viaje</a>
-                                </li>
-                                <li class="{{ $firstLevel === 'constancias' ? 'nav-active' : '' }}">
-                                    <a class="nav-link"
-                                        href="{{ route('tenant.taxi.constancias.index') }}">Constancia de baja</a>
-                                </li>
-                                <li class="{{ $firstLevel === 'declaraciones' ? 'nav-active' : '' }}">
-                                    <a class="nav-link"
-                                        href="{{ route('tenant.taxi.declaraciones.index') }}">Declaraciones</a>
-                                </li>
-                            </ul>
-                        </li>
-
+                                    @endif
+                                    @if (in_array('solicitudes', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'solicitudes' ? 'nav-active' : '' }}">
+                                            <a class="nav-link"
+                                                href="{{ route('tenant.taxi.solicitudes.index') }}">Solicitudes</a>
+                                        </li>
+                                    @endif
+                                    @if (in_array('permisos', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'permisos' ? 'nav-active' : '' }}">
+                                            <a class="nav-link"
+                                                href="{{ route('tenant.taxi.permisos.index') }}">Permiso
+                                                de viaje</a>
+                                        </li>
+                                    @endif
+                                    @if (in_array('constancias', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'constancias' ? 'nav-active' : '' }}">
+                                            <a class="nav-link"
+                                                href="{{ route('tenant.taxi.constancias.index') }}">Constancia de
+                                                baja</a>
+                                        </li>
+                                    @endif
+                                    @if (in_array('declaraciones', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'declaraciones' ? 'nav-active' : '' }}">
+                                            <a class="nav-link"
+                                                href="{{ route('tenant.taxi.declaraciones.index') }}">Declaraciones</a>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </li>
+                        @endif
 
                         {{-- Productos --}}
                         @if (in_array('items', $vc_modules))

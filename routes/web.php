@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Tenant\Guest\WebController;
 
 $hostname = app(Hyn\Tenancy\Contracts\CurrentHostname::class);
 
@@ -29,6 +30,13 @@ if ($hostname) {
 
         Route::get('quotations/print/{external_id}/{format?}', 'Tenant\QuotationController@toPrint');
 
+        Route::middleware('web')->group(function () {
+
+            Route::get('/home', [WebController::class, 'home'])->name('tenant.web.home');
+            Route::get('/nosotros', [WebController::class, 'nosotros'])->name('tenant.web.nosotros');
+            Route::get('/contacto', [WebController::class, 'contacto'])->name('tenant.web.contacto');
+            Route::get('/servicios', [WebController::class, 'servicios'])->name('tenant.web.servicios');
+        });
         Route::middleware(['auth', 'redirect.module', 'locked.tenant'])->group(function () {
             // Route::get('catalogs', 'Tenant\CatalogController@index')->name('tenant.catalogs.index');
             Route::get('list-reports', 'Tenant\SettingController@listReports');
@@ -49,12 +57,17 @@ if ($hostname) {
             Route::get('list-transfer-reason-types', 'Tenant\SettingController@listTransferReasonTypes');
 
             Route::get('advanced', 'Tenant\AdvancedController@index')->name('tenant.advanced.index')->middleware('redirect.level');
-
             Route::get('tasks', 'Tenant\TaskController@index')->name('tenant.tasks.index')->middleware('redirect.level');
             Route::post('tasks/commands', 'Tenant\TaskController@listsCommand');
             Route::post('tasks/tables', 'Tenant\TaskController@tables');
             Route::post('tasks', 'Tenant\TaskController@store');
             Route::delete('tasks/{task}', 'Tenant\TaskController@destroy');
+
+            // Web Taxis Routes
+            Route::get('web-taxis/create', [WebController::class, 'config'])->name('tenant.taxis.config.index');
+            Route::get('web-taxis/record', [WebController::class, 'record']);
+            Route::post('web-taxis', [WebController::class, 'store']);
+            Route::post('web-taxis/uploads', [WebController::class, 'uploads']);
 
             //Orders
             Route::get('orders', 'Tenant\OrderController@index')->name('tenant_orders_index');
@@ -374,6 +387,10 @@ if ($hostname) {
             Route::get('retentions/table/{table}', 'Tenant\RetentionController@table');
 
 
+            //config taxis
+            Route::get('web-taxis/create', [WebController::class, 'config'])->name('tenant.taxis.config.index');
+            Route::get('web-taxis/record', [WebController::class, 'record']);
+            Route::post('web-taxis', [WebController::class, 'store']);
             //Taxis           
             Route::get('propietarios', 'Tenant\PropietariosController@index')->name('tenant.taxi.propietarios');
             Route::get('propietarios/columns', 'Tenant\PropietariosController@columns');
@@ -499,6 +516,7 @@ if ($hostname) {
             Route::get('pdf/constancia/{constancia}', 'Tenant\PdfController@constancias')->name('tenant.pdf.constancia');
             Route::get('pdf/declaracion/{declaracion}', 'Tenant\PdfController@declaraciones')->name('tenant.pdf.declaracion');
             Route::get('pdf/permiso-viaje/{permiso}', 'Tenant\PdfController@permisoViaje')->name('tenant.pdf.permiso-viaje');
+
 
 
             /** Dispatches
@@ -914,6 +932,8 @@ if ($hostname) {
     $app_url = $prefix . env('APP_URL_BASE');
 
     Route::domain($app_url)->group(function () {
+
+
         Route::get('login', 'System\LoginController@showLoginForm')->name('login');
         Route::post('login', 'System\LoginController@login');
         Route::post('logout', 'System\LoginController@logout')->name('logout');
