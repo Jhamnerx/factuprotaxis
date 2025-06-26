@@ -176,6 +176,7 @@ class Vehiculos extends ModelTenant
             $propietario = [
                 "id" => $propietario->id,
                 "name" => $propietario->name,
+                'number' => $propietario->number,
                 "active" => $propietario->enabled,
             ];
         }

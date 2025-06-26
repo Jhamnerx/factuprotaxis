@@ -816,149 +816,306 @@
         />
 
         <!-- Modal de información de pago -->
+        <el-dialog @close="closePaymentInfoModal"> </el-dialog>
+
+        <!-- Modal para generar comprobante -->
         <el-dialog
-            :visible.sync="isPaymentInfoModalOpen"
-            title="Información del Pago"
-            width="450px"
-            @close="closePaymentInfoModal"
+            :visible.sync="showInvoiceDialog"
+            title="Generar Comprobante"
+            width="60%"
+            @close="closeInvoiceDialog"
         >
-            <div v-if="selectedPaymentInfo">
-                <div class="mb-3 pb-3 border-bottom">
-                    <div class="row mb-2">
-                        <div class="col-5 text-muted">Periodo:</div>
-                        <div class="col-7 font-semibold">
-                            {{ getMesNombre(selectedPaymentInfo.month) }}
-                            {{ selectedPaymentInfo.year }}
+            <div v-loading="loading_invoice">
+                <div class="card mb-3">
+                    <div class="card-header bg-info">
+                        <h4 class="my-0 text-white">
+                            Información del Comprobante
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label"
+                                        >Tipo de Comprobante</label
+                                    >
+                                    <el-select
+                                        v-model="invoice.document_type_id"
+                                        @change="changeDocumentType"
+                                        class="w-100"
+                                    >
+                                        <el-option
+                                            v-for="option in document_types"
+                                            :key="option.id"
+                                            :value="option.id"
+                                            :label="option.description"
+                                        ></el-option>
+                                    </el-select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Serie</label>
+                                    <el-select
+                                        v-model="invoice.series_id"
+                                        class="w-100"
+                                    >
+                                        <el-option
+                                            v-for="option in series"
+                                            :key="option.id"
+                                            :value="option.id"
+                                            :label="option.number"
+                                        ></el-option>
+                                    </el-select>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-
-                    <!-- Información específica para pagos múltiples -->
-                    <div
-                        class="row mb-2"
-                        v-if="selectedPaymentInfo.es_pago_multiple"
-                    >
-                        <div class="col-5 text-muted">Tipo de pago:</div>
-                        <div class="col-7">
-                            <span class="badge bg-info">Pago múltiple</span>
-                            <small class="d-block text-muted mt-1"
-                                >({{
-                                    selectedPaymentInfo.cantidad_meses
-                                }}
-                                meses)</small
-                            >
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Cliente</label>
+                                    <el-input
+                                        v-model="invoice.customer_name"
+                                        readonly
+                                    ></el-input>
+                                    <small
+                                        v-if="invoice.customer_id"
+                                        class="form-text text-muted"
+                                    >
+                                        Cliente asignado automáticamente según
+                                        el propietario del vehículo.
+                                    </small>
+                                    <small v-else class="form-text text-danger">
+                                        No se encontró cliente con el mismo
+                                        número que el propietario del vehículo.
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Moneda</label>
+                                    <el-select
+                                        v-model="invoice.currency_type_id"
+                                        class="w-100"
+                                    >
+                                        <el-option
+                                            v-for="option in currency_types"
+                                            :key="option.id"
+                                            :value="option.id"
+                                            :label="option.description"
+                                        ></el-option>
+                                    </el-select>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="row mb-2">
-                        <div class="col-5 text-muted">Monto:</div>
-                        <div class="col-7 font-semibold">
-                            {{ selectedPaymentInfo.divisa }}
-                            {{
-                                Math.round(selectedPaymentInfo.amount * 100) /
-                                    100
-                            }}
-                        </div>
-                    </div>
-
-                    <!-- Mostrar descuento si existe -->
-                    <div
-                        class="row mb-2"
-                        v-if="selectedPaymentInfo.descuentoPorMes > 0"
-                    >
-                        <div class="col-5 text-muted">Descuento:</div>
-                        <div class="col-7">
-                            {{ selectedPaymentInfo.divisa || divisa }}
-                            {{
-                                Math.round(
-                                    selectedPaymentInfo.descuentoPorMes * 100
-                                ) / 100
-                            }}
-                        </div>
-                    </div>
-
-                    <!-- Mostrar precio original si es diferente al monto pagado -->
-                    <div
-                        class="row mb-2"
-                        v-if="
-                            selectedPaymentInfo.montoOriginal &&
-                                selectedPaymentInfo.montoOriginal !==
-                                    selectedPaymentInfo.amount
-                        "
-                    >
-                        <div class="col-5 text-muted">Precio normal:</div>
-                        <div class="col-7">
-                            {{ selectedPaymentInfo.divisa || divisa }}
-                            {{
-                                Math.round(
-                                    selectedPaymentInfo.montoOriginal * 100
-                                ) / 100
-                            }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-2">
-                        <div class="col-5 text-muted">Estado:</div>
-                        <div class="col-7">
-                            <span
-                                :class="{
-                                    'badge bg-success':
-                                        selectedPaymentInfo.estado === 'pagado',
-                                    'badge bg-warning':
-                                        selectedPaymentInfo.estado ===
-                                        'prepagado',
-                                    'badge bg-danger':
-                                        selectedPaymentInfo.estado ===
-                                        'vencido',
-                                    'badge bg-secondary': !selectedPaymentInfo.estado
-                                }"
-                            >
-                                {{
-                                    selectedPaymentInfo.estado || "No definido"
-                                }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="row mb-2" v-if="selectedPaymentInfo.fecha">
-                        <div class="col-5 text-muted">Fecha de pago:</div>
-                        <div class="col-7">
-                            {{ formatDate(selectedPaymentInfo.fecha) }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-2" v-if="selectedPaymentInfo.tipo">
-                        <div class="col-5 text-muted">Tipo:</div>
-                        <div class="col-7">{{ selectedPaymentInfo.tipo }}</div>
-                    </div>
-
-                    <!-- Información adicional para pagos múltiples -->
-                    <div
-                        class="row mb-2"
-                        v-if="
-                            selectedPaymentInfo.es_pago_multiple &&
-                                selectedPaymentInfo.grupo_pago_id
-                        "
-                    >
-                        <div class="col-5 text-muted">Grupo de pago:</div>
-                        <div class="col-7">
-                            <small>{{
-                                selectedPaymentInfo.grupo_pago_id
-                            }}</small>
+                        <!-- Opción para agrupar o separar ítems en pagos múltiples -->
+                        <div
+                            v-if="selectedMonths && selectedMonths.length > 1"
+                            class="row mt-3"
+                        >
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label
+                                        class="control-label d-flex align-items-center"
+                                    >
+                                        <el-switch
+                                            v-model="isMultipleItemsMode"
+                                        ></el-switch>
+                                        <span class="ml-2">{{
+                                            isMultipleItemsMode
+                                                ? "Crear un ítem por cada mes"
+                                                : "Agrupar todos los meses en un solo ítem"
+                                        }}</span>
+                                    </label>
+                                    <small class="form-text text-muted">
+                                        Seleccione cómo desea que aparezcan los
+                                        pagos múltiples en el comprobante.
+                                    </small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="text-right mt-3">
-                    <button
-                        class="btn btn-secondary"
-                        @click="closePaymentInfoModal"
-                    >
-                        Cerrar
-                    </button>
+                <div class="card mb-3">
+                    <div class="card-header bg-info">
+                        <h4 class="my-0 text-white">Producto/Servicio</h4>
+                    </div>
+                    <div class="card-body">
+                        <div v-if="plan_product" class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    Producto seleccionado automáticamente:
+                                    <strong>{{
+                                        plan_product.description
+                                    }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-warning">
+                                    No se ha configurado un producto por defecto
+                                    para los planes. Por favor configure un ID
+                                    de producto en la configuración del sistema.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Productos seleccionados -->
+                        <div
+                            v-if="
+                                invoice.items.filter(item => item.is_product)
+                                    .length > 0
+                            "
+                            class="table-responsive mt-3"
+                        >
+                            <h5>Productos/Servicios seleccionados</h5>
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Descripción</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio</th>
+                                        <th>Total</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="(item,
+                                        index) in invoice.items.filter(
+                                            item => item.is_product
+                                        )"
+                                        :key="'product-' + index"
+                                    >
+                                        <td>{{ item.description }}</td>
+                                        <td>
+                                            <el-input-number
+                                                v-model="item.quantity"
+                                                :min="1"
+                                                size="mini"
+                                                @change="updateItemTotal(item)"
+                                            ></el-input-number>
+                                        </td>
+                                        <td>
+                                            {{
+                                                formatCurrency(item.unit_price)
+                                            }}
+                                        </td>
+                                        <td>
+                                            {{ formatCurrency(item.total) }}
+                                        </td>
+                                        <td>
+                                            <button
+                                                type="button"
+                                                class="btn btn-danger btn-sm"
+                                                @click="
+                                                    removeItemFromInvoice(
+                                                        index,
+                                                        true
+                                                    )
+                                                "
+                                            >
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header bg-info">
+                        <h4 class="my-0 text-white">Detalle de Pagos</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Concepto</th>
+                                        <th>Vehículo</th>
+                                        <th>Período</th>
+                                        <th class="text-right">Monto</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="(item,
+                                        index) in invoice.items.filter(
+                                            item => !item.is_product
+                                        )"
+                                        :key="'payment-' + index"
+                                    >
+                                        <td>{{ item.description }}</td>
+                                        <td>{{ item.vehicle }}</td>
+                                        <td>{{ item.period }}</td>
+                                        <td class="text-right">
+                                            {{
+                                                formatCurrency(item.unit_price)
+                                            }}
+                                        </td>
+                                        <td>
+                                            <button
+                                                type="button"
+                                                class="btn btn-danger btn-sm"
+                                                @click="
+                                                    removeItemFromInvoice(
+                                                        index,
+                                                        false
+                                                    )
+                                                "
+                                            >
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr
+                                        v-if="
+                                            invoice.items.filter(
+                                                item => !item.is_product
+                                            ).length === 0
+                                        "
+                                    >
+                                        <td colspan="5" class="text-center">
+                                            No hay pagos registrados
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" class="text-right">
+                                            Total:
+                                        </th>
+                                        <th class="text-right">
+                                            {{
+                                                formatCurrency(
+                                                    calculateInvoiceTotal()
+                                                )
+                                            }}
+                                        </th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div v-else class="text-center py-4">
-                <p>No hay información disponible para este pago.</p>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="closeInvoiceDialog">Cancelar</el-button>
+                <el-button
+                    type="primary"
+                    @click="generateInvoice"
+                    :loading="loading_submit_invoice"
+                >
+                    Generar Comprobante
+                </el-button>
             </div>
         </el-dialog>
 
@@ -1027,9 +1184,46 @@ export default {
             isAdvancedModalOpen: false,
             loading_submit: false,
             loading_record: false,
+            // Propiedades para comprobantes
+            showInvoiceDialog: false,
+            showCustomerDialog: false,
+            loading_invoice: false,
+            loading_submit_invoice: false,
+            loading_customers: false,
+            document_types: [],
+            series: [],
+            currency_types: [],
+            establishments: [], // Añadir para almacenar establecimientos
+            customers: [],
+            customer_search: "",
+            available_items: [],
+            loading_items: false,
+            item_search: "",
+            plan_product: null, // Para guardar el producto del plan
+            isMultipleItemsMode: false, // Para controlar si generar un ítem por mes o agrupar
+            invoice: {
+                document_type_id: "01",
+                series_id: null,
+                currency_type_id: "PEN",
+                customer_id: null,
+                customer_name: "",
+                customer_number: "",
+                selected_item_id: null,
+                items: []
+            },
             // Modal de información de pago
             isPaymentInfoModalOpen: false,
             selectedPaymentInfo: null,
+            // Modal para generación de comprobante
+            showInvoiceDialog: false,
+            loading_invoice: false,
+            invoice: {
+                document_type_id: null,
+                series_id: null,
+                customer_name: "",
+                currency_type_id: null,
+                items: []
+            },
             meses: {
                 1: "Enero",
                 2: "Febrero",
@@ -1069,8 +1263,14 @@ export default {
             }
         }, 500); // Esperamos 500ms para asegurar que todos los datos estén disponibles
     },
-    created() {
+    async created() {
         this.initYearsRange();
+
+        // Cargar datos para comprobantes (series, tipos de documento, etc)
+        await this.loadInvoiceData();
+
+        // Cargar el producto del plan configurado
+        await this.loadPlanProductItem();
     },
     methods: {
         initYearsRange() {
@@ -1929,6 +2129,9 @@ export default {
                         // Cerrar el modal de pago
                         this.closePaymentModal();
 
+                        // Preparar datos para generar comprobante
+                        this.prepareInvoiceDataFromPayment(pago, res.data.id);
+
                         // Recargar los datos del vehículo seleccionado
                         // Esto cargará tanto los pagos como los colores
                         this.setSelectedVehicle(vehiculoId);
@@ -1988,6 +2191,12 @@ export default {
                 .then(res => {
                     if (res.data.success) {
                         this.$message.success(res.data.message);
+
+                        // Preparar datos para generar comprobante
+                        this.prepareInvoiceDataFromMultiplePayments(
+                            pagos,
+                            res.data.ids
+                        );
 
                         // Limpiar los meses seleccionados
                         this.selectedMonths = [];
@@ -2493,6 +2702,696 @@ export default {
             } else {
                 // Alternativa: usar window.location
                 window.location.href = url;
+            }
+        },
+
+        // Métodos para comprobantes
+        async prepareInvoiceDataFromPayment(pago, id) {
+            // Limpiar datos de comprobante previo
+            this.invoice.items = [];
+
+            // Preparar datos básicos
+            this.invoice.document_type_id = "01"; // Factura por defecto
+
+            // Agregar el pago como ítem del comprobante
+            const vehiculoInfo = this.selectedVehicle || {};
+            const mes = this.meses[pago.mes] || pago.mes;
+            const moneda = pago.moneda || "PEN";
+
+            // Formatear la descripción correctamente
+            const pagoDesc = `Pago de cuota ${mes} ${
+                pago.year
+            } - Vehículo ${vehiculoInfo.placa || ""}`;
+
+            // Establecer la moneda del comprobante según el pago
+            this.invoice.currency_type_id = moneda;
+
+            // Si el vehículo tiene propietario, usar como cliente por defecto
+            if (vehiculoInfo.propietario) {
+                this.invoice.customer_id = vehiculoInfo.propietario.id;
+                this.invoice.customer_name = vehiculoInfo.propietario.name;
+                this.invoice.customer_number = vehiculoInfo.propietario.number;
+
+                // Buscar al cliente por número de documento para asegurar que existe en el sistema
+                await this.searchRemoteCustomers(
+                    vehiculoInfo.propietario.number
+                );
+            }
+
+            // Si tenemos un producto de plan configurado, usarlo como ítem
+            if (this.plan_product) {
+                // Crear un ítem basado en el producto del plan
+                const productItem = {
+                    id: this.plan_product.id,
+                    is_product: true,
+                    internal_id: this.plan_product.internal_id,
+                    description: pagoDesc, // Usar la descripción correcta
+                    item_type_id: this.plan_product.item_type_id,
+                    item_code: this.plan_product.item_code,
+                    item_code_gs1: this.plan_product.item_code_gs1,
+                    unit_type_id: this.plan_product.unit_type_id,
+                    currency_type_id: moneda,
+                    quantity: 1,
+                    unit_value: parseFloat(pago.monto) / 1.18, // Valor sin IGV
+                    price_type_id: this.plan_product.price_type_id || "01",
+                    unit_price: parseFloat(pago.monto), // Precio con IGV
+                    total: parseFloat(pago.monto),
+                    has_igv: true,
+                    affectation_igv_type_id: "10" // Gravado - Operación Onerosa
+                };
+
+                this.invoice.items.push(productItem);
+            } else {
+                // Si no hay producto configurado, usar el ítem genérico del pago
+                this.invoice.items.push({
+                    id: id,
+                    is_product: false, // Indicar que NO es un producto seleccionado
+                    description: pagoDesc,
+                    vehicle: vehiculoInfo.placa || "",
+                    period: `${mes} ${pago.year}`,
+                    unit_price: parseFloat(pago.monto),
+                    quantity: 1,
+                    total: parseFloat(pago.monto),
+                    currency_type_id: moneda,
+                    has_igv: true, // Por defecto se considera con IGV
+                    affectation_igv_type_id: "10" // Gravado - Operación Onerosa
+                });
+            }
+
+            // Cargar datos de comprobante (series, tipos de documento, etc)
+            this.loadInvoiceData();
+
+            // Mostrar modal
+            this.showInvoiceDialog = true;
+        },
+
+        async prepareInvoiceDataFromMultiplePayments(pagos, ids) {
+            // Limpiar datos de comprobante previo
+            this.invoice.items = [];
+
+            // Preparar datos básicos
+            this.invoice.document_type_id = "01"; // Factura por defecto
+
+            // Determinar la moneda a usar (usar la del primer pago)
+            const moneda = pagos[0].moneda || "PEN";
+            this.invoice.currency_type_id = moneda;
+
+            const vehiculoInfo = this.selectedVehicle || {};
+
+            // Si el vehículo tiene propietario, usar como cliente por defecto
+            if (vehiculoInfo.propietario) {
+                this.invoice.customer_id = vehiculoInfo.propietario.id;
+                this.invoice.customer_name = vehiculoInfo.propietario.name;
+                this.invoice.customer_number = vehiculoInfo.propietario.number;
+
+                // Buscar al cliente por número de documento para asegurar que existe en el sistema
+                await this.searchRemoteCustomers(
+                    vehiculoInfo.propietario.number
+                );
+            }
+
+            // Verificar si debe crear un ítem por mes o agruparlos
+            if (this.isMultipleItemsMode && this.plan_product) {
+                // Agregar cada pago como ítem separado del comprobante utilizando el producto del plan
+                pagos.forEach((pago, index) => {
+                    const mes = this.meses[pago.mes] || pago.mes;
+                    const pagoDesc = `Pago de cuota ${mes} ${
+                        pago.year
+                    } - Vehículo ${vehiculoInfo.placa || ""}`;
+                    const monto = parseFloat(pago.montoPorMes || pago.monto);
+
+                    // Crear un ítem basado en el producto del plan
+                    const productItem = {
+                        id: this.plan_product.id,
+                        is_product: true,
+                        internal_id: this.plan_product.internal_id,
+                        description: pagoDesc, // Descripción correcta con mes, año y placa
+                        item_type_id: this.plan_product.item_type_id,
+                        item_code: this.plan_product.item_code,
+                        item_code_gs1: this.plan_product.item_code_gs1,
+                        unit_type_id: this.plan_product.unit_type_id,
+                        currency_type_id: moneda,
+                        quantity: 1,
+                        unit_value: monto / 1.18, // Valor sin IGV
+                        price_type_id: this.plan_product.price_type_id || "01",
+                        unit_price: monto, // Precio con IGV
+                        total: monto,
+                        has_igv: true,
+                        affectation_igv_type_id: "10" // Gravado - Operación Onerosa
+                    };
+
+                    this.invoice.items.push(productItem);
+                });
+            } else if (this.isMultipleItemsMode) {
+                // Si no hay producto configurado, crear ítems genéricos
+                pagos.forEach((pago, index) => {
+                    const mes = this.meses[pago.mes] || pago.mes;
+                    const pagoDesc = `Pago de cuota ${mes} ${
+                        pago.year
+                    } - Vehículo ${vehiculoInfo.placa || ""}`;
+                    const monto = parseFloat(pago.montoPorMes || pago.monto);
+
+                    this.invoice.items.push({
+                        id: ids ? ids[index] : null,
+                        is_product: false,
+                        description: pagoDesc,
+                        vehicle: vehiculoInfo.placa || "",
+                        period: `${mes} ${pago.year}`,
+                        unit_price: monto,
+                        quantity: 1,
+                        total: monto,
+                        currency_type_id: moneda,
+                        has_igv: true,
+                        affectation_igv_type_id: "10"
+                    });
+                });
+            } else if (this.plan_product) {
+                // Agrupar todos los pagos en un solo ítem usando el producto del plan
+                // Calcular el total de todos los pagos
+                const totalAmount = pagos.reduce((sum, pago) => {
+                    return sum + parseFloat(pago.montoPorMes || pago.monto);
+                }, 0);
+
+                // Obtener el primer y último mes para la descripción
+                const firstMonth = pagos[0];
+                const lastMonth = pagos[pagos.length - 1];
+
+                const firstMonthName =
+                    this.meses[firstMonth.mes] || firstMonth.mes;
+                const lastMonthName =
+                    this.meses[lastMonth.mes] || lastMonth.mes;
+
+                const pagoDesc = `Pago de cuotas de ${firstMonthName} ${
+                    firstMonth.year
+                } a ${lastMonthName} ${
+                    lastMonth.year
+                } - Vehículo ${vehiculoInfo.placa || ""}`;
+
+                // Crear un ítem que agrupa todos los meses usando el producto del plan
+                const productItem = {
+                    id: this.plan_product.id,
+                    is_product: true,
+                    internal_id: this.plan_product.internal_id,
+                    description: pagoDesc,
+                    item_type_id: this.plan_product.item_type_id,
+                    item_code: this.plan_product.item_code,
+                    item_code_gs1: this.plan_product.item_code_gs1,
+                    unit_type_id: this.plan_product.unit_type_id,
+                    currency_type_id: moneda,
+                    quantity: 1,
+                    unit_value: totalAmount / 1.18, // Valor sin IGV
+                    price_type_id: this.plan_product.price_type_id || "01",
+                    unit_price: totalAmount, // Precio con IGV
+                    total: totalAmount,
+                    has_igv: true,
+                    affectation_igv_type_id: "10" // Gravado - Operación Onerosa
+                };
+
+                this.invoice.items.push(productItem);
+            } else {
+                // Si no hay producto configurado, crear un ítem genérico agrupado
+                // Calcular el total de todos los pagos
+                const totalAmount = pagos.reduce((sum, pago) => {
+                    return sum + parseFloat(pago.montoPorMes || pago.monto);
+                }, 0);
+
+                // Obtener el primer y último mes para la descripción
+                const firstMonth = pagos[0];
+                const lastMonth = pagos[pagos.length - 1];
+
+                const firstMonthName =
+                    this.meses[firstMonth.mes] || firstMonth.mes;
+                const lastMonthName =
+                    this.meses[lastMonth.mes] || lastMonth.mes;
+
+                const pagoDesc = `Pago de cuotas de ${firstMonthName} ${
+                    firstMonth.year
+                } a ${lastMonthName} ${
+                    lastMonth.year
+                } - Vehículo ${vehiculoInfo.placa || ""}`;
+
+                // Crear un ítem que agrupa todos los meses
+                this.invoice.items.push({
+                    id: ids ? ids[0] : null,
+                    is_product: false,
+                    description: pagoDesc,
+                    vehicle: vehiculoInfo.placa || "",
+                    period: `${firstMonthName} ${
+                        firstMonth.year
+                    } - ${lastMonthName} ${lastMonth.year}`,
+                    unit_price: totalAmount,
+                    quantity: 1,
+                    total: totalAmount,
+                    currency_type_id: moneda,
+                    has_igv: true,
+                    affectation_igv_type_id: "10"
+                });
+            }
+
+            // Cargar datos de comprobante (series, tipos de documento, etc)
+            this.loadInvoiceData();
+
+            // Mostrar modal
+            this.showInvoiceDialog = true;
+        },
+
+        async loadInvoiceData() {
+            this.loading_invoice = true;
+
+            try {
+                // Cargar tipos de documentos, series y monedas
+                const response = await this.$http.get("/documents/tables");
+
+                if (response.data) {
+                    this.document_types = response.data.document_types_invoice;
+                    this.currency_types = response.data.currency_types;
+                    this.establishments = response.data.establishments;
+
+                    // Filtrar solo series de facturas y boletas
+                    this.series = (response.data.series || []).filter(serie =>
+                        ["01", "03"].includes(serie.document_type_id)
+                    );
+
+                    // Seleccionar primera serie disponible para el tipo de documento seleccionado
+                    this.setSeriesFromDocumentType();
+                }
+            } catch (error) {
+                console.error("Error al cargar datos de comprobante:", error);
+                this.$message.error("Error al cargar datos del comprobante");
+            } finally {
+                this.loading_invoice = false;
+            }
+        },
+
+        setSeriesFromDocumentType() {
+            const seriesForDocument = this.series.filter(
+                serie =>
+                    serie.document_type_id === this.invoice.document_type_id
+            );
+
+            if (seriesForDocument.length > 0) {
+                this.invoice.series_id = seriesForDocument[0].id;
+            } else {
+                this.invoice.series_id = null;
+            }
+        },
+
+        changeDocumentType() {
+            this.setSeriesFromDocumentType();
+        },
+
+        calculateInvoiceTotal() {
+            return this.invoice.items.reduce((total, item) => {
+                return (
+                    total + parseFloat(item.unit_price) * (item.quantity || 1)
+                );
+            }, 0);
+        },
+
+        closeInvoiceDialog() {
+            this.showInvoiceDialog = false;
+            // Limpiar datos de comprobante
+            this.invoice.items = [];
+        },
+
+        async searchCustomers() {
+            // Este método ya no se usa pero se mantiene por compatibilidad
+            return;
+        },
+
+        searchCustomer() {
+            // Este método ya no se usa pero se deja para compatibilidad
+            return;
+        },
+
+        selectCustomer(customer) {
+            this.invoice.customer_id = customer.id;
+            this.invoice.customer_name = customer.name;
+            this.invoice.customer_number = customer.number;
+            this.showCustomerDialog = false;
+        },
+
+        async generateInvoice() {
+            // Validar datos mínimos
+            if (!this.invoice.customer_id) {
+                this.$message.error("Debe seleccionar un cliente");
+                return;
+            }
+
+            if (!this.invoice.series_id) {
+                this.$message.error("Debe seleccionar una serie");
+                return;
+            }
+
+            if (this.invoice.items.length === 0) {
+                this.$message.error("No hay ítems para generar el comprobante");
+                return;
+            }
+
+            this.loading_submit_invoice = true;
+
+            try {
+                // Preparar datos para el comprobante
+                const data = {
+                    document_type_id: this.invoice.document_type_id,
+                    series_id: this.invoice.series_id,
+                    establishment_id:
+                        this.establishments.length > 0
+                            ? this.establishments[0].id
+                            : this.configuration.establishment_id,
+                    currency_type_id: this.invoice.currency_type_id,
+                    customer_id: this.invoice.customer_id,
+                    date_of_issue: moment().format("YYYY-MM-DD"),
+                    time_of_issue: moment().format("HH:mm:ss"),
+                    payment_condition_id: "01", // Contado
+                    payment_method_type_id: "01", // Efectivo
+                    items: this.invoice.items.map(item => {
+                        // Si el item es un producto seleccionado de la API
+                        if (item.is_product) {
+                            // Calcular valores con IGV
+                            const unitPrice = parseFloat(item.unit_price);
+                            const quantity = item.quantity || 1;
+                            const totalValue = unitPrice * quantity;
+
+                            // Para productos con IGV (ya incluido en el precio)
+                            const hasIgv = item.has_igv === true;
+                            const unitValue = hasIgv
+                                ? unitPrice / 1.18
+                                : unitPrice;
+                            const totalIgv = hasIgv
+                                ? totalValue - totalValue / 1.18
+                                : totalValue * 0.18;
+
+                            return {
+                                item_id: item.product_id, // ID del producto/servicio
+                                item_description: item.description,
+                                item_type_id: "01", // Producto
+                                unit_type_id: item.unit_type_id || "ZZ", // Unidad de medida
+                                quantity: quantity,
+                                unit_value: unitValue.toFixed(4),
+                                price_type_id: "01", // Precio unitario
+                                unit_price: unitPrice.toFixed(4),
+                                affectation_igv_type_id:
+                                    item.affectation_igv_type_id || "10", // Gravado - Operación Onerosa
+                                total_base_igv: unitValue * quantity,
+                                percentage_igv: 18,
+                                total_igv: totalIgv,
+                                total_taxes: totalIgv,
+                                total_value: unitValue * quantity,
+                                total: totalValue
+                            };
+                        } else {
+                            // Si es un item creado a partir de un pago
+                            const unitPrice = parseFloat(item.unit_price);
+                            const quantity = item.quantity || 1;
+                            const totalValue = unitPrice * quantity;
+
+                            // Para pagos, el IGV está incluido en el precio
+                            const unitValue = unitPrice / 1.18;
+                            const totalIgv = totalValue - totalValue / 1.18;
+
+                            return {
+                                item_id: null, // Como es un servicio manual, no tiene item_id
+                                item_description: item.description,
+                                item_type_id: "01", // Producto
+                                unit_type_id: "ZZ", // Servicio
+                                quantity: quantity,
+                                unit_value: unitValue.toFixed(4),
+                                price_type_id: "01", // Precio unitario
+                                unit_price: unitPrice.toFixed(4),
+                                affectation_igv_type_id: "10", // Gravado - Operación Onerosa
+                                total_base_igv: unitValue * quantity,
+                                percentage_igv: 18,
+                                total_igv: totalIgv,
+                                total_taxes: totalIgv,
+                                total_value: unitValue * quantity,
+                                total: totalValue,
+                                payment_id: item.id // ID del pago asociado
+                            };
+                        }
+                    }),
+                    operation_type_id: "0101" // Venta interna
+                };
+
+                // Enviar solicitud para generar comprobante
+                const response = await this.$http.post("/documents", data);
+
+                if (response.data && response.data.success) {
+                    this.$message.success("Comprobante generado correctamente");
+                    this.closeInvoiceDialog();
+
+                    // Si hay ID de documento generado, ofrecer visualización o descarga
+                    if (response.data.data && response.data.data.id) {
+                        this.showGeneratedDocumentOptions(
+                            response.data.data.id
+                        );
+                    }
+                } else {
+                    this.$message.error(
+                        response.data.message || "Error al generar comprobante"
+                    );
+                }
+            } catch (error) {
+                console.error("Error al generar comprobante:", error);
+                if (error.response && error.response.data) {
+                    this.$message.error(
+                        error.response.data.message ||
+                            "Error al generar comprobante"
+                    );
+                } else {
+                    this.$message.error("Error al generar comprobante");
+                }
+            } finally {
+                this.loading_submit_invoice = false;
+            }
+        },
+
+        showGeneratedDocumentOptions(documentId) {
+            this.$confirm(
+                "¿Desea visualizar el comprobante generado?",
+                "Comprobante generado",
+                {
+                    confirmButtonText: "Ver Comprobante",
+                    cancelButtonText: "Cerrar",
+                    type: "success"
+                }
+            )
+                .then(() => {
+                    // Abrir comprobante en nueva pestaña
+                    window.open(`/documents/print/${documentId}/a4`, "_blank");
+                })
+                .catch(() => {
+                    // El usuario eligió no ver el comprobante
+                });
+        },
+
+        async searchItems(query) {
+            // Este método ya no se usa pero se deja para compatibilidad
+            return;
+        },
+
+        async loadPlanProductItem() {
+            // Si no hay configuración o no tiene plans_producto_id, no hacer nada
+            if (!this.configuration || !this.configuration.plans_producto_id) {
+                console.log("No hay ID de producto de plan configurado");
+                return;
+            }
+
+            try {
+                // Usar el nuevo endpoint que devuelve un solo ítem por ID
+                const response = await this.$http.get(
+                    `/items/get-item/${this.configuration.plans_producto_id}`
+                );
+
+                if (response.data && response.data.data) {
+                    // Guardar el producto para usarlo al generar comprobantes
+                    this.plan_product = response.data.data;
+                    console.log(
+                        "Producto del plan cargado:",
+                        this.plan_product
+                    );
+                }
+            } catch (error) {
+                console.error("Error al cargar el producto del plan:", error);
+                this.$message.error(
+                    "No se pudo cargar el producto del plan configurado"
+                );
+            }
+        },
+
+        addSelectedItemToInvoice() {
+            if (!this.invoice.selected_item_id) {
+                this.$message.warning(
+                    "Debe seleccionar un producto o servicio"
+                );
+                return;
+            }
+
+            // Buscar el item seleccionado en los items disponibles
+            const selectedItem = this.available_items.find(
+                item => item.id === this.invoice.selected_item_id
+            );
+
+            if (!selectedItem) {
+                this.$message.error("Producto o servicio no encontrado");
+                return;
+            }
+
+            // Verificar si ya existe en la lista
+            const exists = this.invoice.items.some(
+                item => item.is_product && item.product_id === selectedItem.id
+            );
+
+            if (exists) {
+                this.$message.warning(
+                    "Este producto/servicio ya está en la lista"
+                );
+                return;
+            }
+
+            // Calcular precios según el tipo de documento y configuración de IGV
+            const unitPrice = parseFloat(selectedItem.sale_unit_price);
+            const hasIgv = selectedItem.has_igv;
+
+            // Preparar el ítem con los datos necesarios para el comprobante
+            this.invoice.items.push({
+                is_product: true,
+                product_id: selectedItem.id,
+                description: selectedItem.description,
+                unit_price: unitPrice,
+                quantity: 1,
+                total: unitPrice,
+                unit_type_id: selectedItem.unit_type_id || "ZZ",
+                currency_type_id: this.invoice.currency_type_id,
+                has_igv: hasIgv,
+                affectation_igv_type_id:
+                    selectedItem.sale_affectation_igv_type_id || "10"
+            });
+
+            // Limpiar selección
+            this.invoice.selected_item_id = null;
+
+            // Mensaje de éxito
+            this.$message.success("Producto/servicio añadido al comprobante");
+        },
+
+        updateItemTotal(item) {
+            // Actualizar el total del item según la cantidad y el precio
+            if (item) {
+                // Si es un producto del plan, actualizar también unit_value (valor sin IGV)
+                if (
+                    item.is_product &&
+                    this.plan_product &&
+                    item.id === this.plan_product.id
+                ) {
+                    item.unit_value = parseFloat(item.unit_price) / 1.18; // Calcular valor sin IGV
+                }
+
+                // Actualizar el total
+                item.total = parseFloat(item.unit_price) * (item.quantity || 1);
+
+                // Actualizar la descripción para asegurar que no tenga "undefined"
+                if (
+                    item.description &&
+                    item.description.includes("undefined")
+                ) {
+                    // Corregir la descripción reemplazando "undefined" con el mes y año correctos
+                    const vehiculoInfo = this.selectedVehicle || {};
+                    const placa = vehiculoInfo.placa || "";
+
+                    // Intentar extraer mes y año de la descripción original
+                    const regexDesc = /Pago de cuota (.*?) (.*?) - Vehículo/;
+                    const match = item.description.match(regexDesc);
+
+                    if (match) {
+                        const mes = match[1] !== "undefined" ? match[1] : "";
+                        const anio =
+                            match[2] !== "undefined"
+                                ? match[2]
+                                : new Date().getFullYear();
+
+                        // Reconstruir la descripción correctamente
+                        item.description = `Pago de cuota ${mes} ${anio} - Vehículo ${placa}`;
+                    }
+                }
+            }
+        },
+
+        removeItemFromInvoice(index, isProduct) {
+            // Filtrar items basado en si es un producto o un pago
+            if (isProduct) {
+                // Si es un producto, filtrar solo los productos
+                const productItems = this.invoice.items.filter(
+                    item => item.is_product
+                );
+                if (index >= 0 && index < productItems.length) {
+                    const actualIndex = this.invoice.items.findIndex(
+                        item => item === productItems[index]
+                    );
+                    if (actualIndex !== -1) {
+                        this.invoice.items.splice(actualIndex, 1);
+                    }
+                }
+            } else {
+                // Si es un pago, filtrar solo los pagos
+                const paymentItems = this.invoice.items.filter(
+                    item => !item.is_product
+                );
+                if (index >= 0 && index < paymentItems.length) {
+                    const actualIndex = this.invoice.items.findIndex(
+                        item => item === paymentItems[index]
+                    );
+                    if (actualIndex !== -1) {
+                        this.invoice.items.splice(actualIndex, 1);
+                    }
+                }
+            }
+        },
+
+        async searchRemoteCustomers(documentNumber) {
+            if (!documentNumber) {
+                return [];
+            }
+
+            try {
+                // Buscar cliente que coincida exactamente con este número
+                const response = await this.$http.get(
+                    `/documents/search/customers?input=${documentNumber}`
+                );
+
+                if (response.data && response.data.customers) {
+                    const customers = response.data.customers;
+
+                    // Si encontramos clientes, buscar uno que coincida exactamente con el número de documento
+                    const exactMatch = customers.find(
+                        customer => customer.number === documentNumber
+                    );
+
+                    if (exactMatch) {
+                        // Seleccionar automáticamente este cliente
+                        this.selectCustomer(exactMatch);
+                        return [exactMatch];
+                    }
+
+                    // Si no hay coincidencia exacta, mostrar advertencia
+                    if (!exactMatch && this.showInvoiceDialog) {
+                        this.$message.warning(
+                            `No se encontró un cliente con el documento ${documentNumber}. Por favor verifique que el propietario esté registrado como cliente.`
+                        );
+                    }
+
+                    return customers;
+                }
+                return [];
+            } catch (error) {
+                console.error(
+                    "Error al buscar clientes por número de documento:",
+                    error
+                );
+                if (this.showInvoiceDialog) {
+                    this.$message.error("Error al buscar cliente");
+                }
+                return [];
             }
         }
     }
