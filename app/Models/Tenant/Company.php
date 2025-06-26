@@ -60,6 +60,7 @@ class Company extends ModelTenant
         'representante_legal_dni',
         'representante_legal_email',
         'representante_legal_phone',
+        'planes_producto_id',
     ];
 
     protected $casts = [

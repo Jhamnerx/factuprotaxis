@@ -578,6 +578,74 @@
                 </form>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-header bg-info">
+                <h3 class="my-0">
+                    Plan de producto
+                    <el-tooltip
+                        class="item"
+                        content="Seleccione un plan para esta empresa"
+                        effect="dark"
+                        placement="top-start"
+                    >
+                        <i class="fa fa-info-circle"></i>
+                    </el-tooltip>
+                </h3>
+            </div>
+            <div class="card-body">
+                <form autocomplete="off" @submit.prevent="submit">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div
+                                :class="{
+                                    'has-danger': errors.planes_producto_id
+                                }"
+                                class="form-group"
+                            >
+                                <label class="control-label"
+                                    >Plan de producto</label
+                                >
+
+                                <el-select
+                                    id="select-width"
+                                    v-model="form.planes_producto_id"
+                                    :loading="loading_search"
+                                    :remote-method="searchRemoteItems"
+                                    filterable
+                                    placeholder="Buscar"
+                                    remote
+                                    value-key="id"
+                                    @change="changeItem"
+                                >
+                                    <el-option
+                                        v-for="option in items"
+                                        :key="option.id"
+                                        :label="option.full_description"
+                                        :value="option.id"
+                                    ></el-option>
+                                </el-select>
+
+                                <small
+                                    v-if="errors.planes_producto_id"
+                                    class="form-control-feedback"
+                                    v-text="errors.planes_producto_id[0]"
+                                ></small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions text-right pt-2">
+                        <el-button
+                            :loading="loading_submit"
+                            native-type="submit"
+                            type="primary"
+                            >Guardar
+                        </el-button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header bg-info">
                 <h3 class="my-0">
@@ -900,13 +968,16 @@ export default {
     data() {
         return {
             loading_submit: false,
+            loading_search: false,
             headers: headers_token,
             resource: "companies",
             errors: {},
             form: {},
             soap_sends: [],
             soap_types: [],
-            toggle: false //Creando el objeto a retornar con v-model
+            toggle: false, //Creando el objeto a retornar con v-model
+            items: [],
+            search_item_by_barcode: false
         };
     },
     async created() {
@@ -916,6 +987,19 @@ export default {
             this.soap_types = response.data.soap_types;
             // console.log(1)
         });
+
+        // Cargar los items antes de obtener el registro
+        await this.$http
+            .get(`/items/search/item/1`)
+            .then(response => {
+                if (response.data) {
+                    this.items = response.data.items || [];
+                }
+            })
+            .catch(error => {
+                console.log("Error al cargar los items:", error);
+            });
+
         await this.$http.get(`/${this.resource}/record`).then(response => {
             if (response.data !== "") {
                 this.form = response.data.data;
@@ -932,7 +1016,44 @@ export default {
                 this.getRecord();
             });
         },
+        async searchRemoteItems(input) {
+            if (input.length > 2) {
+                this.loading_search = true;
+                const params = {
+                    input: input
+                };
+                await this.$http
+                    .get(`/items/search/item/${input}`, { params })
+                    .then(response => {
+                        this.items = response.data.items || [];
+                        this.loading_search = false;
+                    })
+                    .catch(error => {
+                        console.log("Error en la búsqueda de items:", error);
+                        this.loading_search = false;
+                    });
+            } else {
+                this.items = [];
+            }
+        },
+        changeItem() {
+            // Este método se ejecuta cuando se selecciona un item
+            console.log("Item seleccionado:", this.form.planes_producto_id);
+        },
         async getRecord() {
+            // Primero obtenemos los items
+            await this.$http
+                .get(`/items/search/item/${this.form.planes_producto_id}`)
+                .then(response => {
+                    if (response.data) {
+                        this.items = response.data.items || [];
+                    }
+                })
+                .catch(error => {
+                    console.log("Error al cargar los items:", error);
+                });
+
+            // Luego obtenemos los datos del registro
             await this.$http.get(`/${this.resource}/record`).then(response => {
                 if (response.data !== "") {
                     this.form = response.data.data;
@@ -977,7 +1098,8 @@ export default {
                 representante_legal_name: null,
                 representante_legal_dni: null,
                 representante_legal_email: null,
-                representante_legal_phone: null
+                representante_legal_phone: null,
+                planes_producto_id: null
             };
         },
         submit() {

@@ -20,6 +20,9 @@ class TenantAddColumnsTaxisToCompanies extends Migration
             $table->string('representante_legal_dni')->after('representante_legal_name')->nullable();
             $table->string('representante_legal_email')->after('representante_legal_dni')->nullable();
             $table->string('representante_legal_phone')->after('representante_legal_email')->nullable();
+            $table->unsignedInteger('planes_producto_id')->after('planes_producto_id')->nullable();
+
+            $table->foreign('item_id')->references('id')->on('items');
         });
     }
 

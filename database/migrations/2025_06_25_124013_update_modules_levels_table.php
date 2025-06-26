@@ -25,6 +25,7 @@ class UpdateModulesLevelsTable extends Migration
             ['id' => '102', 'value' => 'permiso_viaje', 'description' => 'Permiso de Viaje', 'module_id' => 53],
             ['id' => '103', 'value' => 'constancia_baja', 'description' => 'Constancia de Baja', 'module_id' => 53],
             ['id' => '104', 'value' => 'declaraciones', 'description' => 'Declaraciones', 'module_id' => 53],
+            ['id' => '105', 'value' => 'pagos', 'description' => 'Pagos', 'module_id' => 53],
         ]);
     }
 

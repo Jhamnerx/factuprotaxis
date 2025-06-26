@@ -66,6 +66,7 @@ class CompanyResource extends JsonResource
             'representante_legal_dni' => $this->representante_legal_dni,
             'representante_legal_email' => $this->representante_legal_email,
             'representante_legal_phone' => $this->representante_legal_phone,
+            'planes_producto_id' => $this->planes_producto_id,
         ];
     }
 }

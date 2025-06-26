@@ -413,7 +413,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                                                             href="{{ route('tenant.taxi.marcas.index') }}">Marcas</a>
                                                     </li>
                                                 @endif
-                                                @if (in_array('unidades', $vc_module_levels))
+                                                @if (in_array('modelos', $vc_module_levels))
                                                     <li class="{{ $firstLevel === 'modelos' ? 'nav-active' : '' }}">
                                                         <a class="nav-link"
                                                             href="{{ route('tenant.taxi.modelos.index') }}">Modelos</a>
@@ -447,14 +447,14 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                                                 href="{{ route('tenant.taxi.solicitudes.index') }}">Solicitudes</a>
                                         </li>
                                     @endif
-                                    @if (in_array('permisos', $vc_module_levels))
+                                    @if (in_array('permiso_viaje', $vc_module_levels))
                                         <li class="{{ $firstLevel === 'permisos' ? 'nav-active' : '' }}">
                                             <a class="nav-link"
                                                 href="{{ route('tenant.taxi.permisos.index') }}">Permiso
                                                 de viaje</a>
                                         </li>
                                     @endif
-                                    @if (in_array('constancias', $vc_module_levels))
+                                    @if (in_array('constancia_baja', $vc_module_levels))
                                         <li class="{{ $firstLevel === 'constancias' ? 'nav-active' : '' }}">
                                             <a class="nav-link"
                                                 href="{{ route('tenant.taxi.constancias.index') }}">Constancia de
