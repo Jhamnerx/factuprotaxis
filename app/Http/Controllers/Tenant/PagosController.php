@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Tenant;
 
 use Illuminate\Http\Request;
+use App\Models\Tenant\Company;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\Taxis\Vehiculos;
@@ -15,7 +16,9 @@ class PagosController extends Controller
 {
     public function index()
     {
-        return view('tenant.taxis.pagos.index');
+        $company = Company::active();
+
+        return view('tenant.taxis.pagos.index', compact('company'));
     }
 
     public function columnsVehiculos()

@@ -1149,6 +1149,10 @@ export default {
         configuration: {
             type: Object,
             required: true
+        },
+        company: {
+            type: Object,
+            required: true
         }
     },
     data() {
@@ -1334,7 +1338,7 @@ export default {
                         this.loadPaymentsData();
 
                         // Cargar colores de pagos
-                        this.loadPaymentColors();
+                        // this.loadPaymentColors();
 
                         // Forzar actualización del calendario después de cargar los datos
                         this.$nextTick(() => {
@@ -3191,8 +3195,10 @@ export default {
         },
 
         async loadPlanProductItem() {
+            console.log("Company:", this.company);
+            
             // Si no hay configuración o no tiene plans_producto_id, no hacer nada
-            if (!this.configuration || !this.configuration.plans_producto_id) {
+            if (!this.company || !this.company.planes_producto_id) {
                 console.log("No hay ID de producto de plan configurado");
                 return;
             }
@@ -3200,7 +3206,7 @@ export default {
             try {
                 // Usar el nuevo endpoint que devuelve un solo ítem por ID
                 const response = await this.$http.get(
-                    `/items/get-item/${this.configuration.plans_producto_id}`
+                    `/items/record/${this.company.planes_producto_id}`
                 );
 
                 if (response.data && response.data.data) {

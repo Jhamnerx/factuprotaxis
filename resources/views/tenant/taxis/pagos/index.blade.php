@@ -1,7 +1,7 @@
 @extends('tenant.layouts.app')
 
 @section('content')
-    <tenant-taxis-pagos-form
+    <tenant-taxis-pagos-form :company="{{ $company }}"
         :configuration="{{ \App\Models\Tenant\Configuration::getPublicConfig() }}"></tenant-taxis-pagos-form>
 @endsection
 @push('scripts')
