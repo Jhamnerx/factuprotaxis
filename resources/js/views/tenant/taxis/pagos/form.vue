@@ -579,6 +579,31 @@
                                 class="min-w-full border-collapse"
                                 id="calendarTable"
                             >
+                                <!-- Overlay de carga del calendario -->
+                                <div
+                                    v-if="loadingCalendar"
+                                    class="calendar-loading-overlay"
+                                >
+                                    <div class="calendar-loading-content">
+                                        <div
+                                            class="spinner-border text-primary"
+                                            role="status"
+                                        >
+                                            <span class="visually-hidden"
+                                                >Cargando...</span
+                                            >
+                                        </div>
+                                        <p
+                                            class="mt-3 mb-0 text-primary font-weight-bold"
+                                        >
+                                            Cargando información del vehículo...
+                                        </p>
+                                        <p class="text-muted small mt-1">
+                                            Por favor espere mientras se cargan
+                                            los datos
+                                        </p>
+                                    </div>
+                                </div>
                                 <thead>
                                     <tr>
                                         <th
@@ -1316,7 +1341,8 @@ export default {
             isPaymentInfoModalOpen: false,
             selectedPaymentInfo: null,
             isProcessingVehicle: false, // Evitar procesamiento múltiple
-            lastSelectedVehicleId: null // Para evitar recargas redundantes
+            lastSelectedVehicleId: null, // Para evitar recargas redundantes
+            loadingCalendar: false // Estado de carga para el calendario completo
         };
     },
     mounted() {
@@ -1401,10 +1427,12 @@ export default {
                 return;
             }
 
+            // Activar los indicadores de carga
             console.log(`Iniciando carga de datos para vehículo ${vehicleId}`);
             this.isProcessingVehicle = true; // Marcar que estamos procesando
             this.lastSelectedVehicleId = vehicleId; // Guardar el ID para evitar recargas
             this.loading_record = true;
+            this.loadingCalendar = true; // Activar el indicador de carga del calendario
 
             // Limpiar datos previos antes de cargar nuevos
             this.monthlyPayments = {};
@@ -1440,6 +1468,8 @@ export default {
                         this.$message.warning(
                             "Este vehículo no tiene una suscripción activa."
                         );
+                        // Desactivar el indicador de carga si no hay suscripción
+                        this.loadingCalendar = false;
                     }
                 })
                 .catch(error => {
@@ -1450,10 +1480,13 @@ export default {
                     this.$message.error(
                         "Error al cargar los datos del vehículo: " + error
                     );
+                    // Desactivar el indicador de carga en caso de error
+                    this.loadingCalendar = false;
                 })
                 .finally(() => {
                     this.loading_record = false;
                     this.isProcessingVehicle = false; // Finalizar procesamiento
+                    // Nota: No desactivamos loadingCalendar aquí porque se hace después de cargar los datos en loadVehicleDataEfficiently
                 });
         },
 
@@ -1513,10 +1546,15 @@ export default {
                         if (this.debug) {
                             setTimeout(() => this.logCalendarData(), 500);
                         }
+
+                        // Desactivar el indicador de carga después de que todo esté listo
+                        this.loadingCalendar = false;
                     });
                 })
                 .catch(error => {
                     console.error("Error al cargar datos del vehículo:", error);
+                    // Desactivar el indicador de carga en caso de error
+                    this.loadingCalendar = false;
                 });
         },
         /**
@@ -3623,7 +3661,6 @@ table {
 }
 
 table th {
-    background-color: #f8f9fa;
     font-weight: 500;
     padding: 6px;
     border-bottom: 1px solid #dee2e6;
@@ -3749,5 +3786,59 @@ table td:hover {
 .payment-tooltip strong {
     display: inline-block;
     margin-bottom: 4px;
+}
+
+/* Estilos para el overlay de carga del calendario */
+.calendar-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    border-radius: 0.5rem;
+    backdrop-filter: blur(2px);
+}
+
+.calendar-loading-content {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+}
+
+.spinner-border {
+    display: inline-block;
+    width: 2.5rem;
+    height: 2.5rem;
+    vertical-align: text-bottom;
+    border: 0.25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 </style>
