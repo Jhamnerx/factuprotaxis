@@ -383,14 +383,14 @@ class UnidadesController extends Controller
         $colors = [];
 
         foreach ($paymentColors as $paymentColor) {
-            $year = $paymentColor->year;
-            $month = $paymentColor->month;
+            $year = (int)$paymentColor->year;
+            $month = (int)$paymentColor->month;
 
             if (!isset($colors[$year])) {
                 $colors[$year] = [];
             }
 
-            $colors[$year][$month] = $paymentColor->color;
+            $colors[(int)$year][(int)$month] = $paymentColor->color;
         }
 
         // Si no hay colores específicos guardados, generamos algunos basados en las facturas
@@ -398,8 +398,8 @@ class UnidadesController extends Controller
             $invoices = SubscriptionInvoice::where('subscription_id', $vehiculo->subscription->id)->get();
 
             foreach ($invoices as $invoice) {
-                $year = $invoice->year;
-                $month = $invoice->month;
+                $year = (int)$invoice->year;
+                $month = (int)$invoice->month;
 
                 if (!isset($colors[$year])) {
                     $colors[$year] = [];
@@ -416,6 +416,7 @@ class UnidadesController extends Controller
                 }
             }
         }
+
         return response()->json([
             'success' => true,
             'colors' => $colors,

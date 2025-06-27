@@ -619,6 +619,7 @@
                                         <td
                                             v-for="m in 12"
                                             :key="`${year}-${m}`"
+                                            :id="getCellId(year, m)"
                                             class="calendar-cell border border-gray-300 p-1.5 text-center transition text-gray-800 dark:text-gray-100 whitespace-nowrap"
                                             :class="{
                                                 'selected-cell':
@@ -638,6 +639,8 @@
                                                 ),
                                                 cursor: 'pointer'
                                             }"
+                                            :data-year="year"
+                                            :data-month="m"
                                             @click="handleCellClick(year, m)"
                                             @contextmenu.prevent="
                                                 openPaymentInfoModal(year, m)
@@ -816,10 +819,156 @@
         />
 
         <!-- Modal de información de pago -->
-        <el-dialog @close="closePaymentInfoModal"> </el-dialog>
+        <el-dialog
+            :visible.sync="isPaymentInfoModalOpen"
+            title="Información del Pago"
+            width="50%"
+            @close="closePaymentInfoModal"
+        >
+            <div v-if="selectedPaymentInfo">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            Pago: {{ getMesNombre(selectedPaymentInfo.month) }}
+                            {{ selectedPaymentInfo.year }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p>
+                                    <strong>Fecha de Pago:</strong>
+                                    {{
+                                        selectedPaymentInfo.fecha
+                                            ? formatDate(
+                                                  selectedPaymentInfo.fecha
+                                              )
+                                            : "No disponible"
+                                    }}
+                                </p>
+                                <p>
+                                    <strong>Estado:</strong>
+                                    <span
+                                        :class="
+                                            'badge ' +
+                                                (selectedPaymentInfo.estado ===
+                                                'pagado'
+                                                    ? 'bg-success'
+                                                    : 'bg-warning')
+                                        "
+                                        >{{
+                                            selectedPaymentInfo.estado ===
+                                            "pagado"
+                                                ? "Pagado"
+                                                : selectedPaymentInfo.estado
+                                        }}</span
+                                    >
+                                </p>
+                                <p v-if="selectedPaymentInfo.es_pago_multiple">
+                                    <strong>Tipo de Pago:</strong>
+                                    <span class="badge bg-info"
+                                        >Pago Múltiple</span
+                                    >
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>
+                                    <strong>Monto:</strong>
+                                    {{
+                                        formatCurrency(
+                                            selectedPaymentInfo.amount
+                                        )
+                                    }}
+                                    {{ selectedPaymentInfo.divisa }}
+                                </p>
+                                <p
+                                    v-if="
+                                        selectedPaymentInfo.montoOriginal !==
+                                            selectedPaymentInfo.amount
+                                    "
+                                >
+                                    <strong>Monto Original:</strong>
+                                    {{
+                                        formatCurrency(
+                                            selectedPaymentInfo.montoOriginal
+                                        )
+                                    }}
+                                    {{ selectedPaymentInfo.divisa }}
+                                </p>
+                                <p
+                                    v-if="
+                                        selectedPaymentInfo.descuentoPorMes > 0
+                                    "
+                                >
+                                    <strong>Descuento:</strong>
+                                    {{
+                                        formatCurrency(
+                                            selectedPaymentInfo.descuentoPorMes
+                                        )
+                                    }}
+                                    {{ selectedPaymentInfo.divisa }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Información adicional para pagos múltiples -->
+                        <div
+                            v-if="selectedPaymentInfo.es_pago_multiple"
+                            class="mt-3"
+                        >
+                            <h6 class="font-weight-bold">
+                                Información de Pago Múltiple
+                            </h6>
+                            <p>
+                                <strong>ID de Grupo de Pago:</strong>
+                                {{ selectedPaymentInfo.grupo_pago_id }}
+                            </p>
+                            <p>
+                                <strong>Total de Meses en Grupo:</strong>
+                                {{ selectedPaymentInfo.cantidad_meses }} meses
+                            </p>
+                        </div>
+
+                        <!-- Detalles adicionales del pago si están disponibles -->
+                        <div
+                            v-if="selectedPaymentInfo.payment_detail"
+                            class="mt-3"
+                        >
+                            <h6 class="font-weight-bold">
+                                Detalles Adicionales
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Concepto</th>
+                                            <th>Valor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="(value,
+                                            key) in selectedPaymentInfo.payment_detail"
+                                            :key="key"
+                                        >
+                                            <td>{{ key }}</td>
+                                            <td>{{ value }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="closePaymentInfoModal">Cerrar</el-button>
+            </div>
+        </el-dialog>
 
         <!-- Modal para generar comprobante -->
         <el-dialog
+            :close-on-click-modal="false"
             :visible.sync="showInvoiceDialog"
             title="Generar Comprobante"
             width="60%"
@@ -1027,85 +1176,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="card mb-3">
-                    <div class="card-header bg-info">
-                        <h4 class="my-0 text-white">Detalle de Pagos</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Concepto</th>
-                                        <th>Vehículo</th>
-                                        <th>Período</th>
-                                        <th class="text-right">Monto</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr
-                                        v-for="(item,
-                                        index) in invoice.items.filter(
-                                            item => !item.is_product
-                                        )"
-                                        :key="'payment-' + index"
-                                    >
-                                        <td>{{ item.description }}</td>
-                                        <td>{{ item.vehicle }}</td>
-                                        <td>{{ item.period }}</td>
-                                        <td class="text-right">
-                                            {{
-                                                formatCurrency(item.unit_price)
-                                            }}
-                                        </td>
-                                        <td>
-                                            <button
-                                                type="button"
-                                                class="btn btn-danger btn-sm"
-                                                @click="
-                                                    removeItemFromInvoice(
-                                                        index,
-                                                        false
-                                                    )
-                                                "
-                                            >
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr
-                                        v-if="
-                                            invoice.items.filter(
-                                                item => !item.is_product
-                                            ).length === 0
-                                        "
-                                    >
-                                        <td colspan="5" class="text-center">
-                                            No hay pagos registrados
-                                        </td>
-                                    </tr>
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <th colspan="3" class="text-right">
-                                            Total:
-                                        </th>
-                                        <th class="text-right">
-                                            {{
-                                                formatCurrency(
-                                                    calculateInvoiceTotal()
-                                                )
-                                            }}
-                                        </th>
-                                        <th></th>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-                </div>
             </div>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="closeInvoiceDialog">Cancelar</el-button>
@@ -1244,7 +1314,9 @@ export default {
             },
             debug: process.env.NODE_ENV !== "production",
             isPaymentInfoModalOpen: false,
-            selectedPaymentInfo: null
+            selectedPaymentInfo: null,
+            isProcessingVehicle: false, // Evitar procesamiento múltiple
+            lastSelectedVehicleId: null // Para evitar recargas redundantes
         };
     },
     mounted() {
@@ -1261,9 +1333,6 @@ export default {
                 );
                 this.forceCalendarUpdate();
             } else {
-                console.log(
-                    "No hay vehículo seleccionado o yearsRange no está inicializado todavía"
-                );
             }
         }, 500); // Esperamos 500ms para asegurar que todos los datos estén disponibles
     },
@@ -1305,25 +1374,56 @@ export default {
             }
         },
         setSelectedVehicle(vehicleId) {
-            console.log("Seleccionando vehículo con ID:", vehicleId);
-
+            // Si no hay un ID de vehículo, limpiamos todos los datos y salimos
             if (!vehicleId) {
                 this.selectedVehicleId = null;
                 this.selectedVehicle = null;
                 this.monthlyPayments = {};
                 this.paymentDetails = {};
                 this.paymentColors = {};
+                this.selectedMonths = [];
+
+                // Limpiar visualmente los colores de las celdas
+                this.$nextTick(() => this.resetCalendarColors());
                 return;
             }
 
+            // Evitar procesamiento redundante si ya estamos cargando datos para este vehículo
+            // o si es el mismo vehículo que ya está seleccionado
+            if (
+                (this.isProcessingVehicle &&
+                    vehicleId === this.lastSelectedVehicleId) ||
+                (vehicleId === this.selectedVehicleId && this.selectedVehicle)
+            ) {
+                console.log(
+                    `Evitando procesamiento redundante para vehículo ${vehicleId}`
+                );
+                return;
+            }
+
+            console.log(`Iniciando carga de datos para vehículo ${vehicleId}`);
+            this.isProcessingVehicle = true; // Marcar que estamos procesando
+            this.lastSelectedVehicleId = vehicleId; // Guardar el ID para evitar recargas
             this.loading_record = true;
 
-            // Limpiar datos previos
+            // Limpiar datos previos antes de cargar nuevos
             this.monthlyPayments = {};
             this.paymentDetails = {};
             this.paymentColors = {};
             this.selectedMonths = [];
 
+            // Limpiar visualmente los colores de las celdas antes de cargar nuevos
+            this.$nextTick(() => this.resetCalendarColors());
+
+            // Cargar los datos del vehículo
+            this.loadVehicleData(vehicleId);
+        },
+
+        /**
+         * Método centralizado para cargar todos los datos del vehículo
+         * Separa la carga de datos en métodos individuales pero los ejecuta de forma eficiente
+         */
+        loadVehicleData(vehicleId) {
             this.$http
                 .get(`/unidades/record/${vehicleId}`)
                 .then(response => {
@@ -1334,25 +1434,9 @@ export default {
 
                     // Verificar que el vehículo tenga subscription_id y datos de subscription
                     if (data.subscription_id && data.subscription) {
-                        // Cargar datos de pagos solo si hay una suscripción válida
-                        this.loadPaymentsData();
-
-                        // Cargar colores de pagos
-                        // this.loadPaymentColors();
-
-                        // Forzar actualización del calendario después de cargar los datos
-                        this.$nextTick(() => {
-                            console.log(
-                                "Forzando actualización del calendario después de cargar datos"
-                            );
-                            if (this.debug) {
-                                setTimeout(() => this.logCalendarData(), 500);
-                            }
-                        });
+                        // Cargar todos los datos relevantes en un proceso unificado
+                        this.loadVehicleDataEfficiently();
                     } else {
-                        console.log(
-                            "El vehículo no tiene una suscripción activa, no se cargará el calendario"
-                        );
                         this.$message.warning(
                             "Este vehículo no tiene una suscripción activa."
                         );
@@ -1369,205 +1453,125 @@ export default {
                 })
                 .finally(() => {
                     this.loading_record = false;
+                    this.isProcessingVehicle = false; // Finalizar procesamiento
                 });
         },
-        loadPaymentsData() {
-            // Verificar que el vehículo tenga ID de suscripción y que los datos de suscripción existan
+
+        /**
+         * Método optimizado para cargar todos los datos del vehículo de manera eficiente
+         * Carga pagos y colores en paralelo y luego actualiza el calendario una sola vez
+         */
+        loadVehicleDataEfficiently() {
+            // Verificar que tenemos los datos necesarios
             if (
                 !this.selectedVehicleId ||
                 !this.selectedVehicle ||
-                !this.selectedVehicle.subscription_id ||
-                !this.selectedVehicle.subscription ||
-                !this.selectedVehicle.subscription.id
+                !this.selectedVehicle.subscription_id
             ) {
-                console.log(
-                    "No hay vehículo seleccionado o sin suscripción válida"
+                console.warn(
+                    "No hay datos suficientes para cargar información del vehículo"
                 );
                 return;
             }
 
-            console.log(
-                `Cargando pagos para la suscripción #${
-                    this.selectedVehicle.subscription.id
-                }`
-            );
+            console.log("Cargando datos del vehículo de manera eficiente");
 
-            // Resetear estructuras de datos de pagos (esto ya se hace en setSelectedVehicle,
-            // pero es buena práctica hacerlo también aquí para garantizar datos limpios)
-            this.monthlyPayments = {};
-            this.paymentDetails = {};
-            this.paymentColors = {};
-
-            this.$http
-                .get(
+            // Usamos Promise.all para cargar los datos en paralelo
+            Promise.all([
+                // Cargamos los pagos
+                this.$http.get(
                     `/unidades/subscription-invoices/${
                         this.selectedVehicle.subscription.id
                     }`
+                ),
+                // Cargamos los colores
+                this.$http.get(
+                    `/unidades/payment-colors/${this.selectedVehicleId}`
                 )
-                .then(response => {
-                    const data = response.data.data || response.data;
-                    console.log("Datos de pagos recibidos:", data);
+            ])
+                .then(([paymentsResponse, colorsResponse]) => {
+                    // Procesar datos de pagos
+                    const paymentsData =
+                        paymentsResponse.data.data || paymentsResponse.data;
+                    this.processPaymentsData(paymentsData);
 
-                    if (Array.isArray(data)) {
-                        // Crear una copia temporal para manipular los datos
-                        const tempMonthlyPayments = {};
-                        const tempPaymentDetails = {};
-                        const tempPaymentColors = {};
+                    // Procesar datos de colores
+                    if (
+                        colorsResponse.data.success &&
+                        colorsResponse.data.colors
+                    ) {
+                        this.processPaymentColors(colorsResponse.data.colors);
+                    }
 
-                        data.forEach(element => {
-                            // Verificar si es un pago múltiple o un pago individual
-                            if (
-                                element.es_pago_multiple &&
-                                element.payment_details
-                            ) {
-                                console.log(
-                                    "Procesando pago múltiple:",
-                                    element
-                                );
+                    // Actualizar el calendario una sola vez después de cargar todos los datos
+                    this.$nextTick(() => {
+                        console.log(
+                            "Actualizando calendario después de cargar todos los datos"
+                        );
+                        this.forceCalendarUpdate();
 
-                                try {
-                                    // Convertir payment_details a objeto si viene como string
-                                    let paymentDetails =
-                                        element.payment_details;
-                                    if (typeof paymentDetails === "string") {
-                                        paymentDetails = JSON.parse(
-                                            paymentDetails
-                                        );
-                                    }
+                        if (this.debug) {
+                            setTimeout(() => this.logCalendarData(), 500);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error("Error al cargar datos del vehículo:", error);
+                });
+        },
+        /**
+         * Procesa los datos de pagos y los almacena en las estructuras de datos correspondientes
+         * @param {Array} data - Array de datos de pagos desde la API
+         */
+        processPaymentsData(data) {
+            if (!Array.isArray(data)) {
+                console.warn("Los datos de pagos no son un array:", data);
+                return;
+            }
 
-                                    // Procesar cada detalle de pago
-                                    if (Array.isArray(paymentDetails)) {
-                                        paymentDetails.forEach(detalle => {
-                                            const year = parseInt(detalle.year);
-                                            const month = parseInt(detalle.mes);
+            console.log(`Procesando ${data.length} registros de pagos`);
 
-                                            // Verificar que tenemos datos válidos
-                                            if (isNaN(year) || isNaN(month)) {
-                                                console.error(
-                                                    "Datos inválidos en payment_details:",
-                                                    detalle
-                                                );
-                                                return; // Continuar con el siguiente elemento
-                                            }
+            // Crear copias temporales para manipular los datos
+            const tempMonthlyPayments = {};
+            const tempPaymentDetails = {};
+            const tempPaymentColors = {};
 
-                                            // Inicializar objetos si no existen
-                                            if (!tempMonthlyPayments[year]) {
-                                                tempMonthlyPayments[year] = {};
-                                            }
+            // Procesar cada elemento de pago
+            data.forEach(element => {
+                // Verificar si es un pago múltiple o un pago individual
+                if (element.es_pago_multiple && element.payment_details) {
+                    try {
+                        // Convertir payment_details a objeto si viene como string
+                        let paymentDetails = element.payment_details;
+                        if (typeof paymentDetails === "string") {
+                            paymentDetails = JSON.parse(paymentDetails);
+                        }
 
-                                            if (!tempPaymentDetails[year]) {
-                                                tempPaymentDetails[year] = {};
-                                            }
-
-                                            // Usar monto_por_mes si está disponible, de lo contrario usar monto
-                                            const monto = detalle.monto_por_mes
-                                                ? parseFloat(
-                                                      detalle.monto_por_mes
-                                                  )
-                                                : parseFloat(
-                                                      detalle.monto || 0
-                                                  );
-
-                                            // Guardar el monto en la estructura de pagos
-                                            tempMonthlyPayments[year][
-                                                month
-                                            ] = monto;
-
-                                            // Determinar si es un pago total
-                                            const isPaidTotal =
-                                                element.payed_total === true ||
-                                                element.payed_total === 1 ||
-                                                element.payed_total === "1";
-
-                                            // Guardar información adicional del pago
-                                            tempPaymentDetails[year][month] = {
-                                                id: element.id,
-                                                fecha:
-                                                    detalle.fecha ||
-                                                    element.fecha_cobro,
-                                                estado: element.estado,
-                                                payedTotal: isPaidTotal,
-                                                tipo: element.tipo || "normal",
-                                                monto: monto,
-                                                year: year,
-                                                month: month,
-                                                es_pago_multiple: true,
-                                                grupo_pago_id:
-                                                    element.grupo_pago_id,
-                                                cantidad_meses:
-                                                    element.cantidad_meses,
-                                                payment_detail: detalle,
-                                                montoOriginal: parseFloat(
-                                                    detalle.monto || 0
-                                                ),
-                                                descuentoPorMes: parseFloat(
-                                                    detalle.descuento_por_mes ||
-                                                        0
-                                                ),
-                                                moneda:
-                                                    element.moneda ||
-                                                    (this.selectedVehicle
-                                                        .subscription &&
-                                                    this.selectedVehicle
-                                                        .subscription.plan
-                                                        ? this.selectedVehicle
-                                                              .subscription.plan
-                                                              .currency
-                                                        : "PEN")
-                                            };
-
-                                            // Guardar el color del pago
-                                            if (detalle.color) {
-                                                if (!tempPaymentColors[year]) {
-                                                    tempPaymentColors[
-                                                        year
-                                                    ] = {};
-                                                }
-                                                tempPaymentColors[year][month] =
-                                                    detalle.color;
-                                            }
-
-                                            console.log(
-                                                `Pago múltiple registrado: Año ${year}, Mes ${month}, Monto ${monto}, Estado: ${
-                                                    element.estado
-                                                }`
-                                            );
-                                        });
-                                    }
-                                } catch (error) {
-                                    console.error(
-                                        "Error al procesar payment_details:",
-                                        error,
-                                        element
-                                    );
-                                }
-                            } else {
-                                // Procesamiento normal para pagos individuales
-                                // Asegurar que year y mes sean valores numéricos enteros
-                                const year = parseInt(element.year);
-                                const month = parseInt(element.mes); // Usando 'mes' en lugar de 'month'
+                        // Procesar cada detalle de pago
+                        if (Array.isArray(paymentDetails)) {
+                            paymentDetails.forEach(detalle => {
+                                const year = parseInt(detalle.year);
+                                const month = parseInt(detalle.mes);
 
                                 // Verificar que tenemos datos válidos
                                 if (isNaN(year) || isNaN(month)) {
-                                    console.error("Datos inválidos:", element);
+                                    console.error(
+                                        "Datos inválidos en payment_details:",
+                                        detalle
+                                    );
                                     return; // Continuar con el siguiente elemento
                                 }
 
                                 // Inicializar objetos si no existen
-                                if (!tempMonthlyPayments[year]) {
+                                if (!tempMonthlyPayments[year])
                                     tempMonthlyPayments[year] = {};
-                                }
-
-                                if (!tempPaymentDetails[year]) {
+                                if (!tempPaymentDetails[year])
                                     tempPaymentDetails[year] = {};
-                                }
 
-                                // Convertir el monto a número (asegurarse de que es float)
-                                const monto = element.monto_por_mes
-                                    ? parseFloat(element.monto_por_mes)
-                                    : element.monto
-                                    ? parseFloat(element.monto)
-                                    : 0;
+                                // Usar monto_por_mes si está disponible, de lo contrario usar monto
+                                const monto = detalle.monto_por_mes
+                                    ? parseFloat(detalle.monto_por_mes)
+                                    : parseFloat(detalle.monto || 0);
 
                                 // Guardar el monto en la estructura de pagos
                                 tempMonthlyPayments[year][month] = monto;
@@ -1581,16 +1585,22 @@ export default {
                                 // Guardar información adicional del pago
                                 tempPaymentDetails[year][month] = {
                                     id: element.id,
-                                    fecha: element.fecha_cobro,
+                                    fecha: detalle.fecha || element.fecha_cobro,
                                     estado: element.estado,
                                     payedTotal: isPaidTotal,
                                     tipo: element.tipo || "normal",
                                     monto: monto,
                                     year: year,
                                     month: month,
-                                    es_pago_multiple: false,
+                                    es_pago_multiple: true,
+                                    grupo_pago_id: element.grupo_pago_id,
+                                    cantidad_meses: element.cantidad_meses,
+                                    payment_detail: detalle,
+                                    montoOriginal: parseFloat(
+                                        detalle.monto || 0
+                                    ),
                                     descuentoPorMes: parseFloat(
-                                        element.descuento_por_mes || 0
+                                        detalle.descuento_por_mes || 0
                                     ),
                                     moneda:
                                         element.moneda ||
@@ -1601,133 +1611,153 @@ export default {
                                             : "PEN")
                                 };
 
-                                // Guardar el color del pago (desde la relación paymentColors)
-                                // Los colores ahora vienen de la relación payment_colors
-                                if (
-                                    element.payment_colors &&
-                                    element.payment_colors.length > 0
-                                ) {
-                                    const colorRecord = element.payment_colors.find(
-                                        pc =>
-                                            pc.year == year && pc.month == month
-                                    );
-
-                                    if (colorRecord && colorRecord.color) {
-                                        if (!tempPaymentColors[year]) {
-                                            tempPaymentColors[year] = {};
-                                        }
-                                        tempPaymentColors[year][month] =
-                                            colorRecord.color;
-                                    }
+                                // Guardar el color del pago si está disponible
+                                if (detalle.color) {
+                                    if (!tempPaymentColors[year])
+                                        tempPaymentColors[year] = {};
+                                    tempPaymentColors[year][month] =
+                                        detalle.color;
                                 }
-
-                                console.log(
-                                    `Pago individual registrado: Año ${year}, Mes ${month}, Monto ${monto}, Estado: ${
-                                        element.estado
-                                    }`
-                                );
-                            }
-                        });
-
-                        // Actualizar las propiedades reactivas en un solo paso
-                        this.monthlyPayments = tempMonthlyPayments;
-                        this.paymentDetails = tempPaymentDetails;
-                        this.paymentColors = tempPaymentColors;
-
-                        // Forzar actualización de la vista
-                        this.$forceUpdate();
-
-                        // Forzar actualización del calendario
-                        this.forceCalendarUpdate();
-
-                        // Ejecutar diagnóstico de estructura de datos
-                        this.verifyPaymentDataStructure();
-
-                        // Log detallado de la estructura de pagos mensuales
-                        console.log(
-                            "Pagos registrados después de procesar:",
-                            this.monthlyPayments
-                        );
-                        console.log("Detalles de pagos:", this.paymentDetails);
-                        console.log("Colores de pagos:", this.paymentColors);
-                    } else {
-                        console.warn(
-                            "No se pudieron cargar los pagos correctamente:",
-                            response.data
+                            });
+                        }
+                    } catch (error) {
+                        console.error(
+                            "Error al procesar payment_details:",
+                            error,
+                            element
                         );
                     }
-                })
-                .catch(error => {
-                    console.error("Error al cargar pagos:", error);
-                });
+                } else {
+                    // Procesamiento normal para pagos individuales
+                    const year = parseInt(element.year);
+                    const month = parseInt(element.mes); // Usando 'mes' en lugar de 'month'
 
-            // Cargar los colores de pagos del vehículo
-            this.loadPaymentColors();
+                    // Verificar que tenemos datos válidos
+                    if (isNaN(year) || isNaN(month)) {
+                        console.error("Datos inválidos:", element);
+                        return; // Continuar con el siguiente elemento
+                    }
+
+                    // Inicializar objetos si no existen
+                    if (!tempMonthlyPayments[year])
+                        tempMonthlyPayments[year] = {};
+                    if (!tempPaymentDetails[year])
+                        tempPaymentDetails[year] = {};
+
+                    // Convertir el monto a número (asegurarse de que es float)
+                    const monto = element.monto_por_mes
+                        ? parseFloat(element.monto_por_mes)
+                        : element.monto
+                        ? parseFloat(element.monto)
+                        : 0;
+
+                    // Guardar el monto en la estructura de pagos
+                    tempMonthlyPayments[year][month] = monto;
+
+                    // Determinar si es un pago total
+                    const isPaidTotal =
+                        element.payed_total === true ||
+                        element.payed_total === 1 ||
+                        element.payed_total === "1";
+
+                    // Guardar información adicional del pago
+                    tempPaymentDetails[year][month] = {
+                        id: element.id,
+                        fecha: element.fecha_cobro,
+                        estado: element.estado,
+                        payedTotal: isPaidTotal,
+                        tipo: element.tipo || "normal",
+                        monto: monto,
+                        year: year,
+                        month: month,
+                        es_pago_multiple: false,
+                        descuentoPorMes: parseFloat(
+                            element.descuento_por_mes || 0
+                        ),
+                        moneda:
+                            element.moneda ||
+                            (this.selectedVehicle.subscription &&
+                            this.selectedVehicle.subscription.plan
+                                ? this.selectedVehicle.subscription.plan
+                                      .currency
+                                : "PEN")
+                    };
+
+                    // Guardar el color del pago (desde la relación paymentColors)
+                    if (
+                        element.payment_colors &&
+                        element.payment_colors.length > 0
+                    ) {
+                        const colorRecord = element.payment_colors.find(
+                            pc => pc.year == year && pc.month == month
+                        );
+
+                        if (colorRecord && colorRecord.color) {
+                            if (!tempPaymentColors[year])
+                                tempPaymentColors[year] = {};
+                            tempPaymentColors[year][month] = colorRecord.color;
+                        }
+                    }
+                }
+            });
+
+            // Actualizar las propiedades reactivas en un solo paso para mejor rendimiento
+            this.monthlyPayments = tempMonthlyPayments;
+            this.paymentDetails = tempPaymentDetails;
+
+            // Combinar los colores de pagos con los colores que ya teníamos
+            // No sobreescribimos completamente para preservar colores que vengan de otras fuentes
+            for (const year in tempPaymentColors) {
+                if (!this.paymentColors[year]) this.paymentColors[year] = {};
+                for (const month in tempPaymentColors[year]) {
+                    this.paymentColors[year][month] =
+                        tempPaymentColors[year][month];
+                }
+            }
+
+            console.log("Pagos procesados correctamente");
         },
-        loadPaymentColors() {
-            // Si no hay vehículo seleccionado o no tiene suscripción, no hacer nada
-            if (
-                !this.selectedVehicleId ||
-                !this.selectedVehicle ||
-                !this.selectedVehicle.subscription_id ||
-                !this.selectedVehicle.subscription
-            ) {
+
+        /**
+         * Procesa los datos de colores de pagos desde la API
+         * @param {Object} colors - Objeto con colores organizados por año y mes
+         */
+        processPaymentColors(colors) {
+            if (!colors || typeof colors !== "object") {
+                console.warn("Los datos de colores no son válidos:", colors);
                 return;
             }
 
-            console.log(
-                `Cargando colores para vehículo #${
-                    this.selectedVehicleId
-                } con suscripción #${this.selectedVehicle.subscription_id}`
-            );
+            console.log("Procesando colores de pagos");
 
-            // Realizar petición para obtener los colores específicos de pagos para este vehículo
-            this.$http
-                .get(`/unidades/payment-colors/${this.selectedVehicleId}`)
-                .then(response => {
-                    const data = response.data;
-                    if (data.success && data.colors) {
-                        console.log("Estructura recibida de la API:", data);
+            // Recorremos la estructura de colores por año y mes
+            for (const yearKey in colors) {
+                const yearNum = parseInt(yearKey);
 
-                        // Inicializar la estructura como objeto
-                        this.paymentColors = {};
+                if (!isNaN(yearNum)) {
+                    // Inicializar el año si no existe
+                    if (!this.paymentColors[yearNum]) {
+                        this.paymentColors[yearNum] = {};
+                    }
 
-                        // Procesar directamente la estructura recibida de la API
-                        // La API devuelve: { "2025": { "6": "#34d399", ... } }
-                        for (const yearKey in data.colors) {
-                            const yearNum = parseInt(yearKey);
+                    const yearData = colors[yearKey];
 
-                            if (!isNaN(yearNum)) {
-                                if (!this.paymentColors[yearNum]) {
-                                    this.paymentColors[yearNum] = {};
-                                }
+                    // Si yearData es un objeto, procesar cada mes
+                    if (typeof yearData === "object" && yearData !== null) {
+                        for (const monthKey in yearData) {
+                            const monthNum = parseInt(monthKey);
 
-                                const yearData = data.colors[yearKey];
-
-                                // Si yearData es un objeto, procesar cada mes
-                                if (
-                                    typeof yearData === "object" &&
-                                    yearData !== null
-                                ) {
-                                    for (const monthKey in yearData) {
-                                        const monthNum = parseInt(monthKey);
-                                        if (!isNaN(monthNum)) {
-                                            this.paymentColors[yearNum][
-                                                monthNum
-                                            ] = yearData[monthKey];
-                                        }
-                                    }
-                                }
+                            if (!isNaN(monthNum)) {
+                                // Guardar el color en la estructura de datos
+                                this.paymentColors[yearNum][monthNum] =
+                                    yearData[monthKey];
                             }
                         }
-
-                        console.log("Colores procesados:", this.paymentColors);
                     }
-                })
-                .catch(error => {
-                    console.error("Error al cargar colores de pago:", error);
-                    // No mostrar error al usuario ya que los colores son opcionales
-                });
+                }
+            }
+
+            console.log("Colores de pagos procesados correctamente");
         },
         getMonthlyPayment(year, month) {
             try {
@@ -1829,20 +1859,19 @@ export default {
                     return "#dbeafe"; // azul claro para celdas seleccionadas
                 }
 
-                // Comprobar si existe un color específico para este pago
+                // Comprobar si existe un color específico para este pago en la estructura de datos
                 if (
                     this.paymentColors &&
+                    typeof this.paymentColors === "object" &&
                     this.paymentColors[yearNum] &&
+                    typeof this.paymentColors[yearNum] === "object" &&
                     this.paymentColors[yearNum][monthNum]
                 ) {
-                    if (this.debug) {
-                        console.log(
-                            `Color personalizado para ${yearNum}-${monthNum}: ${
-                                this.paymentColors[yearNum][monthNum]
-                            }`
-                        );
-                    }
-                    return this.paymentColors[yearNum][monthNum];
+                    const color = this.paymentColors[yearNum][monthNum];
+                    console.log(
+                        `Color encontrado en datos para ${yearNum}-${monthNum}: ${color}`
+                    );
+                    return color;
                 }
 
                 // Si no hay un color específico de la API, no aplicar ningún color
@@ -1882,7 +1911,7 @@ export default {
                 // Si tiene cualquier otro tipo de pago, mostrar mensaje
                 if (this.getMonthlyPayment(yearNum, monthNum) > 0) {
                     // Mostrar información del pago en lugar de error
-                    this.showPaymentInfoModal(yearNum, monthNum);
+                    this.openPaymentInfoModal(yearNum, monthNum);
                     return;
                 }
             }
@@ -2134,7 +2163,10 @@ export default {
                         this.closePaymentModal();
 
                         // Preparar datos para generar comprobante
-                        this.prepareInvoiceDataFromPayment(pago, res.data.id);
+                        this.prepareInvoiceDataFromPayment(
+                            pago,
+                            res.data.data.id
+                        );
 
                         // Recargar los datos del vehículo seleccionado
                         // Esto cargará tanto los pagos como los colores
@@ -2457,7 +2489,7 @@ export default {
                 tooltip += `<div><strong>Parte de pago múltiple:</strong> <span style="color: #10b981;">Sí</span></div>`;
 
                 if (info.cantidad_meses) {
-                    tooltip += `<div><strong>Total meses:</strong> ${
+                    tooltip += `<div><strong>Total de meses:</strong> ${
                         info.cantidad_meses
                     }</div>`;
                 }
@@ -2541,6 +2573,17 @@ export default {
 
             console.log("================================");
         },
+
+        /**
+         * Genera un ID único para una celda basado en su año y mes
+         * @param {Number} year - Año de la celda
+         * @param {Number} month - Mes de la celda
+         * @returns {String} - ID único para la celda
+         */
+        getCellId(year, month) {
+            return `cell-${year}-${month}`;
+        },
+
         /**
          * Método de diagnóstico para verificar la estructura de los datos de pago
          */
@@ -2628,10 +2671,58 @@ export default {
             console.log("=== FIN DEL DIAGNÓSTICO ===");
         },
         /**
-         * Forzar actualización del calendario
+         * Resetea los colores de todas las celdas del calendario a su estado original
+         * Se utiliza cuando se cambia de vehículo o se limpian los datos
+         */
+        resetCalendarColors() {
+            console.log(
+                "Reseteando colores de todas las celdas del calendario"
+            );
+
+            if (
+                !this.yearsRange ||
+                !Array.isArray(this.yearsRange) ||
+                this.yearsRange.length === 0
+            ) {
+                console.warn(
+                    "No hay años definidos para resetear el calendario"
+                );
+                return;
+            }
+
+            try {
+                // Recorrer todos los años y meses una sola vez y resetear los colores de manera eficiente
+                for (let i = 0; i < this.yearsRange.length; i++) {
+                    const year = this.yearsRange[i];
+
+                    for (let month = 1; month <= 12; month++) {
+                        const cellId = this.getCellId(year, month);
+                        const cellElement = document.getElementById(cellId);
+
+                        if (cellElement) {
+                            // Restablecer el color de fondo a transparente
+                            cellElement.style.backgroundColor = "";
+                        }
+                    }
+                }
+
+                console.log("Colores del calendario reseteados correctamente");
+            } catch (error) {
+                console.error(
+                    "Error al resetear colores del calendario:",
+                    error
+                );
+            }
+        },
+
+        /**
+         * Forzar actualización del calendario de manera optimizada
+         * Procesa todas las celdas del calendario una sola vez y aplica los colores correctamente
          */
         forceCalendarUpdate() {
-            console.log("Forzando actualización del calendario");
+            console.log(
+                "Forzando actualización del calendario de manera optimizada"
+            );
 
             // Comprobar si yearsRange está definido
             if (
@@ -2645,31 +2736,67 @@ export default {
                 return;
             }
 
-            // Forzar actualización del componente
-            this.$forceUpdate();
-
-            // Actualizar las celdas de forma segura
+            // Actualizar las celdas de forma segura y eficiente
             this.$nextTick(() => {
                 try {
                     console.log(
-                        "Actualizando celdas del calendario. Años disponibles:",
-                        this.yearsRange.length
+                        "Actualizando celdas del calendario y aplicando colores."
                     );
 
-                    // Usar un bucle for normal en lugar de forEach
+                    // Usar un solo bucle para actualizar todas las celdas
                     for (let i = 0; i < this.yearsRange.length; i++) {
                         const year = this.yearsRange[i];
 
                         for (let month = 1; month <= 12; month++) {
                             try {
-                                const cellId = `cell-content-${year}-${month}`;
+                                const yearNum = parseInt(year);
+                                const monthNum = parseInt(month);
+
+                                if (isNaN(yearNum) || isNaN(monthNum)) continue;
+
+                                const cellId = this.getCellId(
+                                    yearNum,
+                                    monthNum
+                                );
                                 const cellElement = document.getElementById(
                                     cellId
                                 );
 
-                                // Ya no manipulamos directamente el DOM con textContent
-                                // porque nuestra estructura de celda es más compleja
-                                // Ahora usamos reactiveData para actualizar la vista
+                                if (!cellElement) {
+                                    console.warn(
+                                        `No se encontró el elemento con ID ${cellId}`
+                                    );
+                                    continue;
+                                }
+
+                                // Obtener el color para esta celda usando nuestro método
+                                let cellColor = "";
+
+                                // Primero verificar si hay un color específico en la estructura de datos
+                                if (
+                                    this.paymentColors &&
+                                    typeof this.paymentColors === "object" &&
+                                    this.paymentColors[yearNum] &&
+                                    typeof this.paymentColors[yearNum] ===
+                                        "object" &&
+                                    this.paymentColors[yearNum][monthNum]
+                                ) {
+                                    cellColor = this.paymentColors[yearNum][
+                                        monthNum
+                                    ];
+                                    console.log(
+                                        `Color desde datos para celda ${cellId}: ${cellColor}`
+                                    );
+                                } else {
+                                    // Si no hay color específico, usar la lógica general
+                                    cellColor = this.getCellColor(
+                                        yearNum,
+                                        monthNum
+                                    );
+                                }
+
+                                // Aplicar el color a la celda
+                                cellElement.style.backgroundColor = cellColor;
                             } catch (err) {
                                 console.error(
                                     `Error al actualizar celda ${year}-${month}:`,
@@ -2678,14 +2805,16 @@ export default {
                             }
                         }
                     }
+
+                    console.log(
+                        "Actualización del calendario completada con éxito"
+                    );
                 } catch (error) {
                     console.error(
                         "Error general al actualizar calendario:",
                         error
                     );
                 }
-
-                console.log("Actualización del calendario completada");
             });
         },
 
@@ -2711,6 +2840,11 @@ export default {
 
         // Métodos para comprobantes
         async prepareInvoiceDataFromPayment(pago, id) {
+            console.log(
+                `Preparando datos de comprobante para pago: ${JSON.stringify(
+                    pago
+                )}, ID: ${id}`
+            );
             // Limpiar datos de comprobante previo
             this.invoice.items = [];
 
@@ -3095,8 +3229,6 @@ export default {
                                 unit_value: unitValue.toFixed(4),
                                 price_type_id: "01", // Precio unitario
                                 unit_price: unitPrice.toFixed(4),
-                                affectation_igv_type_id:
-                                    item.affectation_igv_type_id || "10", // Gravado - Operación Onerosa
                                 total_base_igv: unitValue * quantity,
                                 percentage_igv: 18,
                                 total_igv: totalIgv,
@@ -3136,6 +3268,8 @@ export default {
                     }),
                     operation_type_id: "0101" // Venta interna
                 };
+
+                console.log(data);
 
                 // Enviar solicitud para generar comprobante
                 const response = await this.$http.post("/documents", data);
@@ -3195,8 +3329,6 @@ export default {
         },
 
         async loadPlanProductItem() {
-            console.log("Company:", this.company);
-            
             // Si no hay configuración o no tiene plans_producto_id, no hacer nada
             if (!this.company || !this.company.planes_producto_id) {
                 console.log("No hay ID de producto de plan configurado");
@@ -3212,10 +3344,6 @@ export default {
                 if (response.data && response.data.data) {
                     // Guardar el producto para usarlo al generar comprobantes
                     this.plan_product = response.data.data;
-                    console.log(
-                        "Producto del plan cargado:",
-                        this.plan_product
-                    );
                 }
             } catch (error) {
                 console.error("Error al cargar el producto del plan:", error);
