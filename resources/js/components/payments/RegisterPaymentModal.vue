@@ -375,13 +375,13 @@ export default {
             const year = d.getFullYear();
             return `${day}/${month}/${year}`;
         },
-        getMonthName(month) {
+        getMonthName(mes) {
             // Convierte el número del mes (1-12) a su nombre
-            if (!month) return "";
+            if (!mes) return "";
 
             // Si es numérico, devolver el nombre del mes del array
-            if (!isNaN(month)) {
-                return this.monthNames[parseInt(month) - 1];
+            if (!isNaN(mes)) {
+                return this.monthNames[parseInt(mes) - 1];
             }
 
             // Si ya es una cadena (nombre del mes), devolverlo directamente
@@ -434,7 +434,7 @@ export default {
             const pago = {
                 vehiculoId: this.vehiculo ? this.vehiculo.id : null,
                 year: this.year,
-                month: this.mes,
+                mes: this.mes,
                 monto: parseFloat(this.monto),
                 fecha: this.fecha,
                 color: this.selectedColor,
@@ -494,7 +494,7 @@ export default {
             // Es un mes futuro
             if (
                 this.year > currentYear ||
-                (this.year === currentYear && this.mes > currentMonth)
+                (this.year === currentYear && this.month > currentMonth)
             ) {
                 return "Descuento por pago anticipado";
             }
@@ -502,7 +502,7 @@ export default {
             // Es el mes actual y estamos en los primeros 5 días
             if (
                 this.year === currentYear &&
-                this.mes === currentMonth &&
+                this.month === currentMonth &&
                 currentDate.getDate() <= 5
             ) {
                 return "Descuento por pago puntual";
@@ -525,7 +525,7 @@ export default {
             // Es un mes futuro
             if (
                 this.year > currentYear ||
-                (this.year === currentYear && this.mes > currentMonth)
+                (this.year === currentYear && this.month > currentMonth)
             ) {
                 return "Se aplica descuento por pago anticipado de mes futuro";
             }
@@ -533,7 +533,7 @@ export default {
             // Es el mes actual y estamos en los primeros 5 días
             if (
                 this.year === currentYear &&
-                this.mes === currentMonth &&
+                this.month === currentMonth &&
                 currentDate.getDate() <= 5
             ) {
                 return "Se aplica descuento por pago en los primeros 5 días del mes";

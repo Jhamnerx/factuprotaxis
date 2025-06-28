@@ -577,8 +577,8 @@ export default {
 
         formatMonthYear(monthKey) {
             // Formato "año-mes" a texto legible "Mes Año"
-            const [year, month] = monthKey.split("-").map(Number);
-            return `${this.monthNames[month]} ${year}`;
+            const [year, mes] = monthKey.split("-").map(Number);
+            return `${this.monthNames[mes]} ${year}`;
         },
 
         formatCurrency(value) {
@@ -640,7 +640,7 @@ export default {
 
             this.isSubmitting = true; // Crear objeto de pagos múltiples
             const pagos = this.selectedMonths.map(monthKey => {
-                const [year, month] = monthKey.split("-").map(Number); // Asegurarnos de que todos los valores sean números y estén correctamente formateados
+                const [year, mes] = monthKey.split("-").map(Number); // Asegurarnos de que todos los valores sean números y estén correctamente formateados
                 const montoTotal = parseFloat(
                     parseFloat(this.montoTotal).toFixed(2)
                 );
@@ -663,7 +663,7 @@ export default {
                 return {
                     vehiculoId: this.vehiculo ? this.vehiculo.id : null,
                     year: year,
-                    mes: month,
+                    mes: mes,
                     monto: montoPorMes, // Monto individual por mes
                     montoPorMes: montoPorMes, // Monto individual por mes (para lógica interna)
                     montoTotal: montoTotal, // Monto total de todos los meses

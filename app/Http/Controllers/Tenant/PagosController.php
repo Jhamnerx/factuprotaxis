@@ -126,7 +126,7 @@ class PagosController extends Controller
             'monto' => 'required|numeric|min:0',
             'fecha' => 'required|date',
             'year' => 'required|integer',
-            'month' => 'required|integer|min:1|max:12',
+            'mes' => 'required|integer|min:1|max:12',
             'descuento' => 'nullable|numeric|min:0',
             'moneda' => 'required|string|size:3',
         ]);
@@ -145,7 +145,7 @@ class PagosController extends Controller
             $invoice->vehiculo_id = $data['vehiculoId'];
             $invoice->subscription_id = $vehiculo->subscription_id;
             $invoice->year = $data['year'];
-            $invoice->mes = $data['month'];
+            $invoice->mes = $data['mes'];
             $invoice->monto = $data['monto'];
             $invoice->fecha_cobro = $data['fecha'];
             $invoice->descuento = $data['descuento'] ?? 0;
@@ -161,7 +161,7 @@ class PagosController extends Controller
                     'colorable_id' => $data['vehiculoId'],
                     'colorable_type' => get_class($vehiculo),
                     'year' => $data['year'],
-                    'month' => $data['month'],
+                    'month' => $data['mes'],
                 ],
                 ['color' => $data['color']]
             );

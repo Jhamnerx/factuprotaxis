@@ -3072,7 +3072,7 @@ export default {
 
             // Agregar el pago como ítem del comprobante
             const vehiculoInfo = this.selectedVehicle || {};
-            const mes = this.meses[pago.month];
+            const mes = this.meses[pago.mes];
             const moneda = pago.moneda;
 
             // Formatear la descripción correctamente
@@ -3183,7 +3183,7 @@ export default {
             if (this.isMultipleItemsMode && this.plan_product) {
                 // Agregar cada pago como ítem separado del comprobante utilizando el producto del plan
                 pagos.forEach((pago, index) => {
-                    const mes = this.meses[pago.month] || pago.month;
+                    const mes = this.meses[pago.mes] || pago.mes;
                     const pagoDesc = `Pago de cuota ${mes} ${
                         pago.year
                     } - Vehículo ${vehiculoInfo.placa || ""}`;
@@ -3214,7 +3214,7 @@ export default {
             } else if (this.isMultipleItemsMode) {
                 // Si no hay producto configurado, crear ítems genéricos
                 pagos.forEach((pago, index) => {
-                    const mes = this.meses[pago.month] || pago.month;
+                    const mes = this.meses[pago.mes] || pago.mes;
                     const pagoDesc = `Pago de cuota ${mes} ${
                         pago.year
                     } - Vehículo ${vehiculoInfo.placa || ""}`;
