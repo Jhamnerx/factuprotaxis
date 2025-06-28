@@ -1037,8 +1037,9 @@
                                         <el-option
                                             v-for="option in series"
                                             :key="option.id"
-                                            :value="option.id"
                                             :label="option.number"
+                                            :disabled="option.disabled"
+                                            :value="option.id"
                                         ></el-option>
                                     </el-select>
                                 </div>
@@ -1068,17 +1069,15 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="control-label">Moneda</label>
-                                    <el-select
-                                        v-model="invoice.currency_type_id"
+                                    <el-input
+                                        :value="
+                                            getCurrencyDescription(
+                                                invoice.currency_type_id
+                                            )
+                                        "
                                         class="w-100"
-                                    >
-                                        <el-option
-                                            v-for="option in currency_types"
-                                            :key="option.id"
-                                            :value="option.id"
-                                            :label="option.description"
-                                        ></el-option>
-                                    </el-select>
+                                        readonly
+                                    ></el-input>
                                 </div>
                             </div>
                         </div>
@@ -1248,6 +1247,10 @@ export default {
         company: {
             type: Object,
             required: true
+        },
+        idUser: {
+            type: String,
+            required: true
         }
     },
     data() {
@@ -1290,25 +1293,46 @@ export default {
             loading_submit_invoice: false,
             loading_customers: false,
             document_types: [],
+            all_document_types: [], // Para guardar todos los tipos de documentos sin filtrar
             series: [],
+            all_series: [], // Añadido para almacenar todas las series sin filtrar
             currency_types: [],
             establishments: [], // Añadir para almacenar establecimientos
             customers: [],
             customer_search: "",
             available_items: [],
             loading_items: false,
+            sellers: [],
+            user: null, // Usuario actual
             item_search: "",
             plan_product: null, // Para guardar el producto del plan
             isMultipleItemsMode: false, // Para controlar si generar un ítem por mes o agrupar
             invoice: {
-                document_type_id: "01",
+                document_type_id: "01", // Tipo de documento por defecto (01 = Factura)
                 series_id: null,
+                establishment_id: null, // Inicializar para evitar problemas
+                seller_id: null, // Asignar automáticamente el vendedor si hay uno
+                number: "#",
                 currency_type_id: "PEN",
                 customer_id: null,
                 customer_name: "",
                 customer_number: "",
                 selected_item_id: null,
-                items: []
+                items: [],
+                charges: [],
+                discounts: [],
+                attributes: [],
+                guides: [],
+                payments: [],
+                prepayments: [],
+                legends: [],
+                detraction: {},
+                actions: {
+                    format_pdf: "a4"
+                },
+                show_terms_condition: true,
+                terms_condition: "",
+                payment_condition_id: "01"
             },
             // Modal de información de pago
             isPaymentInfoModalOpen: false,
@@ -1316,13 +1340,6 @@ export default {
             // Modal para generación de comprobante
             showInvoiceDialog: false,
             loading_invoice: false,
-            invoice: {
-                document_type_id: null,
-                series_id: null,
-                customer_name: "",
-                currency_type_id: null,
-                items: []
-            },
             meses: {
                 1: "Enero",
                 2: "Febrero",
@@ -1543,9 +1560,9 @@ export default {
                         );
                         this.forceCalendarUpdate();
 
-                        if (this.debug) {
-                            setTimeout(() => this.logCalendarData(), 500);
-                        }
+                        // if (this.debug) {
+                        //     setTimeout(() => this.logCalendarData(), 500);
+                        // }
 
                         // Desactivar el indicador de carga después de que todo esté listo
                         this.loadingCalendar = false;
@@ -1906,9 +1923,6 @@ export default {
                     this.paymentColors[yearNum][monthNum]
                 ) {
                     const color = this.paymentColors[yearNum][monthNum];
-                    console.log(
-                        `Color encontrado en datos para ${yearNum}-${monthNum}: ${color}`
-                    );
                     return color;
                 }
 
@@ -1965,10 +1979,6 @@ export default {
         hasPayedTotal(year, month) {
             const yearNum = parseInt(year);
             const monthNum = parseInt(month);
-            console.log(
-                "Detalles de pago para el año y mes:",
-                this.paymentDetails[yearNum]
-            );
             return (
                 this.paymentDetails &&
                 typeof this.paymentDetails === "object" &&
@@ -2822,9 +2832,6 @@ export default {
                                     cellColor = this.paymentColors[yearNum][
                                         monthNum
                                     ];
-                                    console.log(
-                                        `Color desde datos para celda ${cellId}: ${cellColor}`
-                                    );
                                 } else {
                                     // Si no hay color específico, usar la lógica general
                                     cellColor = this.getCellColor(
@@ -2886,8 +2893,8 @@ export default {
             // Limpiar datos de comprobante previo
             this.invoice.items = [];
 
-            // Preparar datos básicos
-            this.invoice.document_type_id = "01"; // Factura por defecto
+            // Asegurarnos de reiniciar los tipos de documento
+            this.document_types = [...this.all_document_types];
 
             // Agregar el pago como ítem del comprobante
             const vehiculoInfo = this.selectedVehicle || {};
@@ -2965,8 +2972,8 @@ export default {
             // Limpiar datos de comprobante previo
             this.invoice.items = [];
 
-            // Preparar datos básicos
-            this.invoice.document_type_id = "01"; // Factura por defecto
+            // Asegurarnos de reiniciar los tipos de documento
+            this.document_types = [...this.all_document_types];
 
             // Determinar la moneda a usar (usar la del primer pago)
             const moneda = pagos[0].moneda || "PEN";
@@ -3139,17 +3146,44 @@ export default {
                 const response = await this.$http.get("/documents/tables");
 
                 if (response.data) {
+                    // Guardar todos los tipos de documentos sin filtrar
+                    this.all_document_types =
+                        response.data.document_types_invoice;
+
+                    // Por defecto asignamos todos los tipos, luego se filtrarán si hay cliente seleccionado
                     this.document_types = response.data.document_types_invoice;
+
                     this.currency_types = response.data.currency_types;
                     this.establishments = response.data.establishments;
-
-                    // Filtrar solo series de facturas y boletas
-                    this.series = (response.data.series || []).filter(serie =>
-                        ["01", "03"].includes(serie.document_type_id)
+                    console.log(
+                        "Establecimientos cargados:",
+                        this.establishments
                     );
 
-                    // Seleccionar primera serie disponible para el tipo de documento seleccionado
-                    this.setSeriesFromDocumentType();
+                    this.sellers = response.data.sellers;
+                    this.user = response.data.user;
+                    // Asignar el primer establecimiento por defecto
+                    this.invoice.establishment_id =
+                        this.establishments.length > 0
+                            ? this.establishments[0].id
+                            : null
+                            ? this.establishments[0].id
+                            : null;
+
+                    // Guardar todas las series para poder filtrarlas después
+                    this.all_series = response.data.series || [];
+                    console.log("Todas las series cargadas:", this.all_series);
+
+                    // Asegurarse de que document_type_id tenga un valor válido
+                    if (
+                        !this.invoice.document_type_id &&
+                        this.document_types.length > 0
+                    ) {
+                        this.invoice.document_type_id = this.document_types[0].id;
+                    }
+
+                    // Filtrar series después de tener todos los datos necesarios
+                    this.filterSeries();
                 }
             } catch (error) {
                 console.error("Error al cargar datos de comprobante:", error);
@@ -3159,21 +3193,137 @@ export default {
             }
         },
 
-        setSeriesFromDocumentType() {
-            const seriesForDocument = this.series.filter(
+        /**
+         * Filtra las series según el tipo de documento seleccionado.
+         * Este método es compatible con la lógica de invoice_generate.vue
+         */
+        filterSeries() {
+            // Resetear la serie seleccionada
+            this.invoice.series_id = null;
+
+            // Verificar que existan los datos necesarios
+            if (
+                !this.all_series ||
+                !this.invoice.establishment_id ||
+                !this.invoice.document_type_id
+            ) {
+                console.warn(
+                    "Faltan datos para filtrar series correctamente:",
+                    {
+                        all_series_length: this.all_series
+                            ? this.all_series.length
+                            : 0,
+                        establishment_id: this.invoice.establishment_id,
+                        document_type_id: this.invoice.document_type_id
+                    }
+                );
+                return;
+            }
+
+            // Filtrar series por tipo de documento y establecimiento
+            let filteredSeries = this.all_series.filter(
                 serie =>
-                    serie.document_type_id === this.invoice.document_type_id
+                    serie.document_type_id === this.invoice.document_type_id &&
+                    serie.establishment_id === this.invoice.establishment_id &&
+                    serie.contingency === false
             );
 
-            if (seriesForDocument.length > 0) {
-                this.invoice.series_id = seriesForDocument[0].id;
+            // Si el usuario tiene restricciones de series específicas
+            if (
+                this.configuration &&
+                this.configuration.user &&
+                this.invoice.document_type_id ===
+                    this.configuration.user.document_id &&
+                this.idUser === "seller"
+            ) {
+                filteredSeries = filteredSeries.filter(
+                    serie => serie.id === this.configuration.user.serie
+                );
+            }
+
+            // IMPORTANTE: Asignar las series filtradas a la propiedad del componente
+            this.series = filteredSeries;
+
+            // Actualizar el store (si es necesario)
+            this.$store.commit("setSeries", filteredSeries);
+
+            console.log("Series filtradas:", filteredSeries);
+            console.log("Cantidad de series:", filteredSeries.length);
+
+            // Asignar la primera serie disponible si existe
+            if (filteredSeries.length > 0) {
+                this.invoice.series_id = filteredSeries[0].id;
+                console.log("Primera serie seleccionada:", filteredSeries[0]);
             } else {
                 this.invoice.series_id = null;
+                console.warn("No hay series disponibles para este documento");
             }
+
+            console.log("Serie seleccionada ID:", this.invoice.series_id);
         },
 
+        /**
+         * Maneja el cambio del tipo de documento
+         * Filtra las series según el tipo de documento seleccionado
+         */
         changeDocumentType() {
-            this.setSeriesFromDocumentType();
+            console.log(
+                `Tipo de documento cambiado a: ${this.invoice.document_type_id}`
+            );
+            // Usar $nextTick para asegurar que el cambio se haya aplicado antes de filtrar
+            this.$nextTick(() => {
+                this.filterSeries();
+            });
+        },
+
+        /**
+         * Filtra los tipos de documentos según el tipo de documento de identidad del cliente
+         * @param {Object} customer - Cliente seleccionado
+         */
+        filterDocumentTypes(customer) {
+            // Si no hay cliente, usamos todos los tipos de documento
+            if (!customer || !customer.identity_document_type_id) {
+                console.log(
+                    "No hay cliente o no tiene tipo de documento de identidad, mostrando todos los tipos de documento"
+                );
+                this.document_types = this.all_document_types;
+                return;
+            }
+
+            console.log(
+                `Filtrando tipos de documento para cliente con identity_document_type_id: ${
+                    customer.identity_document_type_id
+                }`
+            );
+
+            // Si el cliente tiene RUC (6), solo permitir factura (01)
+            if (customer.identity_document_type_id === "6") {
+                this.document_types = this.all_document_types.filter(
+                    type => type.id === "01"
+                );
+                this.invoice.document_type_id = "01";
+                console.log("Cliente con RUC: Mostrando solo Factura (01)");
+            }
+            // Si el cliente tiene DNI (1) u otro documento, solo permitir boleta (03)
+            else if (customer.identity_document_type_id === "1") {
+                this.document_types = this.all_document_types.filter(
+                    type => type.id === "03"
+                );
+                this.invoice.document_type_id = "03";
+                console.log("Cliente con DNI: Mostrando solo Boleta (03)");
+            }
+            // Para otros tipos de documento, mostrar todos
+            else {
+                this.document_types = this.all_document_types;
+                console.log(
+                    "Cliente con otro tipo de documento: Mostrando todos los tipos"
+                );
+            }
+
+            // Después de cambiar el tipo de documento, filtrar las series
+            this.$nextTick(() => {
+                this.filterSeries();
+            });
         },
 
         calculateInvoiceTotal() {
@@ -3190,21 +3340,17 @@ export default {
             this.invoice.items = [];
         },
 
-        async searchCustomers() {
-            // Este método ya no se usa pero se mantiene por compatibilidad
-            return;
-        },
-
-        searchCustomer() {
-            // Este método ya no se usa pero se deja para compatibilidad
-            return;
-        },
-
         selectCustomer(customer) {
             this.invoice.customer_id = customer.id;
             this.invoice.customer_name = customer.name;
             this.invoice.customer_number = customer.number;
             this.showCustomerDialog = false;
+
+            // Primero filtrar los tipos de documento según el cliente
+            this.filterDocumentTypes(customer);
+
+            // No es necesario llamar explícitamente a filterSeries() aquí
+            // ya que filterDocumentTypes() ya lo llama después de establecer el tipo de documento
         },
 
         async generateInvoice() {
@@ -3224,23 +3370,60 @@ export default {
                 return;
             }
 
+            // Buscar el cliente en la lista de clientes disponibles
+            const selectedCustomer = this.customers.find(
+                c => c.id === this.invoice.customer_id
+            );
+
+            // Validación de tipo de documento según el tipo de documento de identidad del cliente
+            if (
+                selectedCustomer &&
+                selectedCustomer.identity_document_type_id
+            ) {
+                if (
+                    selectedCustomer.identity_document_type_id === "6" &&
+                    this.invoice.document_type_id !== "01"
+                ) {
+                    this.$message.error(
+                        "Para clientes con RUC debe generar una Factura (01)"
+                    );
+                    return;
+                }
+                if (
+                    selectedCustomer.identity_document_type_id === "1" &&
+                    this.invoice.document_type_id !== "03"
+                ) {
+                    this.$message.error(
+                        "Para clientes con DNI debe generar una Boleta (03)"
+                    );
+                    return;
+                }
+            }
+
             this.loading_submit_invoice = true;
 
             try {
                 // Preparar datos para el comprobante
                 const data = {
+                    establishment_id: this.establishments[0].id,
                     document_type_id: this.invoice.document_type_id,
                     series_id: this.invoice.series_id,
-                    establishment_id:
-                        this.establishments.length > 0
-                            ? this.establishments[0].id
-                            : this.configuration.establishment_id,
-                    currency_type_id: this.invoice.currency_type_id,
-                    customer_id: this.invoice.customer_id,
+                    seller_id: this.sellers.length > 0 ? this.idUser : null,
+                    number: this.invoice.number,
                     date_of_issue: moment().format("YYYY-MM-DD"),
                     time_of_issue: moment().format("HH:mm:ss"),
+                    customer_id: this.invoice.customer_id,
+                    currency_type_id: this.invoice.currency_type_id,
                     payment_condition_id: "01", // Contado
                     payment_method_type_id: "01", // Efectivo
+                    charges: [],
+                    discounts: [],
+                    attributes: [],
+                    guides: [],
+                    payments: [],
+                    prepayments: [],
+                    legends: [],
+                    detraction: {},
                     items: this.invoice.items.map(item => {
                         // Si el item es un producto seleccionado de la API
                         if (item.is_product) {
@@ -3266,7 +3449,7 @@ export default {
                                 quantity: quantity,
                                 unit_value: unitValue.toFixed(4),
                                 price_type_id: "01", // Precio unitario
-                                unit_price: unitPrice.toFixed(4),
+                                unit_price: totalValue.toFixed(4),
                                 total_base_igv: unitValue * quantity,
                                 percentage_igv: 18,
                                 total_igv: totalIgv,
@@ -3391,62 +3574,6 @@ export default {
             }
         },
 
-        addSelectedItemToInvoice() {
-            if (!this.invoice.selected_item_id) {
-                this.$message.warning(
-                    "Debe seleccionar un producto o servicio"
-                );
-                return;
-            }
-
-            // Buscar el item seleccionado en los items disponibles
-            const selectedItem = this.available_items.find(
-                item => item.id === this.invoice.selected_item_id
-            );
-
-            if (!selectedItem) {
-                this.$message.error("Producto o servicio no encontrado");
-                return;
-            }
-
-            // Verificar si ya existe en la lista
-            const exists = this.invoice.items.some(
-                item => item.is_product && item.product_id === selectedItem.id
-            );
-
-            if (exists) {
-                this.$message.warning(
-                    "Este producto/servicio ya está en la lista"
-                );
-                return;
-            }
-
-            // Calcular precios según el tipo de documento y configuración de IGV
-            const unitPrice = parseFloat(selectedItem.sale_unit_price);
-            const hasIgv = selectedItem.has_igv;
-
-            // Preparar el ítem con los datos necesarios para el comprobante
-            this.invoice.items.push({
-                is_product: true,
-                product_id: selectedItem.id,
-                description: selectedItem.description,
-                unit_price: unitPrice,
-                quantity: 1,
-                total: unitPrice,
-                unit_type_id: selectedItem.unit_type_id || "ZZ",
-                currency_type_id: this.invoice.currency_type_id,
-                has_igv: hasIgv,
-                affectation_igv_type_id:
-                    selectedItem.sale_affectation_igv_type_id || "10"
-            });
-
-            // Limpiar selección
-            this.invoice.selected_item_id = null;
-
-            // Mensaje de éxito
-            this.$message.success("Producto/servicio añadido al comprobante");
-        },
-
         updateItemTotal(item) {
             // Actualizar el total del item según la cantidad y el precio
             if (item) {
@@ -3540,7 +3667,17 @@ export default {
                     );
 
                     if (exactMatch) {
-                        // Seleccionar automáticamente este cliente
+                        console.log(
+                            "Cliente encontrado con identity_document_type_id:",
+                            exactMatch.identity_document_type_id
+                        );
+
+                        // Añadir a la lista de clientes si no existe
+                        if (!this.customers.some(c => c.id === exactMatch.id)) {
+                            this.customers.push(exactMatch);
+                        }
+
+                        // Seleccionar automáticamente este cliente (el método selectCustomer ya maneja el tipo de documento)
                         this.selectCustomer(exactMatch);
                         return [exactMatch];
                     }
@@ -3565,6 +3702,10 @@ export default {
                 }
                 return [];
             }
+        },
+        getCurrencyDescription(currencyId) {
+            const currency = this.currency_types.find(c => c.id === currencyId);
+            return currency ? currency.description : currencyId;
         }
     }
 };

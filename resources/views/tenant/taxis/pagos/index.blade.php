@@ -1,7 +1,10 @@
 @extends('tenant.layouts.app')
 
 @section('content')
-    <tenant-taxis-pagos-form :company="{{ $company }}"
+
+    <tenant-taxis-pagos-form :type-user="{{ json_encode(Auth::user()->type) }}"
+        :auth-user="{{ json_encode(Auth::user()->getDataOnlyAuthUser()) }}" :id-user="{{ json_encode(Auth::user()->id) }}"
+        :company="{{ $company }}"
         :configuration="{{ \App\Models\Tenant\Configuration::getPublicConfig() }}"></tenant-taxis-pagos-form>
 @endsection
 @push('scripts')
