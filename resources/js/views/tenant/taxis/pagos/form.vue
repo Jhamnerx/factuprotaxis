@@ -575,9 +575,9 @@
                                 </div>
                             </div>
 
-                            <table
-                                class="min-w-full border-collapse"
-                                id="calendarTable"
+                            <div
+                                class="calendar-wrapper position-relative"
+                                style="border-radius: 0.5rem; overflow-x: auto; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);"
                             >
                                 <!-- Overlay de carga del calendario -->
                                 <div
@@ -604,380 +604,639 @@
                                         </p>
                                     </div>
                                 </div>
-                                <thead>
-                                    <tr>
-                                        <th
-                                            class="px-3 py-1.5 border border-gray-300 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                                        >
-                                            <div
-                                                class="flex items-center justify-between"
-                                            >
-                                                <div>Año</div>
-                                                <div>Mes</div>
-                                            </div>
-                                        </th>
-                                        <th
-                                            v-for="(mes, index) in meses"
-                                            :key="index"
-                                            class="px-3 py-1.5 border border-gray-300 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-center"
-                                        >
-                                            <div class="text-sm">
-                                                {{ mes }}
-                                            </div>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="year in yearsRange" :key="year">
-                                        <td
-                                            class="border border-gray-300 p-1.5 font-medium text-center text-gray-800 dark:text-gray-100"
-                                        >
-                                            <div
-                                                class="flex items-center justify-center"
-                                            >
-                                                <div
-                                                    style="width: 4px; height: 12px; background-color: #3b82f6; display: inline-block; margin-right: 0.25rem;"
-                                                ></div>
-                                                <span>{{ year }}</span>
-                                            </div>
-                                        </td>
-                                        <td
-                                            v-for="m in 12"
-                                            :key="`${year}-${m}`"
-                                            :id="getCellId(year, m)"
-                                            class="calendar-cell border border-gray-300 p-1.5 text-center transition text-gray-800 dark:text-gray-100 whitespace-nowrap"
-                                            :class="{
-                                                'selected-cell':
-                                                    is_multiple &&
-                                                    selectedMonths.includes(
-                                                        `${year}-${m}`
-                                                    ),
-                                                'opacity-50':
-                                                    is_multiple &&
-                                                    getMonthlyPayment(year, m) >
-                                                        0
-                                            }"
-                                            :style="{
-                                                'background-color': getCellColor(
-                                                    year,
-                                                    m
-                                                ),
-                                                cursor: 'pointer'
-                                            }"
-                                            :data-year="year"
-                                            :data-month="m"
-                                            @click="handleCellClick(year, m)"
-                                            @contextmenu.prevent="
-                                                openPaymentInfoModal(year, m)
-                                            "
-                                        >
-                                            <div
-                                                class="text-sm cell-content-wrapper"
-                                                :id="
-                                                    `cell-content-${year}-${m}`
-                                                "
-                                            >
-                                                <template
-                                                    v-if="
-                                                        getMonthlyPayment(
-                                                            year,
-                                                            m
-                                                        ) > 0
-                                                    "
-                                                >
-                                                    <div class="amount">
-                                                        {{
-                                                            formatCurrency(
-                                                                getMonthlyPayment(
-                                                                    year,
-                                                                    m
-                                                                )
-                                                            )
-                                                        }}
-                                                        <span
-                                                            class="total-badge"
-                                                            v-if="
-                                                                hasPayedTotal(
-                                                                    year,
-                                                                    m
-                                                                )
-                                                            "
-                                                        >
-                                                            (Total)
-                                                        </span>
-                                                    </div>
-                                                    <div
-                                                        class="text-xs text-gray-500 currency-info"
-                                                    >
-                                                        {{
-                                                            getPaymentCurrency(
-                                                                year,
-                                                                m
-                                                            )
-                                                        }}
-                                                    </div>
-                                                </template>
 
-                                                <!-- Indicador de carga -->
-                                                <div
-                                                    v-if="
-                                                        isLoading &&
-                                                            loadingYear ===
-                                                                year &&
-                                                            loadingMonth === m
-                                                    "
-                                                    class="inline-block ml-1"
-                                                >
-                                                    <div
-                                                        class="spinner-border spinner-border-sm text-primary"
-                                                        style="width: 16px; height: 16px;"
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Botón para abrir el modal avanzado -->
-                        <div
-                            v-if="selectedMonths.length > 0"
-                            class="mt-4 mb-2"
-                            id="advancedButtonContainer"
-                        >
-                            <div
-                                class="bg-green-50 dark:bg-green-900 p-3 rounded-lg shadow-sm border border-green-100 dark:border-green-800 mb-2"
-                            >
-                                <div class="flex items-center mb-1">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        style="width: 16px; height: 16px; margin-right: 0.25rem;"
-                                        class="text-success"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                    >
-                                        <path
-                                            fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                            clip-rule="evenodd"
-                                        />
-                                    </svg>
-                                    <p
-                                        class="text-green-700 dark:text-green-200 text-sm font-bold"
-                                    >
-                                        {{ selectedMonths.length }}
-                                        {{
-                                            selectedMonths.length === 1
-                                                ? "mes seleccionado"
-                                                : "meses seleccionados"
-                                        }}
-                                    </p>
-                                </div>
-                                <p
-                                    class="text-green-600 dark:text-green-300 text-xs"
+                                <table
+                                    class="min-w-full border-collapse"
+                                    id="calendarTable"
                                 >
-                                    Puede procesar el pago de todos estos meses
-                                    en una sola operación.
-                                </p>
-                            </div>
-
-                            <button
-                                class="btn btn-success d-inline-flex align-items-center justify-content-center w-100 shadow-lg py-2"
-                                @click="openAdvancedModal"
-                                :disabled="isAdvancedModalOpen"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    style="width: 20px; height: 20px; margin-right: 0.5rem;"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                                    />
-                                </svg>
-                                <span class="font-bold"
-                                    >Pagar {{ selectedMonths.length }}
-                                    {{
-                                        selectedMonths.length === 1
-                                            ? "mes"
-                                            : "meses"
-                                    }}
-                                    seleccionados</span
-                                >
-                            </button>
-                        </div>
-                    </div>
-                    <div v-else class="text-center py-12">
-                        <p class="text-lg text-gray-600 dark:text-gray-300">
-                            Selecciona un dispositivo para ver el calendario de
-                            pagos.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal de registro de pago -->
-        <register-payment-modal
-            :is-open="isPaymentModalOpen"
-            :vehiculo="selectedVehicle"
-            :year="currentPaymentYear"
-            :mes="currentPaymentMonth"
-            :selected-months="is_multiple ? selectedMonths : []"
-            @close="closePaymentModal"
-            @save="handleSavePago"
-        />
-
-        <!-- Modal avanzado para pagos múltiples -->
-        <advanced-payment-modal
-            :is-open="isAdvancedModalOpen"
-            :vehiculo="selectedVehicle"
-            :selected-months="selectedMonths"
-            @close="closeAdvancedModal"
-            @save="handleSaveMultiplePagos"
-        />
-
-        <!-- Modal de información de pago -->
-        <el-dialog
-            :visible.sync="isPaymentInfoModalOpen"
-            title="Información del Pago"
-            width="50%"
-            @close="closePaymentInfoModal"
-        >
-            <div v-if="selectedPaymentInfo">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            Pago: {{ getMesNombre(selectedPaymentInfo.month) }}
-                            {{ selectedPaymentInfo.year }}
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p>
-                                    <strong>Fecha de Pago:</strong>
-                                    {{
-                                        selectedPaymentInfo.fecha
-                                            ? formatDate(
-                                                  selectedPaymentInfo.fecha
-                                              )
-                                            : "No disponible"
-                                    }}
-                                </p>
-                                <p>
-                                    <strong>Estado:</strong>
-                                    <span
-                                        :class="
-                                            'badge ' +
-                                                (selectedPaymentInfo.estado ===
-                                                'pagado'
-                                                    ? 'bg-success'
-                                                    : 'bg-warning')
-                                        "
-                                        >{{
-                                            selectedPaymentInfo.estado ===
-                                            "pagado"
-                                                ? "Pagado"
-                                                : selectedPaymentInfo.estado
-                                        }}</span
-                                    >
-                                </p>
-                                <p v-if="selectedPaymentInfo.es_pago_multiple">
-                                    <strong>Tipo de Pago:</strong>
-                                    <span class="badge bg-info"
-                                        >Pago Múltiple</span
-                                    >
-                                </p>
-                            </div>
-                            <div class="col-md-6">
-                                <p>
-                                    <strong>Monto:</strong>
-                                    {{
-                                        formatCurrency(
-                                            selectedPaymentInfo.amount
-                                        )
-                                    }}
-                                    {{ selectedPaymentInfo.divisa }}
-                                </p>
-                                <p
-                                    v-if="
-                                        selectedPaymentInfo.montoOriginal !==
-                                            selectedPaymentInfo.amount
-                                    "
-                                >
-                                    <strong>Monto Original:</strong>
-                                    {{
-                                        formatCurrency(
-                                            selectedPaymentInfo.montoOriginal
-                                        )
-                                    }}
-                                    {{ selectedPaymentInfo.divisa }}
-                                </p>
-                                <p
-                                    v-if="
-                                        selectedPaymentInfo.descuentoPorMes > 0
-                                    "
-                                >
-                                    <strong>Descuento:</strong>
-                                    {{
-                                        formatCurrency(
-                                            selectedPaymentInfo.descuentoPorMes
-                                        )
-                                    }}
-                                    {{ selectedPaymentInfo.divisa }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Información adicional para pagos múltiples -->
-                        <div
-                            v-if="selectedPaymentInfo.es_pago_multiple"
-                            class="mt-3"
-                        >
-                            <h6 class="font-weight-bold">
-                                Información de Pago Múltiple
-                            </h6>
-                            <p>
-                                <strong>ID de Grupo de Pago:</strong>
-                                {{ selectedPaymentInfo.grupo_pago_id }}
-                            </p>
-                            <p>
-                                <strong>Total de Meses en Grupo:</strong>
-                                {{ selectedPaymentInfo.cantidad_meses }} meses
-                            </p>
-                        </div>
-
-                        <!-- Detalles adicionales del pago si están disponibles -->
-                        <div
-                            v-if="selectedPaymentInfo.payment_detail"
-                            class="mt-3"
-                        >
-                            <h6 class="font-weight-bold">
-                                Detalles Adicionales
-                            </h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered">
                                     <thead>
                                         <tr>
-                                            <th>Concepto</th>
-                                            <th>Valor</th>
+                                            <th
+                                                class="px-3 py-1.5 border border-gray-300 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                                            >
+                                                <div
+                                                    class="flex items-center justify-between"
+                                                >
+                                                    <div>Año</div>
+                                                    <div>Mes</div>
+                                                </div>
+                                            </th>
+                                            <th
+                                                v-for="(mes, index) in meses"
+                                                :key="index"
+                                                class="px-3 py-1.5 border border-gray-300 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-center"
+                                            >
+                                                <div class="text-sm">
+                                                    {{ mes }}
+                                                </div>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr
-                                            v-for="(value,
-                                            key) in selectedPaymentInfo.payment_detail"
-                                            :key="key"
+                                            v-for="year in yearsRange"
+                                            :key="year"
                                         >
-                                            <td>{{ key }}</td>
-                                            <td>{{ value }}</td>
+                                            <td
+                                                class="border border-gray-300 p-1.5 font-medium text-center text-gray-800 dark:text-gray-100"
+                                            >
+                                                <div
+                                                    class="flex items-center justify-center"
+                                                >
+                                                    <div
+                                                        style="width: 4px; height: 12px; background-color: #3b82f6; display: inline-block; margin-right: 0.25rem;"
+                                                    ></div>
+                                                    <span>{{ year }}</span>
+                                                </div>
+                                            </td>
+                                            <td
+                                                v-for="m in 12"
+                                                :key="`${year}-${m}`"
+                                                :id="getCellId(year, m)"
+                                                class="calendar-cell border border-gray-300 p-1.5 text-center transition text-gray-800 dark:text-gray-100 whitespace-nowrap"
+                                                :class="{
+                                                    'selected-cell':
+                                                        is_multiple &&
+                                                        selectedMonths.includes(
+                                                            `${year}-${m}`
+                                                        ),
+                                                    'opacity-50':
+                                                        is_multiple &&
+                                                        getMonthlyPayment(
+                                                            year,
+                                                            m
+                                                        ) > 0
+                                                }"
+                                                :style="{
+                                                    'background-color': getCellColor(
+                                                        year,
+                                                        m
+                                                    ),
+                                                    cursor: 'pointer'
+                                                }"
+                                                :data-year="year"
+                                                :data-month="m"
+                                                @click="
+                                                    handleCellClick(year, m)
+                                                "
+                                                @contextmenu.prevent="
+                                                    openPaymentInfoModal(
+                                                        year,
+                                                        m
+                                                    )
+                                                "
+                                            >
+                                                <div
+                                                    class="text-sm cell-content-wrapper"
+                                                    :id="
+                                                        `cell-content-${year}-${m}`
+                                                    "
+                                                >
+                                                    <template
+                                                        v-if="
+                                                            getMonthlyPayment(
+                                                                year,
+                                                                m
+                                                            ) > 0
+                                                        "
+                                                    >
+                                                        <div class="amount">
+                                                            {{
+                                                                formatCurrency(
+                                                                    getMonthlyPayment(
+                                                                        year,
+                                                                        m
+                                                                    )
+                                                                )
+                                                            }}
+                                                            <span
+                                                                class="total-badge"
+                                                                v-if="
+                                                                    hasPayedTotal(
+                                                                        year,
+                                                                        m
+                                                                    )
+                                                                "
+                                                            >
+                                                                (Total)
+                                                            </span>
+                                                        </div>
+                                                        <div
+                                                            class="text-xs text-gray-500 currency-info"
+                                                        >
+                                                            {{
+                                                                getPaymentCurrency(
+                                                                    year,
+                                                                    m
+                                                                )
+                                                            }}
+                                                        </div>
+                                                    </template>
+
+                                                    <!-- Indicador de carga -->
+                                                    <div
+                                                        v-if="
+                                                            isLoading &&
+                                                                loadingYear ===
+                                                                    year &&
+                                                                loadingMonth ===
+                                                                    m
+                                                        "
+                                                        class="inline-block ml-1"
+                                                    >
+                                                        <div
+                                                            class="spinner-border spinner-border-sm text-primary"
+                                                            style="width: 16px; height: 16px;"
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Botón para abrir el modal avanzado -->
+                            <div
+                                v-if="selectedMonths.length > 0"
+                                class="mt-4 mb-2"
+                                id="advancedButtonContainer"
+                            >
+                                <div
+                                    class="bg-green-50 dark:bg-green-900 p-3 rounded-lg shadow-sm border border-green-100 dark:border-green-800 mb-2"
+                                >
+                                    <div class="flex items-center mb-1">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            style="width: 16px; height: 16px; margin-right: 0.25rem;"
+                                            class="text-success"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                        >
+                                            <path
+                                                fill-rule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                clip-rule="evenodd"
+                                            />
+                                        </svg>
+                                        <p
+                                            class="text-green-700 dark:text-green-200 text-sm font-bold"
+                                        >
+                                            {{ selectedMonths.length }}
+                                            {{
+                                                selectedMonths.length === 1
+                                                    ? "mes seleccionado"
+                                                    : "meses seleccionados"
+                                            }}
+                                        </p>
+                                    </div>
+                                    <p
+                                        class="text-green-600 dark:text-green-300 text-xs"
+                                    >
+                                        Puede procesar el pago de todos estos
+                                        meses en una sola operación.
+                                    </p>
+                                </div>
+
+                                <button
+                                    class="btn btn-success d-inline-flex align-items-center justify-content-center w-100 shadow-lg py-2"
+                                    @click="openAdvancedModal"
+                                    :disabled="isAdvancedModalOpen"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        style="width: 20px; height: 20px; margin-right: 0.5rem;"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                                        />
+                                    </svg>
+                                    <span class="font-bold"
+                                        >Pagar {{ selectedMonths.length }}
+                                        {{
+                                            selectedMonths.length === 1
+                                                ? "mes"
+                                                : "meses"
+                                        }}
+                                        seleccionados</span
+                                    >
+                                </button>
+                            </div>
+                        </div>
+                        <div v-else class="text-center py-12">
+                            <p class="text-lg text-gray-600 dark:text-gray-300">
+                                Selecciona un dispositivo para ver el calendario
+                                de pagos.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal de registro de pago -->
+            <register-payment-modal
+                :is-open="isPaymentModalOpen"
+                :vehiculo="selectedVehicle"
+                :year="currentPaymentYear"
+                :mes="currentPaymentMonth"
+                :selected-months="is_multiple ? selectedMonths : []"
+                @close="closePaymentModal"
+                @save="handleSavePago"
+            />
+
+            <!-- Modal avanzado para pagos múltiples -->
+            <advanced-payment-modal
+                :is-open="isAdvancedModalOpen"
+                :vehiculo="selectedVehicle"
+                :selected-months="selectedMonths"
+                @close="closeAdvancedModal"
+                @save="handleSaveMultiplePagos"
+            />
+
+            <!-- Modal de información de pago -->
+            <el-dialog
+                :visible.sync="isPaymentInfoModalOpen"
+                title="Información del Pago"
+                width="50%"
+                @close="closePaymentInfoModal"
+            >
+                <div v-if="selectedPaymentInfo">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                Pago:
+                                {{ getMesNombre(selectedPaymentInfo.month) }}
+                                {{ selectedPaymentInfo.year }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p>
+                                        <strong>Fecha de Pago:</strong>
+                                        {{
+                                            selectedPaymentInfo.fecha
+                                                ? formatDate(
+                                                      selectedPaymentInfo.fecha
+                                                  )
+                                                : "No disponible"
+                                        }}
+                                    </p>
+                                    <p>
+                                        <strong>Estado:</strong>
+                                        <span
+                                            :class="
+                                                'badge ' +
+                                                    (selectedPaymentInfo.estado ===
+                                                    'pagado'
+                                                        ? 'bg-success'
+                                                        : 'bg-warning')
+                                            "
+                                            >{{
+                                                selectedPaymentInfo.estado ===
+                                                "pagado"
+                                                    ? "Pagado"
+                                                    : selectedPaymentInfo.estado
+                                            }}</span
+                                        >
+                                    </p>
+                                    <p
+                                        v-if="
+                                            selectedPaymentInfo.es_pago_multiple
+                                        "
+                                    >
+                                        <strong>Tipo de Pago:</strong>
+                                        <span class="badge bg-info"
+                                            >Pago Múltiple</span
+                                        >
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p>
+                                        <strong>Monto:</strong>
+                                        {{
+                                            formatCurrency(
+                                                selectedPaymentInfo.amount
+                                            )
+                                        }}
+                                        {{ selectedPaymentInfo.divisa }}
+                                    </p>
+                                    <p
+                                        v-if="
+                                            selectedPaymentInfo.montoOriginal !==
+                                                selectedPaymentInfo.amount
+                                        "
+                                    >
+                                        <strong>Monto Original:</strong>
+                                        {{
+                                            formatCurrency(
+                                                selectedPaymentInfo.montoOriginal
+                                            )
+                                        }}
+                                        {{ selectedPaymentInfo.divisa }}
+                                    </p>
+                                    <p
+                                        v-if="
+                                            selectedPaymentInfo.descuentoPorMes >
+                                                0
+                                        "
+                                    >
+                                        <strong>Descuento:</strong>
+                                        {{
+                                            formatCurrency(
+                                                selectedPaymentInfo.descuentoPorMes
+                                            )
+                                        }}
+                                        {{ selectedPaymentInfo.divisa }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Información adicional para pagos múltiples -->
+                            <div
+                                v-if="selectedPaymentInfo.es_pago_multiple"
+                                class="mt-3"
+                            >
+                                <h6 class="font-weight-bold">
+                                    Información de Pago Múltiple
+                                </h6>
+                                <p>
+                                    <strong>ID de Grupo de Pago:</strong>
+                                    {{ selectedPaymentInfo.grupo_pago_id }}
+                                </p>
+                                <p>
+                                    <strong>Total de Meses en Grupo:</strong>
+                                    {{ selectedPaymentInfo.cantidad_meses }}
+                                    meses
+                                </p>
+                            </div>
+
+                            <!-- Detalles adicionales del pago si están disponibles -->
+                            <div
+                                v-if="selectedPaymentInfo.payment_detail"
+                                class="mt-3"
+                            >
+                                <h6 class="font-weight-bold">
+                                    Detalles Adicionales
+                                </h6>
+                                <div class="table-responsive">
+                                    <table
+                                        class="table table-sm table-bordered"
+                                    >
+                                        <thead>
+                                            <tr>
+                                                <th>Concepto</th>
+                                                <th>Valor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr
+                                                v-for="(value,
+                                                key) in selectedPaymentInfo.payment_detail"
+                                                :key="key"
+                                            >
+                                                <td>{{ key }}</td>
+                                                <td>{{ value }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="closePaymentInfoModal">Cerrar</el-button>
+                </div>
+            </el-dialog>
+
+            <!-- Modal para generar comprobante -->
+            <el-dialog
+                :close-on-click-modal="false"
+                :visible.sync="showInvoiceDialog"
+                title="Generar Comprobante"
+                width="60%"
+                @close="closeInvoiceDialog"
+            >
+                <div v-loading="loading_invoice">
+                    <div class="card mb-3">
+                        <div class="card-header bg-info">
+                            <h4 class="my-0 text-white">
+                                Información del Comprobante
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label"
+                                            >Tipo de Comprobante</label
+                                        >
+                                        <el-select
+                                            v-model="invoice.document_type_id"
+                                            @change="changeDocumentType"
+                                            class="w-100"
+                                            value-key="id"
+                                        >
+                                            <el-option
+                                                v-for="option in document_types"
+                                                :key="option.id"
+                                                :value="option.id"
+                                                :label="option.description"
+                                            ></el-option>
+                                        </el-select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label"
+                                            >Serie</label
+                                        >
+                                        <el-select
+                                            v-model="invoice.series_id"
+                                            class="w-100"
+                                        >
+                                            <el-option
+                                                v-for="option in series"
+                                                :key="option.id"
+                                                :label="option.number"
+                                                :disabled="option.disabled"
+                                                :value="option.id"
+                                            ></el-option>
+                                        </el-select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label"
+                                            >Cliente</label
+                                        >
+                                        <el-input
+                                            v-model="invoice.customer_name"
+                                            readonly
+                                        ></el-input>
+                                        <small
+                                            v-if="invoice.customer_id"
+                                            class="form-text text-muted"
+                                        >
+                                            Cliente asignado automáticamente
+                                            según el propietario del vehículo.
+                                        </small>
+                                        <small
+                                            v-else
+                                            class="form-text text-danger"
+                                        >
+                                            No se encontró cliente con el mismo
+                                            número que el propietario del
+                                            vehículo.
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label"
+                                            >Moneda</label
+                                        >
+                                        <el-input
+                                            :value="
+                                                getCurrencyDescription(
+                                                    invoice.currency_type_id
+                                                )
+                                            "
+                                            class="w-100"
+                                            readonly
+                                        ></el-input>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Opción para agrupar o separar ítems en pagos múltiples -->
+                            <div
+                                v-if="isMultiplePaymentInvoice"
+                                class="row mt-3"
+                            >
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label
+                                            class="control-label d-flex align-items-center"
+                                        >
+                                            <el-switch
+                                                v-model="isMultipleItemsMode"
+                                            ></el-switch>
+                                            <span class="ml-2">{{
+                                                isMultipleItemsMode
+                                                    ? "Crear un ítem por cada mes"
+                                                    : "Agrupar todos los meses en un solo ítem"
+                                            }}</span>
+                                        </label>
+                                        <small class="form-text text-muted">
+                                            Seleccione cómo desea que aparezcan
+                                            los pagos múltiples en el
+                                            comprobante.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header bg-info">
+                            <h4 class="my-0 text-white">Producto/Servicio</h4>
+                        </div>
+                        <div class="card-body">
+                            <div v-if="plan_product" class="row">
+                                <div class="col-md-12">
+                                    <div class="alert alert-info">
+                                        Producto seleccionado automáticamente:
+                                        <strong>{{
+                                            plan_product.description
+                                        }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else class="row">
+                                <div class="col-md-12">
+                                    <div class="alert alert-warning">
+                                        No se ha configurado un producto por
+                                        defecto para los planes. Por favor
+                                        configure un ID de producto en la
+                                        configuración del sistema.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Productos seleccionados -->
+                            <div
+                                v-if="
+                                    invoice.items.filter(
+                                        item => item.is_product
+                                    ).length > 0
+                                "
+                                class="table-responsive mt-3"
+                            >
+                                <h5>Productos/Servicios seleccionados</h5>
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Descripción</th>
+                                            <th>Cantidad</th>
+                                            <th>Precio</th>
+                                            <th>Total</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="(item,
+                                            index) in invoice.items.filter(
+                                                item => item.is_product
+                                            )"
+                                            :key="'product-' + index"
+                                        >
+                                            <td>{{ item.description }}</td>
+                                            <td>
+                                                <el-input-number
+                                                    v-model="item.quantity"
+                                                    :min="1"
+                                                    size="mini"
+                                                    @change="
+                                                        updateItemTotal(item)
+                                                    "
+                                                ></el-input-number>
+                                            </td>
+                                            <td>
+                                                {{
+                                                    formatCurrency(
+                                                        item.unit_price
+                                                    )
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{ formatCurrency(item.total) }}
+                                            </td>
+                                            <td>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-danger btn-sm"
+                                                    @click="
+                                                        removeItemFromInvoice(
+                                                            index,
+                                                            true
+                                                        )
+                                                    "
+                                                >
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -985,240 +1244,25 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="closePaymentInfoModal">Cerrar</el-button>
-            </div>
-        </el-dialog>
-
-        <!-- Modal para generar comprobante -->
-        <el-dialog
-            :close-on-click-modal="false"
-            :visible.sync="showInvoiceDialog"
-            title="Generar Comprobante"
-            width="60%"
-            @close="closeInvoiceDialog"
-        >
-            <div v-loading="loading_invoice">
-                <div class="card mb-3">
-                    <div class="card-header bg-info">
-                        <h4 class="my-0 text-white">
-                            Información del Comprobante
-                        </h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="control-label"
-                                        >Tipo de Comprobante</label
-                                    >
-                                    <el-select
-                                        v-model="invoice.document_type_id"
-                                        @change="changeDocumentType"
-                                        class="w-100"
-                                    >
-                                        <el-option
-                                            v-for="option in document_types"
-                                            :key="option.id"
-                                            :value="option.id"
-                                            :label="option.description"
-                                        ></el-option>
-                                    </el-select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="control-label">Serie</label>
-                                    <el-select
-                                        v-model="invoice.series_id"
-                                        class="w-100"
-                                    >
-                                        <el-option
-                                            v-for="option in series"
-                                            :key="option.id"
-                                            :label="option.number"
-                                            :disabled="option.disabled"
-                                            :value="option.id"
-                                        ></el-option>
-                                    </el-select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="control-label">Cliente</label>
-                                    <el-input
-                                        v-model="invoice.customer_name"
-                                        readonly
-                                    ></el-input>
-                                    <small
-                                        v-if="invoice.customer_id"
-                                        class="form-text text-muted"
-                                    >
-                                        Cliente asignado automáticamente según
-                                        el propietario del vehículo.
-                                    </small>
-                                    <small v-else class="form-text text-danger">
-                                        No se encontró cliente con el mismo
-                                        número que el propietario del vehículo.
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="control-label">Moneda</label>
-                                    <el-input
-                                        :value="
-                                            getCurrencyDescription(
-                                                invoice.currency_type_id
-                                            )
-                                        "
-                                        class="w-100"
-                                        readonly
-                                    ></el-input>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Opción para agrupar o separar ítems en pagos múltiples -->
-                        <div
-                            v-if="selectedMonths && selectedMonths.length > 1"
-                            class="row mt-3"
-                        >
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label
-                                        class="control-label d-flex align-items-center"
-                                    >
-                                        <el-switch
-                                            v-model="isMultipleItemsMode"
-                                        ></el-switch>
-                                        <span class="ml-2">{{
-                                            isMultipleItemsMode
-                                                ? "Crear un ítem por cada mes"
-                                                : "Agrupar todos los meses en un solo ítem"
-                                        }}</span>
-                                    </label>
-                                    <small class="form-text text-muted">
-                                        Seleccione cómo desea que aparezcan los
-                                        pagos múltiples en el comprobante.
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="closeInvoiceDialog">Cancelar</el-button>
+                    <el-button
+                        type="primary"
+                        @click="generateInvoice"
+                        :loading="loading_submit_invoice"
+                    >
+                        Generar Comprobante
+                    </el-button>
                 </div>
+            </el-dialog>
 
-                <div class="card mb-3">
-                    <div class="card-header bg-info">
-                        <h4 class="my-0 text-white">Producto/Servicio</h4>
-                    </div>
-                    <div class="card-body">
-                        <div v-if="plan_product" class="row">
-                            <div class="col-md-12">
-                                <div class="alert alert-info">
-                                    Producto seleccionado automáticamente:
-                                    <strong>{{
-                                        plan_product.description
-                                    }}</strong>
-                                </div>
-                            </div>
-                        </div>
-                        <div v-else class="row">
-                            <div class="col-md-12">
-                                <div class="alert alert-warning">
-                                    No se ha configurado un producto por defecto
-                                    para los planes. Por favor configure un ID
-                                    de producto en la configuración del sistema.
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Productos seleccionados -->
-                        <div
-                            v-if="
-                                invoice.items.filter(item => item.is_product)
-                                    .length > 0
-                            "
-                            class="table-responsive mt-3"
-                        >
-                            <h5>Productos/Servicios seleccionados</h5>
-                            <table class="table table-sm table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Descripción</th>
-                                        <th>Cantidad</th>
-                                        <th>Precio</th>
-                                        <th>Total</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr
-                                        v-for="(item,
-                                        index) in invoice.items.filter(
-                                            item => item.is_product
-                                        )"
-                                        :key="'product-' + index"
-                                    >
-                                        <td>{{ item.description }}</td>
-                                        <td>
-                                            <el-input-number
-                                                v-model="item.quantity"
-                                                :min="1"
-                                                size="mini"
-                                                @change="updateItemTotal(item)"
-                                            ></el-input-number>
-                                        </td>
-                                        <td>
-                                            {{
-                                                formatCurrency(item.unit_price)
-                                            }}
-                                        </td>
-                                        <td>
-                                            {{ formatCurrency(item.total) }}
-                                        </td>
-                                        <td>
-                                            <button
-                                                type="button"
-                                                class="btn btn-danger btn-sm"
-                                                @click="
-                                                    removeItemFromInvoice(
-                                                        index,
-                                                        true
-                                                    )
-                                                "
-                                            >
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="closeInvoiceDialog">Cancelar</el-button>
-                <el-button
-                    type="primary"
-                    @click="generateInvoice"
-                    :loading="loading_submit_invoice"
-                >
-                    Generar Comprobante
-                </el-button>
-            </div>
-        </el-dialog>
-
-        <!-- Modal de creación de unidades -->
-        <unidades-form
-            :showDialog="showUnidadDialog"
-            :recordId="recordId"
-            @close="closeUnidadDialog"
-        ></unidades-form>
+            <!-- Modal de creación de unidades -->
+            <unidades-form
+                :showDialog="showUnidadDialog"
+                :recordId="recordId"
+                @close="closeUnidadDialog"
+            ></unidades-form>
+        </div>
     </div>
 </template>
 
@@ -1238,6 +1282,77 @@ export default {
         RegisterPaymentModal,
         AdvancedPaymentModal,
         UnidadesForm
+    },
+    computed: {
+        isMultiplePaymentInvoice() {
+            console.log("Evaluando si es factura múltiple");
+
+            // 0. Verificar la bandera específica
+            if (this.invoice && this.invoice.isMultiplePayment === true) {
+                console.log("Es múltiple: Tiene la bandera isMultiplePayment");
+                return true;
+            }
+
+            // 1. Verificar si hay múltiples ítems en la factura
+            if (
+                this.invoice &&
+                this.invoice.items &&
+                this.invoice.items.length > 1
+            ) {
+                console.log("Es múltiple: Hay múltiples ítems en la factura");
+                return true;
+            }
+
+            // 2. Verificar si hay descripciones que indican un pago múltiple
+            if (
+                this.invoice &&
+                this.invoice.items &&
+                this.invoice.items.length === 1 &&
+                this.invoice.items[0].description
+            ) {
+                const desc = this.invoice.items[0].description.toLowerCase();
+                if (
+                    desc.includes("cuotas de") ||
+                    desc.includes(" a ") ||
+                    (desc.includes("pago de") && desc.includes("meses"))
+                ) {
+                    console.log(
+                        "Es múltiple: Descripción indica pago múltiple:",
+                        desc
+                    );
+                    return true;
+                }
+            }
+
+            // 3. Verificar si hay meses seleccionados para pagos múltiples
+            if (this.selectedMonths && this.selectedMonths.length > 1) {
+                console.log(
+                    "Es múltiple: Hay múltiples meses seleccionados:",
+                    this.selectedMonths.length
+                );
+                return true;
+            }
+
+            // 4. Verificar el periodo del ítem (si existe)
+            if (
+                this.invoice &&
+                this.invoice.items &&
+                this.invoice.items.length === 1 &&
+                this.invoice.items[0].period
+            ) {
+                const period = this.invoice.items[0].period.toLowerCase();
+                if (period.includes(" - ")) {
+                    console.log(
+                        "Es múltiple: El periodo indica rango de meses:",
+                        period
+                    );
+                    return true;
+                }
+            }
+
+            console.log("No es un pago múltiple");
+            return false;
+        }
     },
     props: {
         configuration: {
@@ -1324,6 +1439,7 @@ export default {
                 attributes: [],
                 guides: [],
                 payments: [],
+                isMultiplePayment: false, // Bandera para identificar pagos múltiples
                 prepayments: [],
                 legends: [],
                 detraction: {},
@@ -1510,69 +1626,81 @@ export default {
         /**
          * Método optimizado para cargar todos los datos del vehículo de manera eficiente
          * Carga pagos y colores en paralelo y luego actualiza el calendario una sola vez
+         * @returns {Promise} Promesa que resuelve cuando se completa la carga de datos
          */
         loadVehicleDataEfficiently() {
-            // Verificar que tenemos los datos necesarios
-            if (
-                !this.selectedVehicleId ||
-                !this.selectedVehicle ||
-                !this.selectedVehicle.subscription_id
-            ) {
-                console.warn(
-                    "No hay datos suficientes para cargar información del vehículo"
-                );
-                return;
-            }
+            return new Promise((resolve, reject) => {
+                // Verificar que tenemos los datos necesarios
+                if (
+                    !this.selectedVehicleId ||
+                    !this.selectedVehicle ||
+                    !this.selectedVehicle.subscription_id
+                ) {
+                    console.warn(
+                        "No hay datos suficientes para cargar información del vehículo"
+                    );
+                    // Rechazar la promesa con un error para que se pueda manejar
+                    reject(new Error("Datos de vehículo insuficientes"));
+                    return;
+                }
 
-            console.log("Cargando datos del vehículo de manera eficiente");
+                console.log("Cargando datos del vehículo de manera eficiente");
 
-            // Usamos Promise.all para cargar los datos en paralelo
-            Promise.all([
-                // Cargamos los pagos
-                this.$http.get(
-                    `/unidades/subscription-invoices/${
-                        this.selectedVehicle.subscription.id
-                    }`
-                ),
-                // Cargamos los colores
-                this.$http.get(
-                    `/unidades/payment-colors/${this.selectedVehicleId}`
-                )
-            ])
-                .then(([paymentsResponse, colorsResponse]) => {
-                    // Procesar datos de pagos
-                    const paymentsData =
-                        paymentsResponse.data.data || paymentsResponse.data;
-                    this.processPaymentsData(paymentsData);
+                // Usamos Promise.all para cargar los datos en paralelo
+                Promise.all([
+                    // Cargamos los pagos
+                    this.$http.get(
+                        `/unidades/subscription-invoices/${
+                            this.selectedVehicle.subscription.id
+                        }`
+                    ),
+                    // Cargamos los colores
+                    this.$http.get(
+                        `/unidades/payment-colors/${this.selectedVehicleId}`
+                    )
+                ])
+                    .then(([paymentsResponse, colorsResponse]) => {
+                        // Procesar datos de pagos
+                        const paymentsData =
+                            paymentsResponse.data.data || paymentsResponse.data;
+                        this.processPaymentsData(paymentsData);
 
-                    // Procesar datos de colores
-                    if (
-                        colorsResponse.data.success &&
-                        colorsResponse.data.colors
-                    ) {
-                        this.processPaymentColors(colorsResponse.data.colors);
-                    }
+                        // Procesar datos de colores
+                        if (
+                            colorsResponse.data.success &&
+                            colorsResponse.data.colors
+                        ) {
+                            this.processPaymentColors(
+                                colorsResponse.data.colors
+                            );
+                        }
 
-                    // Actualizar el calendario una sola vez después de cargar todos los datos
-                    this.$nextTick(() => {
-                        console.log(
-                            "Actualizando calendario después de cargar todos los datos"
+                        // Actualizar el calendario una sola vez después de cargar todos los datos
+                        this.$nextTick(() => {
+                            console.log(
+                                "Actualizando calendario después de cargar todos los datos"
+                            );
+                            this.forceCalendarUpdate();
+
+                            // Desactivar el indicador de carga después de que todo esté listo
+                            this.loadingCalendar = false;
+
+                            // Resolver la promesa indicando que la carga fue exitosa
+                            resolve(true);
+                        });
+                    })
+                    .catch(error => {
+                        console.error(
+                            "Error al cargar datos del vehículo:",
+                            error
                         );
-                        this.forceCalendarUpdate();
-
-                        // if (this.debug) {
-                        //     setTimeout(() => this.logCalendarData(), 500);
-                        // }
-
-                        // Desactivar el indicador de carga después de que todo esté listo
+                        // Desactivar el indicador de carga en caso de error
                         this.loadingCalendar = false;
+
+                        // Rechazar la promesa con el error
+                        reject(error);
                     });
-                })
-                .catch(error => {
-                    console.error("Error al cargar datos del vehículo:", error);
-                    // Desactivar el indicador de carga en caso de error
-                    this.loadingCalendar = false;
-                });
+            });
         },
         /**
          * Procesa los datos de pagos y los almacena en las estructuras de datos correspondientes
@@ -2183,9 +2311,6 @@ export default {
             //  this.loadVehiculos(this.vehiculos.current_page, this.search);
         },
         handleSavePago(pago) {
-            const year = pago.year;
-            const month = pago.mes;
-
             // Verificar que el monto sea válido
             if (!pago.monto || pago.monto <= 0) {
                 this.notifyError(
@@ -2203,22 +2328,42 @@ export default {
 
             this.$http
                 .post(`/${this.resource}`, pago)
-                .then(res => {
+                .then(async res => {
                     if (res.data.success) {
                         this.$message.success(res.data.message);
 
                         // Cerrar el modal de pago
                         this.closePaymentModal();
 
-                        // Preparar datos para generar comprobante
-                        this.prepareInvoiceDataFromPayment(
-                            pago,
-                            res.data.data.id
+                        // Primero actualizar los datos del vehículo para refrescar el calendario
+                        console.log(
+                            "Actualizando calendario antes de preparar comprobante..."
                         );
+                        this.loadingCalendar = true;
 
-                        // Recargar los datos del vehículo seleccionado
-                        // Esto cargará tanto los pagos como los colores
-                        this.setSelectedVehicle(vehiculoId);
+                        try {
+                            // Primero cargar los datos actualizados del vehículo
+                            await this.loadVehicleDataEfficiently();
+                            console.log("Calendario actualizado correctamente");
+
+                            // Una vez actualizados los datos, preparar el comprobante
+                            this.prepareInvoiceDataFromPayment(
+                                pago,
+                                res.data.data.id
+                            );
+                        } catch (error) {
+                            console.error(
+                                "Error al actualizar calendario:",
+                                error
+                            );
+                            // Aún así intentar preparar el comprobante
+                            this.prepareInvoiceDataFromPayment(
+                                pago,
+                                res.data.data.id
+                            );
+                            // Y también intentar actualizar el vehiculo de forma alternativa
+                            this.setSelectedVehicle(vehiculoId);
+                        }
                     } else {
                         this.$message.error(res.data.message);
                     }
@@ -2272,22 +2417,51 @@ export default {
 
             this.$http
                 .post(`/${this.resource}`, pagos)
-                .then(res => {
+                .then(async res => {
                     if (res.data.success) {
                         this.$message.success(res.data.message);
 
-                        // Preparar datos para generar comprobante
-                        this.prepareInvoiceDataFromMultiplePayments(
-                            pagos,
-                            res.data.ids
+                        // Primero actualizar los datos del vehículo para refrescar el calendario
+                        console.log(
+                            "Actualizando calendario antes de preparar comprobante múltiple..."
                         );
+                        this.loadingCalendar = true;
 
-                        // Limpiar los meses seleccionados
-                        this.selectedMonths = [];
-                        this.is_multiple = false;
+                        try {
+                            // Primero cargar los datos actualizados del vehículo
+                            await this.loadVehicleDataEfficiently();
+                            console.log("Calendario actualizado correctamente");
 
-                        this.setSelectedVehicle(this.selectedVehicleId);
-                        this.closeAdvancedModal();
+                            // Una vez actualizados los datos, preparar el comprobante
+                            this.prepareInvoiceDataFromMultiplePayments(
+                                pagos,
+                                res.data.ids
+                            );
+
+                            // Limpiar los meses seleccionados
+                            this.selectedMonths = [];
+                            this.is_multiple = false;
+
+                            this.closeAdvancedModal();
+                        } catch (error) {
+                            console.error(
+                                "Error al actualizar calendario:",
+                                error
+                            );
+                            // Aún así intentar preparar el comprobante
+                            this.prepareInvoiceDataFromMultiplePayments(
+                                pagos,
+                                res.data.ids
+                            );
+
+                            // Limpiar los meses seleccionados
+                            this.selectedMonths = [];
+                            this.is_multiple = false;
+
+                            // Y también intentar actualizar el vehiculo de forma alternativa
+                            this.setSelectedVehicle(this.selectedVehicleId);
+                            this.closeAdvancedModal();
+                        }
                     } else {
                         this.$message.error(res.data.message);
                     }
@@ -2898,8 +3072,8 @@ export default {
 
             // Agregar el pago como ítem del comprobante
             const vehiculoInfo = this.selectedVehicle || {};
-            const mes = this.meses[pago.mes] || pago.mes;
-            const moneda = pago.moneda || "PEN";
+            const mes = this.meses[pago.month];
+            const moneda = pago.moneda;
 
             // Formatear la descripción correctamente
             const pagoDesc = `Pago de cuota ${mes} ${
@@ -2969,8 +3143,17 @@ export default {
         },
 
         async prepareInvoiceDataFromMultiplePayments(pagos, ids) {
+            console.log(
+                "Preparando factura para pagos múltiples:",
+                pagos.length,
+                "pagos"
+            );
+
             // Limpiar datos de comprobante previo
             this.invoice.items = [];
+
+            // Establecer una bandera en los datos del invoice para indicar que es un pago múltiple
+            this.invoice.isMultiplePayment = true;
 
             // Asegurarnos de reiniciar los tipos de documento
             this.document_types = [...this.all_document_types];
@@ -2978,6 +3161,9 @@ export default {
             // Determinar la moneda a usar (usar la del primer pago)
             const moneda = pagos[0].moneda || "PEN";
             this.invoice.currency_type_id = moneda;
+
+            // Marcar explícitamente que es un pago múltiple
+            this.invoice.isMultiplePayment = true;
 
             const vehiculoInfo = this.selectedVehicle || {};
 
@@ -2997,7 +3183,7 @@ export default {
             if (this.isMultipleItemsMode && this.plan_product) {
                 // Agregar cada pago como ítem separado del comprobante utilizando el producto del plan
                 pagos.forEach((pago, index) => {
-                    const mes = this.meses[pago.mes] || pago.mes;
+                    const mes = this.meses[pago.month] || pago.month;
                     const pagoDesc = `Pago de cuota ${mes} ${
                         pago.year
                     } - Vehículo ${vehiculoInfo.placa || ""}`;
@@ -3028,7 +3214,7 @@ export default {
             } else if (this.isMultipleItemsMode) {
                 // Si no hay producto configurado, crear ítems genéricos
                 pagos.forEach((pago, index) => {
-                    const mes = this.meses[pago.mes] || pago.mes;
+                    const mes = this.meses[pago.month] || pago.month;
                     const pagoDesc = `Pago de cuota ${mes} ${
                         pago.year
                     } - Vehículo ${vehiculoInfo.placa || ""}`;
@@ -3166,8 +3352,6 @@ export default {
                     this.invoice.establishment_id =
                         this.establishments.length > 0
                             ? this.establishments[0].id
-                            : null
-                            ? this.establishments[0].id
                             : null;
 
                     // Guardar todas las series para poder filtrarlas después
@@ -3182,8 +3366,23 @@ export default {
                         this.invoice.document_type_id = this.document_types[0].id;
                     }
 
-                    // Filtrar series después de tener todos los datos necesarios
-                    this.filterSeries();
+                    // Si hay un cliente seleccionado, filtrar los tipos de documento
+                    if (this.invoice.customer_id) {
+                        // Buscar el cliente en la lista de clientes o cargarlo si es necesario
+                        const selectedCustomer = this.customers.find(
+                            c => c.id === this.invoice.customer_id
+                        );
+                        if (selectedCustomer) {
+                            console.log(
+                                "Cliente ya seleccionado, filtrando tipos de documento:",
+                                selectedCustomer
+                            );
+                            this.filterDocumentTypes(selectedCustomer);
+                        }
+                    } else {
+                        // Filtrar series después de tener todos los datos necesarios
+                        this.filterSeries();
+                    }
                 }
             } catch (error) {
                 console.error("Error al cargar datos de comprobante:", error);
@@ -3270,8 +3469,45 @@ export default {
             console.log(
                 `Tipo de documento cambiado a: ${this.invoice.document_type_id}`
             );
+
+            // Validar que el tipo de documento sea compatible con el cliente seleccionado
+            if (this.invoice.customer_id) {
+                const selectedCustomer = this.customers.find(
+                    c => c.id === this.invoice.customer_id
+                );
+                if (
+                    selectedCustomer &&
+                    selectedCustomer.identity_document_type_id
+                ) {
+                    // Si es cliente con RUC pero no seleccionó Factura
+                    if (
+                        selectedCustomer.identity_document_type_id === "6" &&
+                        this.invoice.document_type_id !== "01"
+                    ) {
+                        this.$message.warning(
+                            "Cliente con RUC solo puede emitir Factura. Cambiando automáticamente."
+                        );
+                        this.$set(this.invoice, "document_type_id", "01");
+                    }
+                    // Si es cliente con DNI pero no seleccionó Boleta
+                    else if (
+                        selectedCustomer.identity_document_type_id === "1" &&
+                        this.invoice.document_type_id !== "03"
+                    ) {
+                        this.$message.warning(
+                            "Cliente con DNI solo puede emitir Boleta. Cambiando automáticamente."
+                        );
+                        this.$set(this.invoice, "document_type_id", "03");
+                    }
+                }
+            }
+
             // Usar $nextTick para asegurar que el cambio se haya aplicado antes de filtrar
             this.$nextTick(() => {
+                console.log(
+                    "Filtrando series para el tipo de documento:",
+                    this.invoice.document_type_id
+                );
                 this.filterSeries();
             });
         },
@@ -3301,16 +3537,27 @@ export default {
                 this.document_types = this.all_document_types.filter(
                     type => type.id === "01"
                 );
-                this.invoice.document_type_id = "01";
-                console.log("Cliente con RUC: Mostrando solo Factura (01)");
+
+                // Forzar asignación y garantizar que se actualice el componente
+                this.$set(this.invoice, "document_type_id", "01");
+                console.log(
+                    "Cliente con RUC: Mostrando solo Factura (01), asignado:",
+                    this.invoice.document_type_id
+                );
             }
+
             // Si el cliente tiene DNI (1) u otro documento, solo permitir boleta (03)
             else if (customer.identity_document_type_id === "1") {
                 this.document_types = this.all_document_types.filter(
                     type => type.id === "03"
                 );
-                this.invoice.document_type_id = "03";
-                console.log("Cliente con DNI: Mostrando solo Boleta (03)");
+
+                // Forzar asignación y garantizar que se actualice el componente
+                this.$set(this.invoice, "document_type_id", "03");
+                console.log(
+                    "Cliente con DNI: Mostrando solo Boleta (03), asignado:",
+                    this.invoice.document_type_id
+                );
             }
             // Para otros tipos de documento, mostrar todos
             else {
@@ -3320,8 +3567,18 @@ export default {
                 );
             }
 
+            console.log(
+                `Tipos de documento filtrados: ${JSON.stringify(
+                    this.document_types
+                )}`
+            );
+
             // Después de cambiar el tipo de documento, filtrar las series
             this.$nextTick(() => {
+                console.log(
+                    "Documento seleccionado antes de filtrar series:",
+                    this.invoice.document_type_id
+                );
                 this.filterSeries();
             });
         },
@@ -3338,9 +3595,12 @@ export default {
             this.showInvoiceDialog = false;
             // Limpiar datos de comprobante
             this.invoice.items = [];
+            // Reiniciar la bandera de pago múltiple
+            this.invoice.isMultiplePayment = false;
         },
 
         selectCustomer(customer) {
+            console.log("Seleccionando cliente:", customer);
             this.invoice.customer_id = customer.id;
             this.invoice.customer_name = customer.name;
             this.invoice.customer_number = customer.number;
@@ -3349,8 +3609,13 @@ export default {
             // Primero filtrar los tipos de documento según el cliente
             this.filterDocumentTypes(customer);
 
-            // No es necesario llamar explícitamente a filterSeries() aquí
-            // ya que filterDocumentTypes() ya lo llama después de establecer el tipo de documento
+            // Forzar actualización del componente después de filtrar
+            this.$nextTick(() => {
+                console.log(
+                    "Tipo de documento asignado después de seleccionar cliente:",
+                    this.invoice.document_type_id
+                );
+            });
         },
 
         async generateInvoice() {
@@ -3927,6 +4192,13 @@ table td:hover {
 .payment-tooltip strong {
     display: inline-block;
     margin-bottom: 4px;
+}
+
+.calendar-wrapper {
+    position: relative;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
 }
 
 /* Estilos para el overlay de carga del calendario */
