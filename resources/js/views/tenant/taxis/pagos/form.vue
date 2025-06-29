@@ -1223,7 +1223,285 @@
         </div>
     </div>
 </template>
+<style scoped>
+/* Estilos para las celdas del calendario */
+.calendar-cell {
+    min-width: 100px;
+    height: 55px; /* Dar suficiente altura para el contenido y la divisa */
+    vertical-align: top;
+    padding: 4px !important;
+}
 
+.selected-cell {
+    position: relative;
+    border: 2px solid #3b82f6 !important;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+}
+
+/* Estilos para el contenido de las celdas */
+.cell-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.cell-content-wrapper .amount {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.cell-content-wrapper .currency-info {
+    margin-top: 2px;
+    opacity: 0.8;
+}
+
+.cell-content-wrapper .total-badge {
+    font-size: 0.65rem;
+    color: #10b981;
+    margin-left: 3px;
+}
+
+/* Asegurando que todas las celdas del calendario tengan cursor pointer */
+#calendarTable td {
+    cursor: pointer !important;
+}
+
+/* Para elementos específicos with color-option */
+.color-option {
+    cursor: pointer !important;
+}
+
+/* Estilos para el menú de colores */
+.color-option {
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+/* Estilos generales para mejorar la apariencia */
+:deep(.container-fluid) {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Mejoras en las tarjetas de vehículos */
+.position-relative.transition-hover {
+    transition: all 0.2s ease;
+    border: 1px solid #e9ecef;
+}
+
+/* Hacer que la placa destaque más */
+.fw-bold.mb-0.text-gray-800 {
+    color: #3b82f6;
+    letter-spacing: 0.8px;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+}
+
+/* Hacer que el calendario se vea más profesional */
+table {
+    font-size: 0.75rem;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+table th {
+    font-weight: 500;
+    padding: 6px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+table td {
+    padding: 6px;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s;
+}
+
+table td:hover {
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Estilo para la franja lateral */
+.ribbon {
+    width: 6px;
+    transition: width 0.2s ease;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+
+.position-relative:hover .ribbon {
+    width: 8px;
+}
+
+/* Efecto hover para las tarjetas */
+.transition-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.position-relative.transition-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Estilo para el botón de pago adelantado */
+.btn-primary {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1),
+        0 2px 4px -1px rgba(59, 130, 246, 0.06);
+    transform: translateY(-1px);
+}
+
+#advancedButtonContainer {
+    text-align: right;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    padding-right: 15px;
+}
+
+/* Estilos para mejorar la experiencia con el cursor */
+.vehicle-card {
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.vehicle-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.vehicle-card:active {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos específicos para las celdas del calendario */
+.calendar-cell {
+    cursor: pointer !important;
+}
+
+/* Estilo para celdas seleccionadas */
+.selected-cell {
+    border: 2.5px solid #3b82f6 !important;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+    animation: pulse-border 1.5s infinite;
+}
+
+@keyframes pulse-border {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+/* Estilos para el tooltip de información de pago */
+.payment-tooltip {
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    white-space: nowrap;
+}
+
+.payment-tooltip strong {
+    display: inline-block;
+    margin-bottom: 4px;
+}
+
+.calendar-wrapper {
+    position: relative;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+/* Estilos para el overlay de carga del calendario */
+.calendar-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    border-radius: 0.5rem;
+    backdrop-filter: blur(2px);
+}
+
+.calendar-loading-content {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+}
+
+.spinner-border {
+    display: inline-block;
+    width: 2.5rem;
+    height: 2.5rem;
+    vertical-align: text-bottom;
+    border: 0.25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+</style>
 <script>
 import moment from "moment";
 import VehiculosPagoDataTable from "../../../../components/VehiculosPagoDataTable.vue";
@@ -1440,6 +1718,7 @@ export default {
         await this.loadPlanProductItem();
         await this.initForm();
         await this.$http.get(`/documents/tables`).then(response => {
+            this.all_document_types = response.data.document_types_invoice;
             this.document_types = response.data.document_types_invoice;
             this.document_types_guide = response.data.document_types_guide;
             this.currency_types = response.data.currency_types;
@@ -1489,6 +1768,11 @@ export default {
         });
 
         await this.getPercentageIgv();
+        await this.searchExchangeRateByDate(this.form.date_of_issue).then(
+            response => {
+                this.form.exchange_rate_sale = response;
+            }
+        );
     },
 
     methods: {
@@ -2517,11 +2801,27 @@ export default {
                             await this.loadVehicleDataEfficiently();
                             console.log("Calendario actualizado correctamente");
 
-                            // Una vez actualizados los datos, preparar el comprobante
-                            this.prepareInvoiceDataFromPayment(
-                                pago,
-                                res.data.data.id
-                            );
+                            // Verificar configuración para saber si mostrar el comprobante automáticamente
+                            // Preguntar al usuario si desea generar un comprobante
+                            this.$confirm(
+                                "¿Desea generar un comprobante para este pago?",
+                                "Generar comprobante",
+                                {
+                                    confirmButtonText: "Sí, generar",
+                                    cancelButtonText: "No",
+                                    type: "info"
+                                }
+                            )
+                                .then(() => {
+                                    // Si el usuario confirma, mostrar el modal de comprobante
+                                    this.prepareInvoiceDataFromPayment(
+                                        pago,
+                                        res.data.data.id
+                                    );
+                                })
+                                .catch(() => {
+                                    // Si el usuario cancela, no hacer nada
+                                });
                         } catch (error) {
                             console.error(
                                 "Error al actualizar calendario:",
@@ -3225,6 +3525,7 @@ export default {
 
             // Buscar el producto del plan usando el ID correcto
             let itemBase = null;
+
             try {
                 if (!this.company || !this.company.planes_producto_id) {
                     this.$message.error("No hay producto de plan configurado");
@@ -3260,78 +3561,81 @@ export default {
             const pagoDesc = `Pago de cuota ${mes} ${
                 pago.year
             } - Vehículo ${vehiculoInfo.placa || ""}`;
+
             this.form.currency_type_id = moneda;
 
-            // El propietario ya está seleccionado al abrir el modal
+            // Si el vehículo tiene propietario, usar como cliente por defecto
+            if (vehiculoInfo.propietario) {
+                this.form.customer_id = vehiculoInfo.propietario.id;
+                this.form.customer_name = vehiculoInfo.propietario.name;
+                this.form.customer_number = vehiculoInfo.propietario.number;
 
-            // Aplicar la lógica de changeItem para el producto base
-            await this.changeItem(itemBase);
-
-            // Actualizar el precio con el monto del pago
-            this.form.unit_price_value = montoPago;
-            this.form.unit_price = montoPago;
-            if (this.form.item) {
-                this.form.item.unit_price = montoPago;
-            }
-
-            // Calcular cantidad si corresponde
-            let quantity = 1;
-            if (itemBase.calculate_quantity) {
-                quantity = _.round(
-                    montoPago /
-                        (parseFloat(itemBase.sale_unit_price) || montoPago),
-                    4
+                // Buscar al cliente por número de documento para asegurar que existe en el sistema
+                await this.searchRemoteCustomers(
+                    vehiculoInfo.propietario.number
                 );
             }
-            this.form.quantity = quantity;
+            itemBase.unit_price = montoPago;
 
-            // Calcular totales
-            let total = montoPago * quantity;
-            let unit_value = itemBase.has_igv ? montoPago / 1.18 : montoPago;
-            let total_value = itemBase.has_igv ? total / 1.18 : total;
-            let total_igv = itemBase.has_igv ? total - total / 1.18 : 0;
-
-            let itemComprobante = {
-                ...itemBase,
-                description: pagoDesc,
-                currency_type_id: moneda,
-                quantity: quantity,
+            let itemForm = {
+                item_id: itemBase.id,
+                item: { ...itemBase },
+                affectation_igv_type_id: itemBase.sale_affectation_igv_type_id,
+                affectation_igv_type: this.affectation_igv_types
+                    ? this.affectation_igv_types.find(
+                          type =>
+                              type.id === itemBase.sale_affectation_igv_type_id
+                      )
+                    : {},
+                has_igv: itemBase.has_igv,
+                has_plastic_bag_taxes: itemBase.has_plastic_bag_taxes,
+                quantity: 1,
                 unit_price: montoPago,
-                unit_value: unit_value,
-                total: total,
-                total_value: total_value,
-                total_igv: total_igv,
-                name_product_pdf: pagoDesc
+                unit_price_value: montoPago,
+                unit_price: montoPago,
+                charges: [],
+                discounts: [],
+                attributes: itemBase.attributes,
+                name_product_pdf: pagoDesc,
+                description: pagoDesc,
+
+                has_isc: false,
+                system_isc_type_id: null,
+                percentage_isc: "0.00",
+                suggested_price: 0,
+
+                input_unit_price: 0,
+                input_unit_price_value: montoPago,
+                charges: [],
+                discounts: [],
+                attributes: [],
+                has_igv: false,
+                is_set: false,
+                item_unit_types: [],
+                has_plastic_bag_taxes: false,
+                series_enabled: false,
+                warehouse_id: null,
+                lots_group: [],
+                IdLoteSelected: null,
+                document_item_id: null
             };
 
-            this.form.items = [itemComprobante];
+            // Calcular el ítem con la función calculateRowItem
+            const calculatedItem = calculateRowItem(
+                itemForm,
+                moneda,
+                this.form.exchange_rate_sale || 1,
+                this.percentage_igv || 0.18
+            );
+            calculatedItem.description = pagoDesc;
+            calculatedItem.name_product_pdf = pagoDesc;
+
+            // Agregar el ítem calculado al formulario
+            this.form.items = [calculatedItem];
 
             // Cargar datos de comprobante (series, tipos de documento, etc) antes de mostrar el modal
+            this.calculateTotal();
             await this.loadInvoiceData();
-
-            // Filtrar tipos de documento según el cliente si está seleccionado
-            if (this.form.customer_id) {
-                const customer =
-                    this.customers &&
-                    this.customers.find(c => c.id === this.form.customer_id);
-                if (customer) {
-                    this.filterDocumentTypes(customer);
-                } else {
-                    // Si no está en la lista, mostrar todos los tipos
-                    this.document_types = this.all_document_types;
-                }
-            } else {
-                this.document_types = this.all_document_types;
-            }
-
-            // Asignar la primera serie disponible si existe
-            if (this.series && this.series.length > 0) {
-                this.form.series_id = this.series[0].id;
-            } else if (this.all_series && this.all_series.length > 0) {
-                this.form.series_id = this.all_series[0].id;
-            } else {
-                this.form.series_id = null;
-            }
 
             this.showInvoiceDialog = true;
         },
@@ -3367,6 +3671,7 @@ export default {
             this.clearExtraInfoItem();
 
             this.form.item = itemBase;
+            this.form.item.item_id = itemBase.id;
             this.form.item = this.setExtraFieldOfitem(this.form.item);
             this.form.unit_price_value = this.form.item.sale_unit_price;
             this.lots = this.form.item.lots;
@@ -3623,6 +3928,15 @@ export default {
                 } else {
                     // Filtrar series después de tener todos los datos necesarios
                     this.filterSeries();
+                }
+
+                // Asignar la primera serie disponible si existe
+                if (this.series && this.series.length > 0) {
+                    this.form.series_id = this.series[0].id;
+                } else if (this.all_series && this.all_series.length > 0) {
+                    this.form.series_id = this.all_series[0].id;
+                } else {
+                    this.form.series_id = null;
                 }
             } catch (error) {
                 console.error("Error al cargar datos de comprobante:", error);
@@ -3925,101 +4239,11 @@ export default {
             }
 
             this.loading_submit_invoice = true;
+            console.log("datos del comprobante:", this.form);
 
             try {
-                console.log("datos del comprobante:", this.form);
-                return;
-                // Preparar datos para el comprobante
-                const data = {
-                    establishment_id: this.establishments[0].id,
-                    document_type_id: this.form.document_type_id,
-                    series_id: this.form.series_id,
-                    seller_id: this.sellers.length > 0 ? this.idUser : null,
-                    number: this.form.number,
-                    date_of_issue: moment().format("YYYY-MM-DD"),
-                    time_of_issue: moment().format("HH:mm:ss"),
-                    customer_id: this.form.customer_id,
-                    currency_type_id: this.form.currency_type_id,
-                    payment_condition_id: "01", // Contado
-                    payment_method_type_id: "01", // Efectivo
-                    charges: [],
-                    discounts: [],
-                    attributes: [],
-                    guides: [],
-                    payments: [],
-                    prepayments: [],
-                    legends: [],
-                    detraction: {},
-                    items: this.form.items.map(item => {
-                        // Si el item es un producto seleccionado de la API
-                        if (item.is_product) {
-                            // Calcular valores con IGV
-                            const unitPrice = parseFloat(item.unit_price);
-                            const quantity = item.quantity || 1;
-                            const totalValue = unitPrice * quantity;
-
-                            // Para productos con IGV (ya incluido en el precio)
-                            const hasIgv = item.has_igv === true;
-                            const unitValue = hasIgv
-                                ? unitPrice / 1.18
-                                : unitPrice;
-                            const totalIgv = hasIgv
-                                ? totalValue - totalValue / 1.18
-                                : totalValue * 0.18;
-
-                            return {
-                                item_id: item.product_id, // ID del producto/servicio
-                                item_description: item.description,
-                                item_type_id: "01", // Producto
-                                unit_type_id: item.unit_type_id || "ZZ", // Unidad de medida
-                                quantity: quantity,
-                                unit_value: unitValue.toFixed(4),
-                                price_type_id: "01", // Precio unitario
-                                unit_price: totalValue.toFixed(4),
-                                total_base_igv: unitValue * quantity,
-                                percentage_igv: 18,
-                                total_igv: totalIgv,
-                                total_taxes: totalIgv,
-                                total_value: unitValue * quantity,
-                                total: totalValue
-                            };
-                        } else {
-                            // Si es un item creado a partir de un pago
-                            const unitPrice = parseFloat(item.unit_price);
-                            const quantity = item.quantity || 1;
-                            const totalValue = unitPrice * quantity;
-
-                            // Para pagos, el IGV está incluido en el precio
-                            const unitValue = unitPrice / 1.18;
-                            const totalIgv = totalValue - totalValue / 1.18;
-
-                            return {
-                                item_id: null, // Como es un servicio manual, no tiene item_id
-                                item_description: item.description,
-                                item_type_id: "01", // Producto
-                                unit_type_id: "ZZ", // Servicio
-                                quantity: quantity,
-                                unit_value: unitValue.toFixed(4),
-                                price_type_id: "01", // Precio unitario
-                                unit_price: unitPrice.toFixed(4),
-                                affectation_igv_type_id: "10", // Gravado - Operación Onerosa
-                                total_base_igv: unitValue * quantity,
-                                percentage_igv: 18,
-                                total_igv: totalIgv,
-                                total_taxes: totalIgv,
-                                total_value: unitValue * quantity,
-                                total: totalValue,
-                                payment_id: item.id // ID del pago asociado
-                            };
-                        }
-                    }),
-                    operation_type_id: "0101" // Venta interna
-                };
-
-                console.log(data);
-
                 // Enviar solicitud para generar comprobante
-                const response = await this.$http.post("/documents", data);
+                const response = await this.$http.post("/documents", this.form);
 
                 if (response.data && response.data.success) {
                     this.$message.success("Comprobante generado correctamente");
@@ -4207,287 +4431,266 @@ export default {
         getCurrencyDescription(currencyId) {
             const currency = this.currency_types.find(c => c.id === currencyId);
             return currency ? currency.description : currencyId;
+        },
+        calculateTotal() {
+            let total_discount = 0;
+            let total_charge = 0;
+            let total_exportation = 0;
+            let total_taxed = 0;
+            let total_exonerated = 0;
+            let total_unaffected = 0;
+            let total_free = 0;
+            let total_igv = 0;
+            let total_value = 0;
+            let total = 0;
+            let total_plastic_bag_taxes = 0;
+            this.total_discount_no_base = 0;
+
+            let total_igv_free = 0;
+            let total_base_isc = 0;
+            let total_isc = 0;
+
+            // let total_free_igv = 0
+            console.log(
+                "Calculando totales de los items del comprobante",
+                this.form.items
+            );
+            this.form.items.forEach(row => {
+                total_discount += parseFloat(row.total_discount);
+                total_charge += parseFloat(row.total_charge);
+
+                if (row.affectation_igv_type_id === "10") {
+                    // total_taxed += parseFloat(row.total_value)
+                    if (row.total_value_without_rounding) {
+                        total_taxed += parseFloat(
+                            row.total_value_without_rounding
+                        );
+                    } else {
+                        total_taxed += parseFloat(row.total_value);
+                    }
+                }
+
+                if (
+                    row.affectation_igv_type_id === "20" // 20,Exonerado - Operación Onerosa
+                    // || row.affectation_igv_type_id === '21' // 21,Exonerado – Transferencia Gratuita
+                ) {
+                    // total_exonerated += parseFloat(row.total_value)
+
+                    total_exonerated += row.total_value_without_rounding
+                        ? parseFloat(row.total_value_without_rounding)
+                        : parseFloat(row.total_value);
+                }
+
+                if (
+                    row.affectation_igv_type_id === "30" || // 30,Inafecto - Operación Onerosa
+                    row.affectation_igv_type_id === "31" || // 31,Inafecto – Retiro por Bonificación
+                    row.affectation_igv_type_id === "32" || // 32,Inafecto – Retiro
+                    row.affectation_igv_type_id === "33" || // 33,Inafecto – Retiro por Muestras Médicas
+                    row.affectation_igv_type_id === "34" || // 34,Inafecto - Retiro por Convenio Colectivo
+                    row.affectation_igv_type_id === "35" || // 35,Inafecto – Retiro por premio
+                    row.affectation_igv_type_id === "36" // 36,Inafecto - Retiro por publicidad
+                    // || row.affectation_igv_type_id === '37'  // 37,Inafecto - Transferencia gratuita
+                ) {
+                    total_unaffected += parseFloat(row.total_value);
+                }
+
+                if (row.affectation_igv_type_id === "40") {
+                    total_exportation += parseFloat(row.total_value);
+                }
+
+                if (
+                    [
+                        "10",
+                        // '20', '21',
+                        "20",
+                        "30",
+                        "31",
+                        "32",
+                        "33",
+                        "34",
+                        "35",
+                        "36",
+                        "40"
+                    ].indexOf(row.affectation_igv_type_id) < 0
+                ) {
+                    total_free += parseFloat(row.total_value);
+                }
+
+                if (
+                    [
+                        "10",
+                        "20",
+                        "21",
+                        "30",
+                        "31",
+                        "32",
+                        "33",
+                        "34",
+                        "35",
+                        "36",
+                        "40"
+                    ].indexOf(row.affectation_igv_type_id) > -1
+                ) {
+                    // total_igv += parseFloat(row.total_igv)
+                    // total += parseFloat(row.total)
+                    if (row.total_igv_without_rounding) {
+                        total_igv += parseFloat(row.total_igv_without_rounding);
+                    } else {
+                        total_igv += parseFloat(row.total_igv);
+                    }
+
+                    // row.total_value_without_rounding = total_value
+                    // row.total_base_igv_without_rounding = total_base_igv
+                    // row.total_igv_without_rounding = total_igv
+                    // row.total_taxes_without_rounding = total_taxes
+                    // row.total_without_rounding = total
+
+                    if (row.total_without_rounding) {
+                        total += parseFloat(row.total_without_rounding);
+                    } else {
+                        total += parseFloat(row.total);
+                    }
+                }
+
+                // console.log(row.total_value)
+
+                if (!["21", "37"].includes(row.affectation_igv_type_id)) {
+                    // total_value += parseFloat(row.total_value)
+                    if (row.total_value_without_rounding) {
+                        total_value += parseFloat(
+                            row.total_value_without_rounding
+                        );
+                    } else {
+                        total_value += parseFloat(row.total_value);
+                    }
+                }
+
+                total_plastic_bag_taxes += parseFloat(
+                    row.total_plastic_bag_taxes
+                );
+
+                if (
+                    ["11", "12", "13", "14", "15", "16"].includes(
+                        row.affectation_igv_type_id
+                    )
+                ) {
+                    let unit_value = row.total_value / row.quantity;
+                    let total_value_partial = unit_value * row.quantity;
+                    // row.total_taxes = row.total_value - total_value_partial
+                    row.total_taxes =
+                        row.total_value -
+                        total_value_partial +
+                        parseFloat(row.total_plastic_bag_taxes); //sumar icbper al total tributos
+
+                    row.total_igv =
+                        total_value_partial * (row.percentage_igv / 100);
+                    row.total_base_igv = total_value_partial;
+                    total_value -= row.total_value;
+
+                    total_igv_free += row.total_igv;
+                    total += parseFloat(row.total); //se agrega suma al total para considerar el icbper
+                }
+
+                //sum discount no base
+                this.total_discount_no_base += this.sumDiscountsNoBaseByItem(
+                    row
+                );
+
+                // isc
+                total_isc += parseFloat(row.total_isc);
+                total_base_isc += parseFloat(row.total_base_isc);
+            });
+
+            let total_taxes = total_igv + total_isc + total_plastic_bag_taxes;
+            let total_all = total - this.total_discount_no_base;
+
+            let totals_without_rounding = {
+                total_discount,
+                total_charge,
+                total_exportation,
+                total_taxed,
+                total_exonerated,
+                total_unaffected,
+                total_free,
+                total_igv,
+                total_value,
+                total: total_all,
+                total_plastic_bag_taxes,
+                total_igv_free,
+                total_base_isc,
+                total_isc,
+                total_taxes
+            };
+            // isc
+            this.form.total_base_isc = _.round(total_base_isc, 2);
+            this.form.total_isc = _.round(total_isc, 2);
+
+            this.form.total_igv_free = _.round(total_igv_free, 2);
+            this.form.total_discount = _.round(total_discount, 2);
+            this.form.total_exportation = _.round(total_exportation, 2);
+            this.form.total_taxed = _.round(total_taxed, 2);
+            this.form.total_exonerated = _.round(total_exonerated, 2);
+            this.form.total_unaffected = _.round(total_unaffected, 2);
+            this.form.total_free = _.round(total_free, 2);
+            // this.form.total_igv = _.round(total_igv + total_free_igv, 2)
+            this.form.total_igv = _.round(total_igv, 2);
+            this.form.total_value = _.round(total_value, 2);
+            // this.form.total_taxes = _.round(total_igv, 2)
+
+            //impuestos (isc + igv + icbper)
+            this.form.total_taxes = _.round(total_taxes, 2);
+
+            this.form.total_plastic_bag_taxes = _.round(
+                total_plastic_bag_taxes,
+                2
+            );
+
+            this.form.subtotal = _.round(total, 2);
+            this.form.total = _.round(total_all, 2);
+
+            if (
+                this.verifyRecalculateTotalTaxed() &&
+                this.form.total_taxed > 0
+            ) {
+                this.form.total_taxed = this.recalculateDecimalTotalTaxed(
+                    this.form.total,
+                    this.form.total_igv
+                );
+            }
+        },
+        recalculateDecimalTotalTaxed(total, igv) {
+            return total - igv;
+        },
+        verifyRecalculateTotalTaxed() {
+            const keysToCheck = [
+                "total_isc",
+                "total_igv_free",
+                "total_discount",
+                "total_exportation",
+                "total_exonerated",
+                "total_unaffected",
+                "total_free",
+                "total_plastic_bag_taxes"
+            ];
+            return !keysToCheck.some(key => this.form[key] > 0);
+        },
+        sumDiscountsNoBaseByItem(row) {
+            let sum_discount_no_base = 0;
+
+            if (row.discounts) {
+                // if(row.discounts.length > 0){
+                sum_discount_no_base = _.sumBy(row.discounts, function(
+                    discount
+                ) {
+                    return discount.discount_type_id == "01"
+                        ? discount.amount
+                        : 0;
+                });
+                // }
+            }
+
+            return sum_discount_no_base;
         }
     }
 };
 </script>
-
-<style scoped>
-/* Estilos para las celdas del calendario */
-.calendar-cell {
-    min-width: 100px;
-    height: 55px; /* Dar suficiente altura para el contenido y la divisa */
-    vertical-align: top;
-    padding: 4px !important;
-}
-
-.selected-cell {
-    position: relative;
-    border: 2px solid #3b82f6 !important;
-    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
-}
-
-/* Estilos para el contenido de las celdas */
-.cell-content-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-}
-
-.cell-content-wrapper .amount {
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.cell-content-wrapper .currency-info {
-    margin-top: 2px;
-    opacity: 0.8;
-}
-
-.cell-content-wrapper .total-badge {
-    font-size: 0.65rem;
-    color: #10b981;
-    margin-left: 3px;
-}
-
-/* Asegurando que todas las celdas del calendario tengan cursor pointer */
-#calendarTable td {
-    cursor: pointer !important;
-}
-
-/* Para elementos específicos with color-option */
-.color-option {
-    cursor: pointer !important;
-}
-
-/* Estilos para el menú de colores */
-.color-option {
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
-
-.color-option:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-    z-index: 1;
-}
-
-/* Estilos generales para mejorar la apariencia */
-:deep(.container-fluid) {
-    font-family: "Segoe UI", Roboto, Arial, sans-serif;
-}
-
-/* Mejoras en las tarjetas de vehículos */
-.position-relative.transition-hover {
-    transition: all 0.2s ease;
-    border: 1px solid #e9ecef;
-}
-
-/* Hacer que la placa destaque más */
-.fw-bold.mb-0.text-gray-800 {
-    color: #3b82f6;
-    letter-spacing: 0.8px;
-    font-weight: 700 !important;
-    text-transform: uppercase;
-}
-
-/* Hacer que el calendario se vea más profesional */
-table {
-    font-size: 0.75rem;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-table th {
-    font-weight: 500;
-    padding: 6px;
-    border-bottom: 1px solid #dee2e6;
-}
-
-table td {
-    padding: 6px;
-    border: 1px solid #e9ecef;
-    transition: all 0.2s;
-}
-
-table td:hover {
-    background-color: rgba(59, 130, 246, 0.05);
-}
-
-/* Estilo para la franja lateral */
-.ribbon {
-    width: 6px;
-    transition: width 0.2s ease;
-    border-top-left-radius: 3px;
-    border-bottom-left-radius: 3px;
-}
-
-.position-relative:hover .ribbon {
-    width: 8px;
-}
-
-/* Efecto hover para las tarjetas */
-.transition-hover {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.position-relative.transition-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    border-radius: 0.25rem;
-    display: inline-flex;
-    align-items: center;
-}
-
-/* Estilo para el botón de pago adelantado */
-.btn-primary {
-    background-color: #3b82f6;
-    border-color: #3b82f6;
-    color: white;
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    background-color: #2563eb;
-    border-color: #2563eb;
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1),
-        0 2px 4px -1px rgba(59, 130, 246, 0.06);
-    transform: translateY(-1px);
-}
-
-#advancedButtonContainer {
-    text-align: right;
-    margin-top: 15px;
-    margin-bottom: 10px;
-    padding-right: 15px;
-}
-
-/* Estilos para mejorar la experiencia con el cursor */
-.vehicle-card {
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-}
-
-.vehicle-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-}
-
-.vehicle-card:active {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Estilos específicos para las celdas del calendario */
-.calendar-cell {
-    cursor: pointer !important;
-}
-
-/* Estilo para celdas seleccionadas */
-.selected-cell {
-    border: 2.5px solid #3b82f6 !important;
-    position: relative;
-    z-index: 1;
-    box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
-    animation: pulse-border 1.5s infinite;
-}
-
-@keyframes pulse-border {
-    0% {
-        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-    }
-}
-
-/* Estilos para el tooltip de información de pago */
-.payment-tooltip {
-    position: absolute;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    white-space: nowrap;
-}
-
-.payment-tooltip strong {
-    display: inline-block;
-    margin-bottom: 4px;
-}
-
-.calendar-wrapper {
-    position: relative;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-}
-
-/* Estilos para el overlay de carga del calendario */
-.calendar-loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.85);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-    border-radius: 0.5rem;
-    backdrop-filter: blur(2px);
-}
-
-.calendar-loading-content {
-    text-align: center;
-    padding: 1.5rem;
-    background-color: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    min-width: 200px;
-}
-
-.spinner-border {
-    display: inline-block;
-    width: 2.5rem;
-    height: 2.5rem;
-    vertical-align: text-bottom;
-    border: 0.25em solid currentColor;
-    border-right-color: transparent;
-    border-radius: 50%;
-    animation: spinner-border 0.75s linear infinite;
-}
-
-@keyframes spinner-border {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-</style>
