@@ -305,7 +305,7 @@
                                         viewBox="0 0 16 16"
                                     >
                                         <path
-                                            d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"
+                                            d="M16 8A8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"
                                         />
                                     </svg>
                                     <strong
@@ -1039,7 +1039,7 @@
                                             >Tipo de Comprobante</label
                                         >
                                         <el-select
-                                            v-model="invoice.document_type_id"
+                                            v-model="form.document_type_id"
                                             @change="changeDocumentType"
                                             class="w-100"
                                             value-key="id"
@@ -1059,7 +1059,7 @@
                                             >Serie</label
                                         >
                                         <el-select
-                                            v-model="invoice.series_id"
+                                            v-model="form.series_id"
                                             class="w-100"
                                         >
                                             <el-option
@@ -1080,11 +1080,11 @@
                                             >Cliente</label
                                         >
                                         <el-input
-                                            v-model="invoice.customer_name"
+                                            v-model="form.customer_name"
                                             readonly
                                         ></el-input>
                                         <small
-                                            v-if="invoice.customer_id"
+                                            v-if="form.customer_id"
                                             class="form-text text-muted"
                                         >
                                             Cliente asignado automáticamente
@@ -1108,40 +1108,12 @@
                                         <el-input
                                             :value="
                                                 getCurrencyDescription(
-                                                    invoice.currency_type_id
+                                                    form.currency_type_id
                                                 )
                                             "
                                             class="w-100"
                                             readonly
                                         ></el-input>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Opción para agrupar o separar ítems en pagos múltiples -->
-                            <div
-                                v-if="isMultiplePaymentInvoice"
-                                class="row mt-3"
-                            >
-                                <div class="col-12">
-                                    <div class="form-group">
-                                        <label
-                                            class="control-label d-flex align-items-center"
-                                        >
-                                            <el-switch
-                                                v-model="isMultipleItemsMode"
-                                            ></el-switch>
-                                            <span class="ml-2">{{
-                                                isMultipleItemsMode
-                                                    ? "Crear un ítem por cada mes"
-                                                    : "Agrupar todos los meses en un solo ítem"
-                                            }}</span>
-                                        </label>
-                                        <small class="form-text text-muted">
-                                            Seleccione cómo desea que aparezcan
-                                            los pagos múltiples en el
-                                            comprobante.
-                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -1177,9 +1149,8 @@
                             <!-- Productos seleccionados -->
                             <div
                                 v-if="
-                                    invoice.items.filter(
-                                        item => item.is_product
-                                    ).length > 0
+                                    form.items.filter(item => item.is_product)
+                                        .length > 0
                                 "
                                 class="table-responsive mt-3"
                             >
@@ -1197,7 +1168,7 @@
                                     <tbody>
                                         <tr
                                             v-for="(item,
-                                            index) in invoice.items.filter(
+                                            index) in form.items.filter(
                                                 item => item.is_product
                                             )"
                                             :key="'product-' + index"
@@ -1223,20 +1194,7 @@
                                             <td>
                                                 {{ formatCurrency(item.total) }}
                                             </td>
-                                            <td>
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-danger btn-sm"
-                                                    @click="
-                                                        removeItemFromInvoice(
-                                                            index,
-                                                            true
-                                                        )
-                                                    "
-                                                >
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
+                                            <td></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1268,12 +1226,13 @@
 
 <script>
 import moment from "moment";
-import axios from "axios";
 import VehiculosPagoDataTable from "../../../../components/VehiculosPagoDataTable.vue";
 import RegisterPaymentModal from "../../../../components/payments/RegisterPaymentModal.vue";
 import AdvancedPaymentModal from "../../../../components/payments/AdvancedPaymentModal.vue";
 import UnidadesForm from "../../taxis/unidades/form.vue";
-import loginVue from "../../../system/configuration/login.vue";
+import { calculateRowItem } from "../../../../helpers/functions";
+import { mapActions, mapState } from "vuex/dist/vuex.mjs";
+import { exchangeRate, functions } from "../../../../mixins/functions";
 
 export default {
     name: "TenantTaxisPagosForm",
@@ -1283,34 +1242,31 @@ export default {
         AdvancedPaymentModal,
         UnidadesForm
     },
+    mixins: [functions, exchangeRate],
     computed: {
         isMultiplePaymentInvoice() {
             console.log("Evaluando si es factura múltiple");
 
             // 0. Verificar la bandera específica
-            if (this.invoice && this.invoice.isMultiplePayment === true) {
+            if (this.form && this.form.isMultiplePayment === true) {
                 console.log("Es múltiple: Tiene la bandera isMultiplePayment");
                 return true;
             }
 
             // 1. Verificar si hay múltiples ítems en la factura
-            if (
-                this.invoice &&
-                this.invoice.items &&
-                this.invoice.items.length > 1
-            ) {
+            if (this.form && this.form.items && this.form.items.length > 1) {
                 console.log("Es múltiple: Hay múltiples ítems en la factura");
                 return true;
             }
 
             // 2. Verificar si hay descripciones que indican un pago múltiple
             if (
-                this.invoice &&
-                this.invoice.items &&
-                this.invoice.items.length === 1 &&
-                this.invoice.items[0].description
+                this.form &&
+                this.form.items &&
+                this.form.items.length === 1 &&
+                this.form.items[0].description
             ) {
-                const desc = this.invoice.items[0].description.toLowerCase();
+                const desc = this.form.items[0].description.toLowerCase();
                 if (
                     desc.includes("cuotas de") ||
                     desc.includes(" a ") ||
@@ -1335,12 +1291,12 @@ export default {
 
             // 4. Verificar el periodo del ítem (si existe)
             if (
-                this.invoice &&
-                this.invoice.items &&
-                this.invoice.items.length === 1 &&
-                this.invoice.items[0].period
+                this.form &&
+                this.form.items &&
+                this.form.items.length === 1 &&
+                this.form.items[0].period
             ) {
-                const period = this.invoice.items[0].period.toLowerCase();
+                const period = this.form.items[0].period.toLowerCase();
                 if (period.includes(" - ")) {
                     console.log(
                         "Es múltiple: El periodo indica rango de meses:",
@@ -1352,6 +1308,12 @@ export default {
 
             console.log("No es un pago múltiple");
             return false;
+        },
+        credit_payment_metod: function() {
+            return _.filter(this.payment_method_types, { is_credit: true });
+        },
+        cash_payment_metod: function() {
+            return _.filter(this.payment_method_types, { is_credit: false });
         }
     },
     props: {
@@ -1408,6 +1370,7 @@ export default {
             loading_submit_invoice: false,
             loading_customers: false,
             document_types: [],
+            operation_types: [],
             all_document_types: [], // Para guardar todos los tipos de documentos sin filtrar
             series: [],
             all_series: [], // Añadido para almacenar todas las series sin filtrar
@@ -1422,40 +1385,16 @@ export default {
             item_search: "",
             plan_product: null, // Para guardar el producto del plan
             isMultipleItemsMode: false, // Para controlar si generar un ítem por mes o agrupar
-            invoice: {
-                document_type_id: "01", // Tipo de documento por defecto (01 = Factura)
-                series_id: null,
-                establishment_id: null, // Inicializar para evitar problemas
-                seller_id: null, // Asignar automáticamente el vendedor si hay uno
-                number: "#",
-                currency_type_id: "PEN",
-                customer_id: null,
-                customer_name: "",
-                customer_number: "",
-                selected_item_id: null,
-                items: [],
-                charges: [],
-                discounts: [],
-                attributes: [],
-                guides: [],
-                payments: [],
-                isMultiplePayment: false, // Bandera para identificar pagos múltiples
-                prepayments: [],
-                legends: [],
-                detraction: {},
-                actions: {
-                    format_pdf: "a4"
-                },
-                show_terms_condition: true,
-                terms_condition: "",
-                payment_condition_id: "01"
-            },
+            payment_destinations: [],
+            payment_conditions: [],
+            form: {},
             // Modal de información de pago
             isPaymentInfoModalOpen: false,
             selectedPaymentInfo: null,
             // Modal para generación de comprobante
             showInvoiceDialog: false,
             loading_invoice: false,
+            form_cash_document: {},
             meses: {
                 1: "Enero",
                 2: "Febrero",
@@ -1497,19 +1436,255 @@ export default {
     },
     async created() {
         this.initYearsRange();
-
-        // Cargar datos para comprobantes (series, tipos de documento, etc)
         await this.loadInvoiceData();
-
-        // Cargar el producto del plan configurado
         await this.loadPlanProductItem();
+        await this.initForm();
+        await this.$http.get(`/documents/tables`).then(response => {
+            this.document_types = response.data.document_types_invoice;
+            this.document_types_guide = response.data.document_types_guide;
+            this.currency_types = response.data.currency_types;
+            this.business_turns = response.data.business_turns;
+            this.establishments = response.data.establishments;
+            this.operation_types = response.data.operation_types;
+            this.all_series = response.data.series;
+            this.all_customers = response.data.customers;
+            this.sellers = response.data.sellers;
+            this.discount_types = response.data.discount_types;
+            this.charges_types = response.data.charges_types;
+            this.payment_method_types = response.data.payment_method_types;
+            this.enabled_discount_global =
+                response.data.enabled_discount_global;
+            //this.company = response.data.company;
+            //console.log("company: ", this.company);
+
+            this.user = response.data.user;
+            this.document_type_03_filter =
+                response.data.document_type_03_filter;
+            this.select_first_document_type_03 =
+                response.data.select_first_document_type_03;
+            this.form.establishment_id =
+                this.establishments.length > 0
+                    ? this.establishments[0].id
+                    : null;
+            this.form.document_type_id =
+                this.document_types.length > 0
+                    ? this.document_types[0].id
+                    : null;
+            this.form.operation_type_id =
+                this.operation_types.length > 0
+                    ? this.operation_types[0].id
+                    : null;
+            this.form.seller_id = this.sellers.length > 0 ? this.idUser : null;
+            this.affectation_igv_types = response.data.affectation_igv_types;
+            this.is_client = response.data.is_client;
+            this.payment_destinations = response.data.payment_destinations;
+            this.payment_conditions = response.data.payment_conditions;
+
+            this.seller_class =
+                this.user == "admin" ? "col-lg-4 pb-2" : "col-lg-6 pb-2";
+            this.global_discount_types = response.data.global_discount_types;
+
+            this.changeEstablishment();
+            this.changeDestinationSale();
+        });
+
+        await this.getPercentageIgv();
     },
+
     methods: {
         initYearsRange() {
             const currentYear = new Date().getFullYear();
             this.yearsRange = Array.from(
                 { length: currentYear - 2023 + 4 },
                 (_, i) => 2023 + i
+            );
+        },
+        initForm() {
+            this.form = {
+                establishment_id: null,
+                document_type_id: null,
+                series_id: null,
+                seller_id: this.idUser,
+                number: "#",
+                date_of_issue: moment().format("YYYY-MM-DD"),
+                time_of_issue: moment().format("HH:mm:ss"),
+                customer_id: null,
+                currency_type_id: this.configuration.currency_type_id,
+                purchase_order: null,
+                exchange_rate_sale: 0,
+                total_prepayment: 0,
+                total_charge: 0,
+                total_discount: 0,
+                total_exportation: 0,
+                total_free: 0,
+                total_taxed: 0,
+                total_unaffected: 0,
+                total_exonerated: 0,
+                total_igv: 0,
+                total_base_isc: 0,
+                total_isc: 0,
+                total_base_other_taxes: 0,
+                total_other_taxes: 0,
+                total_plastic_bag_taxes: 0,
+                total_taxes: 0,
+                total_value: 0,
+                total: 0,
+                subtotal: 0,
+                total_igv_free: 0,
+                operation_type_id: null,
+                date_of_due: moment().format("YYYY-MM-DD"),
+                items: [],
+                charges: [],
+                discounts: [],
+                attributes: [],
+                guides: [],
+                payments: [],
+                prepayments: [],
+                legends: [],
+                detraction: {},
+                additional_information: null,
+                plate_number: null,
+                has_prepayment: false,
+                affectation_type_prepayment: null,
+                actions: {
+                    format_pdf: "a4"
+                },
+                hotel: {},
+                transport: {},
+                customer_address_id: null,
+                pending_amount_prepayment: 0,
+                payment_method_type_id: null,
+                show_terms_condition: true,
+                terms_condition: "",
+                payment_condition_id: "01",
+                fee: [],
+                total_pending_payment: 0,
+                has_retention: false,
+                retention: {},
+                quotation_id: null,
+
+                worker_full_name_tips: null, //propinas
+                total_tips: 0 //propinas
+            };
+
+            this.form_cash_document = {
+                document_id: null,
+                sale_note_id: null
+            };
+
+            this.clickAddPayment();
+            this.clickAddInitGuides();
+            this.total_global_discount = 0;
+            this.total_global_charge = 0;
+            this.is_amount = true;
+            this.prepayment_deduction = false;
+
+            this.enabled_payments = true;
+            this.readonly_date_of_due = false;
+            this.total_discount_no_base = 0;
+
+            this.calculate_customer_accumulated_points = 0;
+            this.total_exchange_points = 0;
+
+            this.retention_query_data = null;
+        },
+        clickAddPayment() {
+            let id = "01";
+            if (
+                this.cash_payment_metod !== undefined &&
+                this.cash_payment_metod[0] !== undefined
+            ) {
+                id = this.cash_payment_metod[0].id;
+            }
+            let total = 0;
+            if (this.form.total !== undefined) {
+                total = this.form.total;
+            }
+            this.form.date_of_due = moment().format("YYYY-MM-DD");
+
+            this.form.payments.push({
+                id: null,
+                document_id: null,
+                date_of_payment: moment().format("YYYY-MM-DD"),
+                payment_method_type_id: id,
+                reference: null,
+                payment_destination_id: this.getPaymentDestinationId(),
+                payment: total,
+
+                payment_received: true,
+                filename: null,
+                temp_path: null,
+                file_list: []
+            });
+
+            this.calculatePayments();
+        },
+        getPaymentDestinationId() {
+            if (
+                this.configuration.destination_sale &&
+                this.payment_destinations.length > 0
+            ) {
+                let cash = _.find(this.payment_destinations, { id: "cash" });
+
+                return cash ? cash.id : this.payment_destinations[0].id;
+            }
+
+            return null;
+        },
+        calculatePayments() {
+            let payment_count = this.form.payments.length;
+            // let total = this.form.total;
+            let total = this.getTotal();
+
+            let payment = 0;
+            let amount = _.round(total / payment_count, 2);
+            // console.log(amount);
+            _.forEach(this.form.payments, row => {
+                payment += amount;
+                if (total - payment < 0) {
+                    amount = _.round(total - payment + amount, 2);
+                }
+                row.payment = amount;
+                // console.error(row.payment)
+            });
+        },
+        getTotal() {
+            let total_pay = this.form.total;
+            if (this.form.has_retention) {
+                total_pay -= this.form.retention.amount;
+            }
+            // console.log(this.form.retention)
+            // console.log(this.form.total_pending_payment)
+            // console.log(this.form.total)
+
+            if (
+                !_.isEmpty(this.form.detraction) &&
+                this.form.total_pending_payment > 0
+            ) {
+                return this.form.total_pending_payment;
+            }
+
+            if (
+                !_.isEmpty(this.form.retention) &&
+                this.form.total_pending_payment > 0
+            ) {
+                // console.log('1');
+                return this.form.total_pending_payment;
+            }
+
+            // console.log('2');
+            return total_pay;
+        },
+        clickAddInitGuides() {
+            this.form.guides.push(
+                {
+                    document_type_id: "09",
+                    number: null
+                },
+                {
+                    document_type_id: "31",
+                    number: null
+                }
             );
         },
         toggleMultipleSelection() {
@@ -2102,7 +2277,6 @@ export default {
                 this.openModalregisterPayment(yearNum, monthNum);
             }
         },
-
         // Función para verificar si un mes tiene pago total marcado
         hasPayedTotal(year, month) {
             const yearNum = parseInt(year);
@@ -2179,12 +2353,10 @@ export default {
             // Ordenar las selecciones
             this.sortSelectedMonths();
         },
-
         // Método para ordenar los meses seleccionados
         sortSelectedMonths() {
             this.sortMonthArray(this.selectedMonths);
         },
-
         // Ordena un array de meses en formato "año-mes"
         sortMonthArray(monthArray) {
             monthArray.sort((a, b) => {
@@ -2197,7 +2369,6 @@ export default {
                 return valueA - valueB;
             });
         },
-
         // Verifica si un array de meses es consecutivo
         areMonthsConsecutive(monthArray) {
             // Necesitamos al menos 2 meses para verificar consecutividad
@@ -2355,11 +2526,6 @@ export default {
                             console.error(
                                 "Error al actualizar calendario:",
                                 error
-                            );
-                            // Aún así intentar preparar el comprobante
-                            this.prepareInvoiceDataFromPayment(
-                                pago,
-                                res.data.data.id
                             );
                             // Y también intentar actualizar el vehiculo de forma alternativa
                             this.setSelectedVehicle(vehiculoId);
@@ -2534,12 +2700,6 @@ export default {
                 type: "error"
             });
         },
-        /**
-         * Abre el menú contextual para seleccionar color
-         * @param {Number} year - Año de la celda
-         * @param {Number} month - Mes de la celda
-         * @param {Event} event - Evento del click derecho
-         */
         /**
          * Abre el modal de información de pago
          * @param {Number} year - Año del pago
@@ -3057,91 +3217,210 @@ export default {
             }
         },
 
-        // Métodos para comprobantes
+        // Método para calcular el comprobante
         async prepareInvoiceDataFromPayment(pago, id) {
-            console.log(
-                `Preparando datos de comprobante para pago: ${JSON.stringify(
-                    pago
-                )}, ID: ${id}`
-            );
             // Limpiar datos de comprobante previo
-            this.invoice.items = [];
-
-            // Asegurarnos de reiniciar los tipos de documento
+            this.form.items = [];
             this.document_types = [...this.all_document_types];
 
-            // Agregar el pago como ítem del comprobante
+            // Buscar el producto del plan usando el ID correcto
+            let itemBase = null;
+            try {
+                if (!this.company || !this.company.planes_producto_id) {
+                    this.$message.error("No hay producto de plan configurado");
+                    return;
+                }
+                const response = await this.$http.get(
+                    `/documents/search/item/${this.company.planes_producto_id}`
+                );
+                if (
+                    response.data &&
+                    response.data.items &&
+                    response.data.items.length > 0
+                ) {
+                    itemBase = response.data.items[0];
+                    this.plan_product = itemBase;
+                } else {
+                    this.$message.error(
+                        "No se encontró producto para el comprobante"
+                    );
+                    return;
+                }
+            } catch (error) {
+                this.$message.error(
+                    "Error al obtener el producto base para el comprobante"
+                );
+                return;
+            }
+
             const vehiculoInfo = this.selectedVehicle || {};
             const mes = this.meses[pago.mes];
             const moneda = pago.moneda;
-
-            // Formatear la descripción correctamente
+            const montoPago = parseFloat(pago.monto);
             const pagoDesc = `Pago de cuota ${mes} ${
                 pago.year
             } - Vehículo ${vehiculoInfo.placa || ""}`;
+            this.form.currency_type_id = moneda;
 
-            // Establecer la moneda del comprobante según el pago
-            this.invoice.currency_type_id = moneda;
+            // El propietario ya está seleccionado al abrir el modal
 
-            // Si el vehículo tiene propietario, usar como cliente por defecto
-            if (vehiculoInfo.propietario) {
-                this.invoice.customer_id = vehiculoInfo.propietario.id;
-                this.invoice.customer_name = vehiculoInfo.propietario.name;
-                this.invoice.customer_number = vehiculoInfo.propietario.number;
+            // Aplicar la lógica de changeItem para el producto base
+            await this.changeItem(itemBase);
 
-                // Buscar al cliente por número de documento para asegurar que existe en el sistema
-                await this.searchRemoteCustomers(
-                    vehiculoInfo.propietario.number
-                );
+            // Actualizar el precio con el monto del pago
+            this.form.unit_price_value = montoPago;
+            this.form.unit_price = montoPago;
+            if (this.form.item) {
+                this.form.item.unit_price = montoPago;
             }
 
-            // Si tenemos un producto de plan configurado, usarlo como ítem
-            if (this.plan_product) {
-                // Crear un ítem basado en el producto del plan
-                const productItem = {
-                    id: this.plan_product.id,
-                    is_product: true,
-                    internal_id: this.plan_product.internal_id,
-                    description: pagoDesc, // Usar la descripción correcta
-                    item_type_id: this.plan_product.item_type_id,
-                    item_code: this.plan_product.item_code,
-                    item_code_gs1: this.plan_product.item_code_gs1,
-                    unit_type_id: this.plan_product.unit_type_id,
-                    currency_type_id: moneda,
-                    quantity: 1,
-                    unit_value: parseFloat(pago.monto) / 1.18, // Valor sin IGV
-                    price_type_id: this.plan_product.price_type_id || "01",
-                    unit_price: parseFloat(pago.monto), // Precio con IGV
-                    total: parseFloat(pago.monto),
-                    has_igv: true,
-                    affectation_igv_type_id: "10" // Gravado - Operación Onerosa
-                };
+            // Calcular cantidad si corresponde
+            let quantity = 1;
+            if (itemBase.calculate_quantity) {
+                quantity = _.round(
+                    montoPago /
+                        (parseFloat(itemBase.sale_unit_price) || montoPago),
+                    4
+                );
+            }
+            this.form.quantity = quantity;
 
-                this.invoice.items.push(productItem);
+            // Calcular totales
+            let total = montoPago * quantity;
+            let unit_value = itemBase.has_igv ? montoPago / 1.18 : montoPago;
+            let total_value = itemBase.has_igv ? total / 1.18 : total;
+            let total_igv = itemBase.has_igv ? total - total / 1.18 : 0;
+
+            let itemComprobante = {
+                ...itemBase,
+                description: pagoDesc,
+                currency_type_id: moneda,
+                quantity: quantity,
+                unit_price: montoPago,
+                unit_value: unit_value,
+                total: total,
+                total_value: total_value,
+                total_igv: total_igv,
+                name_product_pdf: pagoDesc
+            };
+
+            this.form.items = [itemComprobante];
+
+            // Cargar datos de comprobante (series, tipos de documento, etc) antes de mostrar el modal
+            await this.loadInvoiceData();
+
+            // Filtrar tipos de documento según el cliente si está seleccionado
+            if (this.form.customer_id) {
+                const customer =
+                    this.customers &&
+                    this.customers.find(c => c.id === this.form.customer_id);
+                if (customer) {
+                    this.filterDocumentTypes(customer);
+                } else {
+                    // Si no está en la lista, mostrar todos los tipos
+                    this.document_types = this.all_document_types;
+                }
             } else {
-                // Si no hay producto configurado, usar el ítem genérico del pago
-                this.invoice.items.push({
-                    id: id,
-                    is_product: false, // Indicar que NO es un producto seleccionado
-                    description: pagoDesc,
-                    vehicle: vehiculoInfo.placa || "",
-                    period: `${mes} ${pago.year}`,
-                    unit_price: parseFloat(pago.monto),
-                    quantity: 1,
-                    total: parseFloat(pago.monto),
-                    currency_type_id: moneda,
-                    has_igv: true, // Por defecto se considera con IGV
-                    affectation_igv_type_id: "10" // Gravado - Operación Onerosa
+                this.document_types = this.all_document_types;
+            }
+
+            // Asignar la primera serie disponible si existe
+            if (this.series && this.series.length > 0) {
+                this.form.series_id = this.series[0].id;
+            } else if (this.all_series && this.all_series.length > 0) {
+                this.form.series_id = this.all_series[0].id;
+            } else {
+                this.form.series_id = null;
+            }
+
+            this.showInvoiceDialog = true;
+        },
+        ...mapActions(["clearExtraInfoItem"]),
+        setExtraFieldOfitem(item) {
+            if (this.canShowExtraData) {
+                if (item.extra === undefined) item.extra = {};
+                if (item.extra.colors === undefined) item.extra.colors = null;
+                if (item.extra.CatItemUnitsPerPackage === undefined)
+                    item.extra.CatItemUnitsPerPackage = null;
+                if (item.extra.CatItemMoldProperty === undefined)
+                    item.extra.CatItemMoldProperty = null;
+                if (item.extra.CatItemUnitBusiness === undefined)
+                    item.extra.CatItemUnitBusiness = null;
+                if (item.extra.CatItemStatus === undefined)
+                    item.extra.CatItemStatus = null;
+                if (item.extra.CatItemPackageMeasurement === undefined)
+                    item.extra.CatItemPackageMeasurement = null;
+                if (item.extra.CatItemMoldCavity === undefined)
+                    item.extra.CatItemMoldCavity = null;
+                if (item.extra.CatItemProductFamily === undefined)
+                    item.extra.CatItemProductFamily = null;
+                if (item.extra.CatItemSize === undefined)
+                    item.extra.CatItemSize = null;
+
+                if (this.extra_temp !== undefined) {
+                    item.extra = this.extra_temp;
+                }
+            }
+            return item;
+        },
+        async changeItem(itemBase) {
+            this.clearExtraInfoItem();
+
+            this.form.item = itemBase;
+            this.form.item = this.setExtraFieldOfitem(this.form.item);
+            this.form.unit_price_value = this.form.item.sale_unit_price;
+            this.lots = this.form.item.lots;
+            this.form.has_igv = this.form.item.has_igv;
+            this.form.has_plastic_bag_taxes = this.form.item.has_plastic_bag_taxes;
+            this.form.affectation_igv_type_id = this.form.item.sale_affectation_igv_type_id;
+            this.form.quantity = 1;
+            this.cleanTotalItem();
+            this.showListStock = true;
+            this.readonly_total = this.form.unit_price_value;
+
+            //asignar variables isc
+            this.form.has_isc = this.form.item.has_isc;
+            this.form.percentage_isc = this.form.item.percentage_isc;
+            this.form.system_isc_type_id = this.form.item.system_isc_type_id;
+
+            if (this.hasAttributes()) {
+                const contex = this;
+                this.form.item.attributes.forEach(row => {
+                    contex.form.attributes.push({
+                        attribute_type_id: row.attribute_type_id,
+                        description: row.description,
+                        value: row.value,
+                        start_date: row.start_date,
+                        end_date: row.end_date,
+                        duration: row.duration
+                    });
                 });
             }
 
-            // Cargar datos de comprobante (series, tipos de documento, etc)
-            this.loadInvoiceData();
+            this.form.lots_group = this.form.item.lots_group;
 
-            // Mostrar modal
-            this.showInvoiceDialog = true;
+            if (
+                this.form.item.name_product_pdf &&
+                this.configuration.item_name_pdf_description
+            ) {
+                this.form.name_product_pdf = this.form.item.name_product_pdf;
+            }
         },
+        hasAttributes() {
+            if (
+                this.form.item !== undefined &&
+                this.form.item.attributes !== undefined &&
+                this.form.item.attributes !== null &&
+                this.form.item.attributes.length > 0
+            ) {
+                return true;
+            }
 
+            return false;
+        },
+        cleanTotalItem() {
+            this.total_item = null;
+        },
         async prepareInvoiceDataFromMultiplePayments(pagos, ids) {
             console.log(
                 "Preparando factura para pagos múltiples:",
@@ -3150,28 +3429,28 @@ export default {
             );
 
             // Limpiar datos de comprobante previo
-            this.invoice.items = [];
+            this.form.items = [];
 
             // Establecer una bandera en los datos del invoice para indicar que es un pago múltiple
-            this.invoice.isMultiplePayment = true;
+            this.form.isMultiplePayment = true;
 
             // Asegurarnos de reiniciar los tipos de documento
             this.document_types = [...this.all_document_types];
 
             // Determinar la moneda a usar (usar la del primer pago)
             const moneda = pagos[0].moneda || "PEN";
-            this.invoice.currency_type_id = moneda;
+            this.form.currency_type_id = moneda;
 
             // Marcar explícitamente que es un pago múltiple
-            this.invoice.isMultiplePayment = true;
+            this.form.isMultiplePayment = true;
 
             const vehiculoInfo = this.selectedVehicle || {};
 
             // Si el vehículo tiene propietario, usar como cliente por defecto
             if (vehiculoInfo.propietario) {
-                this.invoice.customer_id = vehiculoInfo.propietario.id;
-                this.invoice.customer_name = vehiculoInfo.propietario.name;
-                this.invoice.customer_number = vehiculoInfo.propietario.number;
+                this.form.customer_id = vehiculoInfo.propietario.id;
+                this.form.customer_name = vehiculoInfo.propietario.name;
+                this.form.customer_number = vehiculoInfo.propietario.number;
 
                 // Buscar al cliente por número de documento para asegurar que existe en el sistema
                 await this.searchRemoteCustomers(
@@ -3209,7 +3488,7 @@ export default {
                         affectation_igv_type_id: "10" // Gravado - Operación Onerosa
                     };
 
-                    this.invoice.items.push(productItem);
+                    this.form.items.push(productItem);
                 });
             } else if (this.isMultipleItemsMode) {
                 // Si no hay producto configurado, crear ítems genéricos
@@ -3220,7 +3499,7 @@ export default {
                     } - Vehículo ${vehiculoInfo.placa || ""}`;
                     const monto = parseFloat(pago.montoPorMes || pago.monto);
 
-                    this.invoice.items.push({
+                    this.form.items.push({
                         id: ids ? ids[index] : null,
                         is_product: false,
                         description: pagoDesc,
@@ -3276,7 +3555,7 @@ export default {
                     affectation_igv_type_id: "10" // Gravado - Operación Onerosa
                 };
 
-                this.invoice.items.push(productItem);
+                this.form.items.push(productItem);
             } else {
                 // Si no hay producto configurado, crear un ítem genérico agrupado
                 // Calcular el total de todos los pagos
@@ -3300,7 +3579,7 @@ export default {
                 } - Vehículo ${vehiculoInfo.placa || ""}`;
 
                 // Crear un ítem que agrupa todos los meses
-                this.invoice.items.push({
+                this.form.items.push({
                     id: ids ? ids[0] : null,
                     is_product: false,
                     description: pagoDesc,
@@ -3328,61 +3607,22 @@ export default {
             this.loading_invoice = true;
 
             try {
-                // Cargar tipos de documentos, series y monedas
-                const response = await this.$http.get("/documents/tables");
-
-                if (response.data) {
-                    // Guardar todos los tipos de documentos sin filtrar
-                    this.all_document_types =
-                        response.data.document_types_invoice;
-
-                    // Por defecto asignamos todos los tipos, luego se filtrarán si hay cliente seleccionado
-                    this.document_types = response.data.document_types_invoice;
-
-                    this.currency_types = response.data.currency_types;
-                    this.establishments = response.data.establishments;
-                    console.log(
-                        "Establecimientos cargados:",
-                        this.establishments
+                // Si hay un cliente seleccionado, filtrar los tipos de documento
+                if (this.form.customer_id) {
+                    // Buscar el cliente en la lista de clientes o cargarlo si es necesario
+                    const selectedCustomer = this.customers.find(
+                        c => c.id === this.form.customer_id
                     );
-
-                    this.sellers = response.data.sellers;
-                    this.user = response.data.user;
-                    // Asignar el primer establecimiento por defecto
-                    this.invoice.establishment_id =
-                        this.establishments.length > 0
-                            ? this.establishments[0].id
-                            : null;
-
-                    // Guardar todas las series para poder filtrarlas después
-                    this.all_series = response.data.series || [];
-                    console.log("Todas las series cargadas:", this.all_series);
-
-                    // Asegurarse de que document_type_id tenga un valor válido
-                    if (
-                        !this.invoice.document_type_id &&
-                        this.document_types.length > 0
-                    ) {
-                        this.invoice.document_type_id = this.document_types[0].id;
-                    }
-
-                    // Si hay un cliente seleccionado, filtrar los tipos de documento
-                    if (this.invoice.customer_id) {
-                        // Buscar el cliente en la lista de clientes o cargarlo si es necesario
-                        const selectedCustomer = this.customers.find(
-                            c => c.id === this.invoice.customer_id
+                    if (selectedCustomer) {
+                        console.log(
+                            "Cliente ya seleccionado, filtrando tipos de documento:",
+                            selectedCustomer
                         );
-                        if (selectedCustomer) {
-                            console.log(
-                                "Cliente ya seleccionado, filtrando tipos de documento:",
-                                selectedCustomer
-                            );
-                            this.filterDocumentTypes(selectedCustomer);
-                        }
-                    } else {
-                        // Filtrar series después de tener todos los datos necesarios
-                        this.filterSeries();
+                        this.filterDocumentTypes(selectedCustomer);
                     }
+                } else {
+                    // Filtrar series después de tener todos los datos necesarios
+                    this.filterSeries();
                 }
             } catch (error) {
                 console.error("Error al cargar datos de comprobante:", error);
@@ -3391,20 +3631,39 @@ export default {
                 this.loading_invoice = false;
             }
         },
-
+        changeEstablishment() {
+            this.establishment = _.find(this.establishments, {
+                id: this.form.establishment_id
+            });
+            this.filterSeries();
+        },
+        changeDestinationSale() {
+            if (
+                this.configuration.destination_sale &&
+                this.payment_destinations.length > 0
+            ) {
+                let cash = _.find(this.payment_destinations, { id: "cash" });
+                if (cash) {
+                    this.form.payments[0].payment_destination_id = cash.id;
+                } else {
+                    this.form.payment_destination_id = this.payment_destinations[0].id;
+                    this.form.payments[0].payment_destination_id = this.payment_destinations[0].id;
+                }
+            }
+        },
         /**
          * Filtra las series según el tipo de documento seleccionado.
          * Este método es compatible con la lógica de invoice_generate.vue
          */
         filterSeries() {
             // Resetear la serie seleccionada
-            this.invoice.series_id = null;
+            this.form.series_id = null;
 
             // Verificar que existan los datos necesarios
             if (
                 !this.all_series ||
-                !this.invoice.establishment_id ||
-                !this.invoice.document_type_id
+                !this.form.establishment_id ||
+                !this.form.document_type_id
             ) {
                 console.warn(
                     "Faltan datos para filtrar series correctamente:",
@@ -3412,8 +3671,8 @@ export default {
                         all_series_length: this.all_series
                             ? this.all_series.length
                             : 0,
-                        establishment_id: this.invoice.establishment_id,
-                        document_type_id: this.invoice.document_type_id
+                        establishment_id: this.form.establishment_id,
+                        document_type_id: this.form.document_type_id
                     }
                 );
                 return;
@@ -3422,8 +3681,8 @@ export default {
             // Filtrar series por tipo de documento y establecimiento
             let filteredSeries = this.all_series.filter(
                 serie =>
-                    serie.document_type_id === this.invoice.document_type_id &&
-                    serie.establishment_id === this.invoice.establishment_id &&
+                    serie.document_type_id === this.form.document_type_id &&
+                    serie.establishment_id === this.form.establishment_id &&
                     serie.contingency === false
             );
 
@@ -3431,7 +3690,7 @@ export default {
             if (
                 this.configuration &&
                 this.configuration.user &&
-                this.invoice.document_type_id ===
+                this.form.document_type_id ===
                     this.configuration.user.document_id &&
                 this.idUser === "seller"
             ) {
@@ -3451,14 +3710,14 @@ export default {
 
             // Asignar la primera serie disponible si existe
             if (filteredSeries.length > 0) {
-                this.invoice.series_id = filteredSeries[0].id;
+                this.form.series_id = filteredSeries[0].id;
                 console.log("Primera serie seleccionada:", filteredSeries[0]);
             } else {
-                this.invoice.series_id = null;
+                this.form.series_id = null;
                 console.warn("No hay series disponibles para este documento");
             }
 
-            console.log("Serie seleccionada ID:", this.invoice.series_id);
+            console.log("Serie seleccionada ID:", this.form.series_id);
         },
 
         /**
@@ -3467,13 +3726,13 @@ export default {
          */
         changeDocumentType() {
             console.log(
-                `Tipo de documento cambiado a: ${this.invoice.document_type_id}`
+                `Tipo de documento cambiado a: ${this.form.document_type_id}`
             );
 
             // Validar que el tipo de documento sea compatible con el cliente seleccionado
-            if (this.invoice.customer_id) {
+            if (this.form.customer_id) {
                 const selectedCustomer = this.customers.find(
-                    c => c.id === this.invoice.customer_id
+                    c => c.id === this.form.customer_id
                 );
                 if (
                     selectedCustomer &&
@@ -3482,22 +3741,22 @@ export default {
                     // Si es cliente con RUC pero no seleccionó Factura
                     if (
                         selectedCustomer.identity_document_type_id === "6" &&
-                        this.invoice.document_type_id !== "01"
+                        this.form.document_type_id !== "01"
                     ) {
                         this.$message.warning(
                             "Cliente con RUC solo puede emitir Factura. Cambiando automáticamente."
                         );
-                        this.$set(this.invoice, "document_type_id", "01");
+                        this.$set(this.form, "document_type_id", "01");
                     }
                     // Si es cliente con DNI pero no seleccionó Boleta
                     else if (
                         selectedCustomer.identity_document_type_id === "1" &&
-                        this.invoice.document_type_id !== "03"
+                        this.form.document_type_id !== "03"
                     ) {
                         this.$message.warning(
                             "Cliente con DNI solo puede emitir Boleta. Cambiando automáticamente."
                         );
-                        this.$set(this.invoice, "document_type_id", "03");
+                        this.$set(this.form, "document_type_id", "03");
                     }
                 }
             }
@@ -3506,7 +3765,7 @@ export default {
             this.$nextTick(() => {
                 console.log(
                     "Filtrando series para el tipo de documento:",
-                    this.invoice.document_type_id
+                    this.form.document_type_id
                 );
                 this.filterSeries();
             });
@@ -3539,10 +3798,10 @@ export default {
                 );
 
                 // Forzar asignación y garantizar que se actualice el componente
-                this.$set(this.invoice, "document_type_id", "01");
+                this.$set(this.form, "document_type_id", "01");
                 console.log(
                     "Cliente con RUC: Mostrando solo Factura (01), asignado:",
-                    this.invoice.document_type_id
+                    this.form.document_type_id
                 );
             }
 
@@ -3553,10 +3812,10 @@ export default {
                 );
 
                 // Forzar asignación y garantizar que se actualice el componente
-                this.$set(this.invoice, "document_type_id", "03");
+                this.$set(this.form, "document_type_id", "03");
                 console.log(
                     "Cliente con DNI: Mostrando solo Boleta (03), asignado:",
-                    this.invoice.document_type_id
+                    this.form.document_type_id
                 );
             }
             // Para otros tipos de documento, mostrar todos
@@ -3577,14 +3836,14 @@ export default {
             this.$nextTick(() => {
                 console.log(
                     "Documento seleccionado antes de filtrar series:",
-                    this.invoice.document_type_id
+                    this.form.document_type_id
                 );
                 this.filterSeries();
             });
         },
 
         calculateInvoiceTotal() {
-            return this.invoice.items.reduce((total, item) => {
+            return this.form.items.reduce((total, item) => {
                 return (
                     total + parseFloat(item.unit_price) * (item.quantity || 1)
                 );
@@ -3594,16 +3853,16 @@ export default {
         closeInvoiceDialog() {
             this.showInvoiceDialog = false;
             // Limpiar datos de comprobante
-            this.invoice.items = [];
+            this.form.items = [];
             // Reiniciar la bandera de pago múltiple
-            this.invoice.isMultiplePayment = false;
+            this.form.isMultiplePayment = false;
         },
 
         selectCustomer(customer) {
             console.log("Seleccionando cliente:", customer);
-            this.invoice.customer_id = customer.id;
-            this.invoice.customer_name = customer.name;
-            this.invoice.customer_number = customer.number;
+            this.form.customer_id = customer.id;
+            this.form.customer_name = customer.name;
+            this.form.customer_number = customer.number;
             this.showCustomerDialog = false;
 
             // Primero filtrar los tipos de documento según el cliente
@@ -3613,31 +3872,31 @@ export default {
             this.$nextTick(() => {
                 console.log(
                     "Tipo de documento asignado después de seleccionar cliente:",
-                    this.invoice.document_type_id
+                    this.form.document_type_id
                 );
             });
         },
 
         async generateInvoice() {
             // Validar datos mínimos
-            if (!this.invoice.customer_id) {
+            if (!this.form.customer_id) {
                 this.$message.error("Debe seleccionar un cliente");
                 return;
             }
 
-            if (!this.invoice.series_id) {
+            if (!this.form.series_id) {
                 this.$message.error("Debe seleccionar una serie");
                 return;
             }
 
-            if (this.invoice.items.length === 0) {
+            if (this.form.items.length === 0) {
                 this.$message.error("No hay ítems para generar el comprobante");
                 return;
             }
 
             // Buscar el cliente en la lista de clientes disponibles
             const selectedCustomer = this.customers.find(
-                c => c.id === this.invoice.customer_id
+                c => c.id === this.form.customer_id
             );
 
             // Validación de tipo de documento según el tipo de documento de identidad del cliente
@@ -3647,7 +3906,7 @@ export default {
             ) {
                 if (
                     selectedCustomer.identity_document_type_id === "6" &&
-                    this.invoice.document_type_id !== "01"
+                    this.form.document_type_id !== "01"
                 ) {
                     this.$message.error(
                         "Para clientes con RUC debe generar una Factura (01)"
@@ -3656,7 +3915,7 @@ export default {
                 }
                 if (
                     selectedCustomer.identity_document_type_id === "1" &&
-                    this.invoice.document_type_id !== "03"
+                    this.form.document_type_id !== "03"
                 ) {
                     this.$message.error(
                         "Para clientes con DNI debe generar una Boleta (03)"
@@ -3668,17 +3927,19 @@ export default {
             this.loading_submit_invoice = true;
 
             try {
+                console.log("datos del comprobante:", this.form);
+                return;
                 // Preparar datos para el comprobante
                 const data = {
                     establishment_id: this.establishments[0].id,
-                    document_type_id: this.invoice.document_type_id,
-                    series_id: this.invoice.series_id,
+                    document_type_id: this.form.document_type_id,
+                    series_id: this.form.series_id,
                     seller_id: this.sellers.length > 0 ? this.idUser : null,
-                    number: this.invoice.number,
+                    number: this.form.number,
                     date_of_issue: moment().format("YYYY-MM-DD"),
                     time_of_issue: moment().format("HH:mm:ss"),
-                    customer_id: this.invoice.customer_id,
-                    currency_type_id: this.invoice.currency_type_id,
+                    customer_id: this.form.customer_id,
+                    currency_type_id: this.form.currency_type_id,
                     payment_condition_id: "01", // Contado
                     payment_method_type_id: "01", // Efectivo
                     charges: [],
@@ -3689,7 +3950,7 @@ export default {
                     prepayments: [],
                     legends: [],
                     detraction: {},
-                    items: this.invoice.items.map(item => {
+                    items: this.form.items.map(item => {
                         // Si el item es un producto seleccionado de la API
                         if (item.is_product) {
                             // Calcular valores con IGV
@@ -3820,16 +4081,22 @@ export default {
                 console.log("No hay ID de producto de plan configurado");
                 return;
             }
+            console.log("company: ", this.company);
 
             try {
                 // Usar el nuevo endpoint que devuelve un solo ítem por ID
                 const response = await this.$http.get(
-                    `/items/record/${this.company.planes_producto_id}`
+                    `/documents/search/item/${this.company.planes_producto_id}`
                 );
 
                 if (response.data && response.data.data) {
                     // Guardar el producto para usarlo al generar comprobantes
-                    this.plan_product = response.data.data;
+                    console.log(
+                        "Producto del plan cargado:",
+                        response.data.items[0]
+                    );
+
+                    this.plan_product = response.data.items[0];
                 }
             } catch (error) {
                 console.error("Error al cargar el producto del plan:", error);
@@ -3876,37 +4143,6 @@ export default {
 
                         // Reconstruir la descripción correctamente
                         item.description = `Pago de cuota ${mes} ${anio} - Vehículo ${placa}`;
-                    }
-                }
-            }
-        },
-
-        removeItemFromInvoice(index, isProduct) {
-            // Filtrar items basado en si es un producto o un pago
-            if (isProduct) {
-                // Si es un producto, filtrar solo los productos
-                const productItems = this.invoice.items.filter(
-                    item => item.is_product
-                );
-                if (index >= 0 && index < productItems.length) {
-                    const actualIndex = this.invoice.items.findIndex(
-                        item => item === productItems[index]
-                    );
-                    if (actualIndex !== -1) {
-                        this.invoice.items.splice(actualIndex, 1);
-                    }
-                }
-            } else {
-                // Si es un pago, filtrar solo los pagos
-                const paymentItems = this.invoice.items.filter(
-                    item => !item.is_product
-                );
-                if (index >= 0 && index < paymentItems.length) {
-                    const actualIndex = this.invoice.items.findIndex(
-                        item => item === paymentItems[index]
-                    );
-                    if (actualIndex !== -1) {
-                        this.invoice.items.splice(actualIndex, 1);
                     }
                 }
             }

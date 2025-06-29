@@ -4,12 +4,12 @@
     "series_id": 2,
     "seller_id": 1,
     "number": "#",
-    "date_of_issue": "2025-06-26",
-    "time_of_issue": "23:20:46",
+    "date_of_issue": "2025-06-28",
+    "time_of_issue": "19:01:13",
     "customer_id": 3,
     "currency_type_id": "PEN",
     "purchase_order": null,
-    "exchange_rate_sale": 3.576,
+    "exchange_rate_sale": 3.552,
     "total_prepayment": 0,
     "total_charge": 0,
     "total_discount": 0,
@@ -30,7 +30,7 @@
     "subtotal": 118,
     "total_igv_free": 0,
     "operation_type_id": "0101",
-    "date_of_due": "2025-06-26",
+    "date_of_due": "2025-06-28",
     "items": [
         {
             "item_id": 1,
@@ -42,7 +42,7 @@
                 "brand": "",
                 "text_filter": "prueba 000000000001",
                 "stock_by_extra": {
-                    "total": -7,
+                    "total": -8,
                     "CatItemStatus": {
                         "detailed": [],
                         "total": null
@@ -93,7 +93,7 @@
                     "CatItemUnitBusiness": null
                 },
                 "category": "",
-                "stock": "95.0000",
+                "stock": "94.0000",
                 "internal_id": null,
                 "description": "prueba",
                 "currency_type_id": "PEN",
@@ -130,7 +130,7 @@
                 "warehouses": [
                     {
                         "warehouse_description": "Almacén - Oficina Principal",
-                        "stock": "95.0000",
+                        "stock": "94.0000",
                         "warehouse_id": 1,
                         "checked": true
                     }
@@ -159,7 +159,7 @@
                 "restrict_sale_cpe": false,
                 "image_url": "http://jhamner.pro7.test/logo/imagen-no-disponible.jpg",
                 "name": null,
-                "name_product_pdf": "",
+                "name_product_pdf": "<p>prueba de producto item -2</p>",
                 "unit_price": 118,
                 "presentation": {}
             },
@@ -197,7 +197,7 @@
             "charges": [],
             "discounts": [],
             "warehouse_id": null,
-            "name_product_pdf": "",
+            "name_product_pdf": "<p>prueba de producto item -2</p>",
             "record_id": null,
             "total_value_without_rounding": 100,
             "total_base_igv_without_rounding": 100,
@@ -210,7 +210,8 @@
             "input_has_plastic_bag_taxes": false,
             "data_item_lot_group": null,
             "IdLoteSelected": null,
-            "document_item_id": null
+            "document_item_id": null,
+            "indexi": 0
         }
     ],
     "charges": [],
@@ -221,7 +222,7 @@
         {
             "id": null,
             "document_id": null,
-            "date_of_payment": "2025-06-26",
+            "date_of_payment": "2025-06-28",
             "payment_method_type_id": "01",
             "reference": null,
             "payment_destination_id": "cash",
