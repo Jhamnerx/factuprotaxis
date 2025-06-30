@@ -1023,7 +1023,7 @@ export default {
                     input: input
                 };
                 await this.$http
-                    .get(`/items/search/item/${input}`, { params })
+                    .get(`/documents/search-items/`, { params })
                     .then(response => {
                         this.items = response.data.items || [];
                         this.loading_search = false;

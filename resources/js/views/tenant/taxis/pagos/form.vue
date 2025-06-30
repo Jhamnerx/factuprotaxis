@@ -1148,10 +1148,7 @@
 
                             <!-- Productos seleccionados -->
                             <div
-                                v-if="
-                                    form.items.filter(item => item.is_product)
-                                        .length > 0
-                                "
+                                v-if="form.items.length > 0"
                                 class="table-responsive mt-3"
                             >
                                 <h5>Productos/Servicios seleccionados</h5>
@@ -1167,10 +1164,7 @@
                                     </thead>
                                     <tbody>
                                         <tr
-                                            v-for="(item,
-                                            index) in form.items.filter(
-                                                item => item.is_product
-                                            )"
+                                            v-for="(item, index) in form.items"
                                             :key="'product-' + index"
                                         >
                                             <td>{{ item.description }}</td>
@@ -1618,6 +1612,7 @@ export default {
                 total: 0,
                 last_page: 1
             },
+            generatedDocumentExternalId: null,
             search: "",
             searchTimeout: null,
             selectedVehicleId: null,
@@ -1856,8 +1851,6 @@ export default {
                 sale_note_id: null
             };
 
-            this.clickAddPayment();
-            this.clickAddInitGuides();
             this.total_global_discount = 0;
             this.total_global_charge = 0;
             this.is_amount = true;
@@ -1958,18 +1951,6 @@ export default {
 
             // console.log('2');
             return total_pay;
-        },
-        clickAddInitGuides() {
-            this.form.guides.push(
-                {
-                    document_type_id: "09",
-                    number: null
-                },
-                {
-                    document_type_id: "31",
-                    number: null
-                }
-            );
         },
         toggleMultipleSelection() {
             // Si estamos desactivando el modo múltiple y hay meses seleccionados,
@@ -3636,8 +3617,9 @@ export default {
             // Cargar datos de comprobante (series, tipos de documento, etc) antes de mostrar el modal
             this.calculateTotal();
             await this.loadInvoiceData();
-
+            this.clickAddPayment();
             this.showInvoiceDialog = true;
+            
         },
         ...mapActions(["clearExtraInfoItem"]),
         setExtraFieldOfitem(item) {
@@ -4275,28 +4257,74 @@ export default {
             }
         },
 
-        showGeneratedDocumentOptions(documentId) {
-            this.$confirm(
-                "¿Desea visualizar el comprobante generado?",
-                "Comprobante generado",
-                {
-                    confirmButtonText: "Ver Comprobante",
-                    cancelButtonText: "Cerrar",
-                    type: "success"
-                }
-            )
-                .then(() => {
-                    // Abrir comprobante en nueva pestaña
-                    window.open(`/documents/print/${documentId}/a4`, "_blank");
-                })
-                .catch(() => {
-                    // El usuario eligió no ver el comprobante
-                });
-        },
+        async showGeneratedDocumentOptions(documentId) {
+            try {
+                // Mostrar carga mientras se obtiene la información
+                this.loading_submit_invoice = true;
 
-        async searchItems(query) {
-            // Este método ya no se usa pero se deja para compatibilidad
-            return;
+                // Hacer la petición para obtener los datos del documento
+                const response = await this.$http.get(
+                    `/documents/record/${documentId}`
+                );
+
+                // Verificar respuesta y obtener external_id
+                if (response.data && response.data.data) {
+                    const documentData = response.data.data;
+                    const externalId = documentData.external_id;
+
+                    // Guardar external_id en variable local
+                    this.generatedDocumentExternalId = externalId;
+
+                    // Mostrar opciones al usuario
+                    this.$confirm(
+                        "¿Desea visualizar el comprobante generado?",
+                        "Comprobante generado",
+                        {
+                            confirmButtonText: "Ver Comprobante",
+                            cancelButtonText: "Cerrar",
+                            type: "success"
+                        }
+                    )
+                        .then(() => {
+                            // Abrir comprobante en nueva pestaña usando el external_id
+                            if (this.generatedDocumentExternalId) {
+                                window.open(
+                                    `/print/document/${
+                                        this.generatedDocumentExternalId
+                                    }/a4`,
+                                    "_blank"
+                                );
+                            } else {
+                                // Fallback al ID si no se pudo obtener el external_id
+                                window.open(
+                                    `/documents/print/${documentId}/a4`,
+                                    "_blank"
+                                );
+                            }
+                        })
+                        .catch(() => {
+                            // El usuario eligió no ver el comprobante
+                            console.log(
+                                "El usuario decidió no ver el comprobante"
+                            );
+                        });
+                } else {
+                    // Si no se pudo obtener el external_id, mostrar mensaje y usar el ID directamente
+                    console.warn(
+                        "No se pudo obtener el external_id del documento"
+                    );
+                    this.$message.info(
+                        "El comprobante se ha generado correctamente"
+                    );
+                }
+            } catch (error) {
+                console.error("Error al obtener datos del documento:", error);
+                this.$message.error(
+                    "No se pudo obtener información adicional del comprobante"
+                );
+            } finally {
+                this.loading_submit_invoice = false;
+            }
         },
 
         async loadPlanProductItem() {
