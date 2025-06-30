@@ -502,17 +502,6 @@
                                                 Ver información detallada del
                                                 pago
                                             </li>
-                                            <li>
-                                                <span class="font-medium">
-                                                    <span
-                                                        class="badge bg-success"
-                                                        style="font-size: 0.65rem;"
-                                                        >TOTAL</span
-                                                    >:
-                                                </span>
-                                                Indica un pago total que no
-                                                puede modificarse
-                                            </li>
                                         </ul>
                                     </div>
 
@@ -1759,7 +1748,6 @@ export default {
             this.global_discount_types = response.data.global_discount_types;
 
             this.changeEstablishment();
-            this.changeDestinationSale();
         });
 
         await this.getPercentageIgv();
@@ -2878,18 +2866,35 @@ export default {
                             // Primero cargar los datos actualizados del vehículo
                             await this.loadVehicleDataEfficiently();
                             console.log("Calendario actualizado correctamente");
-
-                            // Una vez actualizados los datos, preparar el comprobante
-                            this.prepareInvoiceDataFromMultiplePayments(
-                                pagos,
-                                res.data.ids
-                            );
+                            // Verificar configuración para saber si mostrar el comprobante automáticamente
+                            // Preguntar al usuario si desea generar un comprobante
+                            this.$confirm(
+                                "¿Desea generar un comprobante para este pago?",
+                                "Generar comprobante",
+                                {
+                                    confirmButtonText: "Sí, generar",
+                                    cancelButtonText: "No",
+                                    type: "info"
+                                }
+                            )
+                                .then(() => {
+                                    // Si el usuario confirma, mostrar el modal de comprobante
+                                    // Una vez actualizados los datos, preparar el comprobante
+                                    this.prepareInvoiceDataFromMultiplePayments(
+                                        pagos,
+                                        res.data.ids
+                                    );
+                                })
+                                .catch(() => {
+                                    // Si el usuario cancela, no hacer nada
+                                });
 
                             // Limpiar los meses seleccionados
                             this.selectedMonths = [];
                             this.is_multiple = false;
 
                             this.closeAdvancedModal();
+                            this.setSelectedVehicle(this.selectedVehicleId);
                         } catch (error) {
                             console.error(
                                 "Error al actualizar calendario:",
@@ -3556,7 +3561,26 @@ export default {
                     vehiculoInfo.propietario.number
                 );
             }
-            itemBase.unit_price = montoPago;
+
+            // Aplicar la lógica de changeItem para el producto base
+            await this.changeItem(itemBase);
+            // Actualizar el precio con el monto del pago
+            this.form.unit_price_value = montoPago;
+            this.form.unit_price = montoPago;
+            if (this.form.item) {
+                this.form.item.unit_price = montoPago;
+            }
+
+            // Calcular cantidad si corresponde
+            let quantity = 1;
+            if (itemBase.calculate_quantity) {
+                quantity = _.round(
+                    montoPago /
+                        (parseFloat(itemBase.sale_unit_price) || montoPago),
+                    4
+                );
+            }
+            this.form.quantity = quantity;
 
             let itemForm = {
                 item_id: itemBase.id,
@@ -3608,6 +3632,7 @@ export default {
                 this.form.exchange_rate_sale || 1,
                 this.percentage_igv || 0.18
             );
+
             calculatedItem.description = pagoDesc;
             calculatedItem.name_product_pdf = pagoDesc;
 
@@ -3618,8 +3643,8 @@ export default {
             this.calculateTotal();
             await this.loadInvoiceData();
             this.clickAddPayment();
+            this.changeDestinationSale();
             this.showInvoiceDialog = true;
-            
         },
         ...mapActions(["clearExtraInfoItem"]),
         setExtraFieldOfitem(item) {
@@ -3712,24 +3737,51 @@ export default {
             console.log(
                 "Preparando factura para pagos múltiples:",
                 pagos.length,
-                "pagos"
+                "pagos",
+                pagos
             );
 
             // Limpiar datos de comprobante previo
             this.form.items = [];
+            this.document_types = [...this.all_document_types];
 
-            // Establecer una bandera en los datos del invoice para indicar que es un pago múltiple
+            // Marcar explícitamente que es un pago múltiple
             this.form.isMultiplePayment = true;
 
-            // Asegurarnos de reiniciar los tipos de documento
-            this.document_types = [...this.all_document_types];
+            // Buscar el producto del plan usando el ID correcto
+            let itemBase = null;
+
+            try {
+                if (!this.company || !this.company.planes_producto_id) {
+                    this.$message.error("No hay producto de plan configurado");
+                    return;
+                }
+                const response = await this.$http.get(
+                    `/documents/search/item/${this.company.planes_producto_id}`
+                );
+                if (
+                    response.data &&
+                    response.data.items &&
+                    response.data.items.length > 0
+                ) {
+                    itemBase = response.data.items[0];
+                    this.plan_product = itemBase;
+                } else {
+                    this.$message.error(
+                        "No se encontró producto para el comprobante"
+                    );
+                    return;
+                }
+            } catch (error) {
+                this.$message.error(
+                    "Error al obtener el producto base para el comprobante"
+                );
+                return;
+            }
 
             // Determinar la moneda a usar (usar la del primer pago)
             const moneda = pagos[0].moneda || "PEN";
             this.form.currency_type_id = moneda;
-
-            // Marcar explícitamente que es un pago múltiple
-            this.form.isMultiplePayment = true;
 
             const vehiculoInfo = this.selectedVehicle || {};
 
@@ -3745,151 +3797,105 @@ export default {
                 );
             }
 
-            // Verificar si debe crear un ítem por mes o agruparlos
-            if (this.isMultipleItemsMode && this.plan_product) {
-                // Agregar cada pago como ítem separado del comprobante utilizando el producto del plan
-                pagos.forEach((pago, index) => {
-                    const mes = this.meses[pago.mes] || pago.mes;
-                    const pagoDesc = `Pago de cuota ${mes} ${
-                        pago.year
-                    } - Vehículo ${vehiculoInfo.placa || ""}`;
-                    const monto = parseFloat(pago.montoPorMes || pago.monto);
+            // Aplicar la lógica de changeItem para el producto base
+            await this.changeItem(itemBase);
 
-                    // Crear un ítem basado en el producto del plan
-                    const productItem = {
-                        id: this.plan_product.id,
-                        is_product: true,
-                        internal_id: this.plan_product.internal_id,
-                        description: pagoDesc, // Descripción correcta con mes, año y placa
-                        item_type_id: this.plan_product.item_type_id,
-                        item_code: this.plan_product.item_code,
-                        item_code_gs1: this.plan_product.item_code_gs1,
-                        unit_type_id: this.plan_product.unit_type_id,
-                        currency_type_id: moneda,
-                        quantity: 1,
-                        unit_value: monto / 1.18, // Valor sin IGV
-                        price_type_id: this.plan_product.price_type_id || "01",
-                        unit_price: monto, // Precio con IGV
-                        total: monto,
-                        has_igv: true,
-                        affectation_igv_type_id: "10" // Gravado - Operación Onerosa
-                    };
+            // Calcular el total de todos los pagos
+            const totalAmount = pagos.reduce((sum, pago) => {
+                return sum + parseFloat(pago.montoPorMes || pago.monto);
+            }, 0);
 
-                    this.form.items.push(productItem);
-                });
-            } else if (this.isMultipleItemsMode) {
-                // Si no hay producto configurado, crear ítems genéricos
-                pagos.forEach((pago, index) => {
-                    const mes = this.meses[pago.mes] || pago.mes;
-                    const pagoDesc = `Pago de cuota ${mes} ${
-                        pago.year
-                    } - Vehículo ${vehiculoInfo.placa || ""}`;
-                    const monto = parseFloat(pago.montoPorMes || pago.monto);
-
-                    this.form.items.push({
-                        id: ids ? ids[index] : null,
-                        is_product: false,
-                        description: pagoDesc,
-                        vehicle: vehiculoInfo.placa || "",
-                        period: `${mes} ${pago.year}`,
-                        unit_price: monto,
-                        quantity: 1,
-                        total: monto,
-                        currency_type_id: moneda,
-                        has_igv: true,
-                        affectation_igv_type_id: "10"
-                    });
-                });
-            } else if (this.plan_product) {
-                // Agrupar todos los pagos en un solo ítem usando el producto del plan
-                // Calcular el total de todos los pagos
-                const totalAmount = pagos.reduce((sum, pago) => {
-                    return sum + parseFloat(pago.montoPorMes || pago.monto);
-                }, 0);
-
-                // Obtener el primer y último mes para la descripción
-                const firstMonth = pagos[0];
-                const lastMonth = pagos[pagos.length - 1];
-
-                const firstMonthName =
-                    this.meses[firstMonth.mes] || firstMonth.mes;
-                const lastMonthName =
-                    this.meses[lastMonth.mes] || lastMonth.mes;
-
-                const pagoDesc = `Pago de cuotas de ${firstMonthName} ${
-                    firstMonth.year
-                } a ${lastMonthName} ${
-                    lastMonth.year
-                } - Vehículo ${vehiculoInfo.placa || ""}`;
-
-                // Crear un ítem que agrupa todos los meses usando el producto del plan
-                const productItem = {
-                    id: this.plan_product.id,
-                    is_product: true,
-                    internal_id: this.plan_product.internal_id,
-                    description: pagoDesc,
-                    item_type_id: this.plan_product.item_type_id,
-                    item_code: this.plan_product.item_code,
-                    item_code_gs1: this.plan_product.item_code_gs1,
-                    unit_type_id: this.plan_product.unit_type_id,
-                    currency_type_id: moneda,
-                    quantity: 1,
-                    unit_value: totalAmount / 1.18, // Valor sin IGV
-                    price_type_id: this.plan_product.price_type_id || "01",
-                    unit_price: totalAmount, // Precio con IGV
-                    total: totalAmount,
-                    has_igv: true,
-                    affectation_igv_type_id: "10" // Gravado - Operación Onerosa
-                };
-
-                this.form.items.push(productItem);
-            } else {
-                // Si no hay producto configurado, crear un ítem genérico agrupado
-                // Calcular el total de todos los pagos
-                const totalAmount = pagos.reduce((sum, pago) => {
-                    return sum + parseFloat(pago.montoPorMes || pago.monto);
-                }, 0);
-
-                // Obtener el primer y último mes para la descripción
-                const firstMonth = pagos[0];
-                const lastMonth = pagos[pagos.length - 1];
-
-                const firstMonthName =
-                    this.meses[firstMonth.mes] || firstMonth.mes;
-                const lastMonthName =
-                    this.meses[lastMonth.mes] || lastMonth.mes;
-
-                const pagoDesc = `Pago de cuotas de ${firstMonthName} ${
-                    firstMonth.year
-                } a ${lastMonthName} ${
-                    lastMonth.year
-                } - Vehículo ${vehiculoInfo.placa || ""}`;
-
-                // Crear un ítem que agrupa todos los meses
-                this.form.items.push({
-                    id: ids ? ids[0] : null,
-                    is_product: false,
-                    description: pagoDesc,
-                    vehicle: vehiculoInfo.placa || "",
-                    period: `${firstMonthName} ${
-                        firstMonth.year
-                    } - ${lastMonthName} ${lastMonth.year}`,
-                    unit_price: totalAmount,
-                    quantity: 1,
-                    total: totalAmount,
-                    currency_type_id: moneda,
-                    has_igv: true,
-                    affectation_igv_type_id: "10"
-                });
+            // Actualizar el precio con el monto del pago
+            this.form.unit_price_value = totalAmount;
+            this.form.unit_price = totalAmount;
+            if (this.form.item) {
+                this.form.item.unit_price = totalAmount;
             }
+            // Obtener el primer y último mes para la descripción
+            const firstMonth = pagos[0];
+            const lastMonth = pagos[pagos.length - 1];
+            const firstMonthName = this.meses[firstMonth.mes] || firstMonth.mes;
+            const lastMonthName = this.meses[lastMonth.mes] || lastMonth.mes;
 
-            // Cargar datos de comprobante (series, tipos de documento, etc)
-            this.loadInvoiceData();
+            const pagoDesc = `Pago de cuotas de ${firstMonthName} ${
+                firstMonth.year
+            } a ${lastMonthName} ${
+                lastMonth.year
+            } - Vehículo ${vehiculoInfo.placa || ""}`;
 
-            // Mostrar modal
+            this.form.currency_type_id = moneda;
+            // Calcular el ítem usando la función calculateRowItem
+            let itemForm = {
+                // Propiedades básicas del ítem
+                item_id: itemBase.id,
+                item: { ...itemBase },
+
+                // Propiedades de afectación IGV
+                affectation_igv_type_id: itemBase.sale_affectation_igv_type_id,
+                affectation_igv_type: this.affectation_igv_types
+                    ? this.affectation_igv_types.find(
+                          type =>
+                              type.id === itemBase.sale_affectation_igv_type_id
+                      )
+                    : {},
+                has_igv: itemBase.has_igv,
+                has_plastic_bag_taxes: itemBase.has_plastic_bag_taxes,
+                // Propiedades de cantidad y precio
+                quantity: 1,
+                unit_price: totalAmount,
+                unit_price_value: totalAmount,
+                input_unit_price_value: totalAmount,
+                charges: [],
+                discounts: [],
+                attributes: itemBase.attributes,
+                name_product_pdf: pagoDesc,
+                description: pagoDesc,
+                has_isc: false,
+                system_isc_type_id: null,
+                percentage_isc: "0.00",
+                suggested_price: 0,
+                input_unit_price: 0,
+                input_unit_price_value: totalAmount,
+                charges: [],
+                discounts: [],
+                attributes: [],
+                has_igv: false,
+                is_set: false,
+                item_unit_types: [],
+                has_plastic_bag_taxes: false,
+                series_enabled: false,
+                warehouse_id: null,
+                lots_group: [],
+                IdLoteSelected: null,
+                document_item_id: null
+            };
+
+            const calculatedItem = calculateRowItem(
+                itemForm,
+                moneda,
+                this.form.exchange_rate_sale || 1,
+                this.percentage_igv || 0.18
+            );
+
+            console.log("Ítem calculado para pago múltiple:", calculatedItem);
+
+            // Asegurarnos de mantener la descripción y propiedades de pago múltiple
+            calculatedItem.description = pagoDesc;
+            calculatedItem.name_product_pdf = pagoDesc;
+            calculatedItem.period = itemForm.period;
+            calculatedItem.is_multiple_payment = true;
+            calculatedItem.payment_ids = ids || [];
+
+            // Agregar el ítem calculado al formulario
+            this.form.items = [calculatedItem];
+
+            // Cargar datos de comprobante (series, tipos de documento, etc) antes de mostrar el modal
+            this.calculateTotal();
+            await this.loadInvoiceData();
+            this.clickAddPayment();
+            this.changeDestinationSale();
             this.showInvoiceDialog = true;
         },
-
         async loadInvoiceData() {
             this.loading_invoice = true;
 
