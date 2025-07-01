@@ -205,9 +205,15 @@
 
 <body>
     <header>
-        <div class="center-logo">
-            <img src="data:{{ mime_content_type(public_path("{$logo}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$logo}"))) }}"
-                alt="{{ $company->name }}" class="company_logo" style="max-width: 90px; margin: 0 auto;">
+        <div class="logo">
+            @if ($company->logo)
+                <img src="data:{{ mime_content_type(public_path("{$logo}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$logo}"))) }}"
+                    alt="{{ $company->name }}" class="company_logo" style="max-width: 90px; margin: 0 auto;">
+            @else
+                <img src="{{ asset('logo/tulogo.png') }}" alt="{{ $company->name }}" class="company_logo"
+                    style="max-width: 90px; margin: 0 auto;">
+            @endif
+
         </div>
     </header>
 
@@ -283,43 +289,43 @@
                 <table class="datos">
                     <tr>
                         <td class="label">N° FLOTA</td>
-                        <td class="value">: {{ $unidad->flota ?? '433' }}</td>
+                        <td class="value">: {{ $unidad->flota }}</td>
                     </tr>
                     <tr>
                         <td class="label">PLACA</td>
-                        <td class="value">: {{ $unidad->placa ?? 'W5D-618' }}</td>
+                        <td class="value">: {{ $unidad->placa }}</td>
                     </tr>
                     <tr>
                         <td class="label">PROPIETARIO</td>
-                        <td class="value">: {{ $unidad->propietario ?? 'Jacquelin Marisol GUEVARA ROJAS' }}</td>
+                        <td class="value">: {{ $unidad->propietario }}</td>
                     </tr>
                     <tr>
                         <td class="label">CATEGORÍA</td>
-                        <td class="value">: {{ $unidad->categoria ?? 'M1' }}</td>
+                        <td class="value">: {{ $unidad->categoria }}</td>
                     </tr>
                     <tr>
                         <td class="label">MARCA</td>
-                        <td class="value">: {{ $unidad->marca ?? 'KIA' }}</td>
+                        <td class="value">: {{ $unidad->marca }}</td>
                     </tr>
                     <tr>
                         <td class="label">MODELO</td>
-                        <td class="value">: {{ $unidad->modelo ?? 'SOLUTO' }}</td>
+                        <td class="value">: {{ $unidad->modelo }}</td>
                     </tr>
                     <tr>
                         <td class="label">AÑO</td>
-                        <td class="value">: {{ $unidad->anio ?? '2023' }}</td>
+                        <td class="value">: {{ $unidad->year }}</td>
                     </tr>
                     <tr>
                         <td class="label">MOTOR N°</td>
-                        <td class="value">: {{ $unidad->motor ?? 'G4LCNJ039954' }}</td>
+                        <td class="value">: {{ $unidad->motor }}</td>
                     </tr>
                     <tr>
                         <td class="label">COLOR</td>
-                        <td class="value">: {{ $unidad->color ?? 'BLANCO CLARO' }}</td>
+                        <td class="value">: {{ $unidad->color }}</td>
                     </tr>
                     <tr>
                         <td class="label">PESO</td>
-                        <td class="value">: {{ $unidad->peso ?? '1.036' }}</td>
+                        <td class="value">: {{ $unidad->peso }}</td>
                     </tr>
                 </table>
             </div>
@@ -335,8 +341,13 @@
                     {{ $establishment->district->description }},
                     {{ \App\Helpers\DateHelper::formatoEspanol($solicitud->fecha) }}
                 </div>
-                <img
-                    src="data:{{ mime_content_type(public_path("{$img_firm}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$img_firm}"))) }}">
+                @if ($company->img_firm)
+                    <img
+                        src="data:{{ mime_content_type(public_path("{$img_firm}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$img_firm}"))) }}">
+                @else
+                    <img src="https://placehold.co/150x50" alt="IMAGEN DE FIRMA">
+                @endif
+
             </div>
             <div class="adjuntos">
                 <div class="seccion-titulo" style="font-size: 8px; padding: 1px 2px;">DOCUMENTOS ADJUNTOS</div>

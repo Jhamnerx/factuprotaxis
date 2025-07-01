@@ -2,6 +2,8 @@
 <html lang="es">
 @php
     $logo = "storage/uploads/logos/{$company->logo}";
+    $unidad = $solicitud->detalle->first()->infoVehiculo;
+    $propietario = $unidad->propietario;
 @endphp
 
 <head>
@@ -201,9 +203,15 @@
 
 <body>
     <header>
-        <div class="center-logo">
-            <img src="data:{{ mime_content_type(public_path("{$logo}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$logo}"))) }}"
-                alt="{{ $company->name }}" class="company_logo" style="max-width: 90px; margin: 0 auto;">
+        <div class="logo">
+            @if ($company->logo)
+                <img src="data:{{ mime_content_type(public_path("{$logo}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$logo}"))) }}"
+                    alt="{{ $company->name }}" class="company_logo" style="max-width: 90px; margin: 0 auto;">
+            @else
+                <img src="{{ asset('logo/tulogo.png') }}" alt="{{ $company->name }}" class="company_logo"
+                    style="max-width: 90px; margin: 0 auto;">
+            @endif
+
         </div>
     </header>
 
@@ -236,13 +244,17 @@
         </div>
 
         <div class="datos-solicitante">
-            <span class="nombre-solicitante">Katerin Vanesa PORRAS SOSA</span>, identificado con DNI N°70140841, CELULAR
-            N° <strong>984760460</strong> con domicilio en el Jr. Las Magnolias N°523, distrito de El Tambo, provincia
-            de Huancayo, ante usted, con debido respeto, me presento y expongo:
+            <span class="nombre-solicitante">{{ $propietario->name }}</span>, identificado con DNI
+            N°{{ $propietario->number }}, CELULAR
+            N° <strong>{{ $propietario->telephone }}</strong> con domicilio en {{ $propietario->address }}, , distrito
+            de
+            {{ $propietario->district->description }}, provincia de {{ $propietario->province->description }}, ante
+            usted, con debido respeto, me presento y expongo:
         </div>
 
         <div class="texto">
-            Que, habiendo realizado la compra del vehículo de placa <strong>W4B-190</strong> y encontrándose registrado
+            Que, habiendo realizado la compra del vehículo de placa <strong>{{ $unidad->placa }}</strong> y
+            encontrándose registrado
             en empresa de taxis, por lo que solicito <span class="texto-baja">BAJA POR PERDIDA DE VINCULO
                 CONTRACTUAL</span>, a fin de realizar los trámites y registrar mi unidad en otra empresa.
         </div>
@@ -269,13 +281,12 @@
 
         <div class="firma">
             <div class="firma-linea"></div>
-            <div class="firma-nombre">Katerin Vanesa PORRAS SOSA</div>
-            <div class="firma-dni">DNI N°70140841</div>
+            <div class="firma-nombre">{{ $propietario->name }}</div>
+            <div class="firma-dni">DNI N°{{ $propietario->number }}</div>
         </div>
 
         <div class="firma-empresa">
-            <img src="{{ public_path('images/firma_gerente.png') }}" alt="Firma Gerente">
-            <div class="firma-empresa-nombre">Eder Pedro Hidalgo Hilario</div>
+            <div class="firma-empresa-nombre">{{ strtoupper($company->representante_legal_name) }}</div>
             <div class="firma-empresa-cargo">GERENTE GENERAL</div>
         </div> <!-- Reservar espacio para el footer -->
         <div class="footer-space"></div>

@@ -165,8 +165,14 @@
 <body>
     <header>
         <div class="logo">
-            <img src="data:{{ mime_content_type(public_path("{$logo}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$logo}"))) }}"
-                alt="{{ $company->name }}" class="company_logo" style="max-width: 90px; margin: 0 auto;">
+            @if ($company->logo)
+                <img src="data:{{ mime_content_type(public_path("{$logo}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$logo}"))) }}"
+                    alt="{{ $company->name }}" class="company_logo" style="max-width: 90px; margin: 0 auto;">
+            @else
+                <img src="{{ asset('logo/tulogo.png') }}" alt="{{ $company->name }}" class="company_logo"
+                    style="max-width: 90px; margin: 0 auto;">
+            @endif
+
         </div>
     </header>
 
@@ -377,8 +383,13 @@
                         <b>LA EMPRESA</b>
                     </div>
                     <div style="text-align: center; margin-top: 0.5rem;margin-right: 1rem;">
-                        <img src="data:{{ mime_content_type(public_path("{$img_firm}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$img_firm}"))) }}"
-                            style="max-width: 150px; margin-right: 1rem;">
+                        @if ($company->img_firm)
+                            <img src="data:{{ mime_content_type(public_path("{$img_firm}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$img_firm}"))) }}"
+                                style="max-width: 150px; margin-right: 1rem;">
+                        @else
+                            <img src="https://placehold.co/150x50" alt="IMAGEN DE FIRMA">
+                        @endif
+
                     </div>
                 </td>
 

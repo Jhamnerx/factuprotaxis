@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-class UpdateModulesTable extends Migration
+class UpdateModulesTaxiTable extends Migration
 {
     /**
      * Run the migrations.
@@ -15,7 +15,7 @@ class UpdateModulesTable extends Migration
     public function up()
     {
         DB::table('modules')->insert([
-            ['id' => '53', 'value' => 'taxis', 'description' => 'Gestion Taxis', 'order_menu' => 27],
+            ['id' => '53', 'value' => 'taxis', 'description' => 'Gestion Taxis', 'sort' => 27],
         ]);
     }
 
