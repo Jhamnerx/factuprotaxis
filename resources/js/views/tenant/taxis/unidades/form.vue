@@ -29,15 +29,38 @@
                             >
                         </div>
                     </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label class="control-label">N° Flota</label>
+                            <el-input
+                                v-model="form.flota"
+                                :maxlength="8"
+                                placeholder="Ingrese el N° Flota"
+                                uppercase
+                            ></el-input>
+                            <small v-if="errors.flota" class="text-danger">{{
+                                errors.flota[0]
+                            }}</small>
+                        </div>
+                    </div>
                     <div class="col-md-4">
                         <div class="form-group">
                             <label class="control-label">Placa</label>
-                            <el-input
-                                v-model="form.placa"
-                                :maxlength="8"
-                                placeholder="Ingrese la placa"
-                                uppercase
-                            ></el-input>
+                            <div v-if="api_service_token != false">
+                                <x-input-plate
+                                    v-model="form.placa"
+                                    @search="searchPlaca"
+                                ></x-input-plate>
+                            </div>
+                            <div v-else>
+                                <el-input
+                                    v-model="form.placa"
+                                    :maxlength="8"
+                                    placeholder="Ingrese la placa"
+                                    uppercase
+                                ></el-input>
+                            </div>
+
                             <small v-if="errors.placa" class="text-danger">{{
                                 errors.placa[0]
                             }}</small>
@@ -405,9 +428,12 @@
 <script>
 import PropietariosForm from "../propietarios/form.vue";
 
+import XInputPlate from "../../../../components/InputPlate.vue";
+
 export default {
     components: {
-        PropietariosForm
+        PropietariosForm,
+        XInputPlate
     },
     props: ["showDialog", "recordId", "api_service_token"],
     data() {
@@ -419,6 +445,7 @@ export default {
             form: {
                 id: null,
                 numero_interno: null,
+                flota: null,
                 placa: null,
                 propietario_id: null,
                 marca_id: null,
@@ -492,6 +519,7 @@ export default {
             this.form = {
                 id: null,
                 numero_interno: "",
+                flota: null,
                 placa: null,
                 propietario_id: null,
                 marca_id: null,
@@ -579,6 +607,7 @@ export default {
                         id: this.recordId,
                         // Asignar propiedades con valores predeterminados si no existen
                         numero_interno: data.numero_interno || "",
+                        flota: data.flota || "",
                         placa: data.placa || "",
                         chasis: data.chasis || "",
                         propietario_id: data.propietario_id || null,
@@ -630,6 +659,94 @@ export default {
                 .finally(() => {
                     this.loading = false;
                 });
+        },
+        /**
+         * Procesa los datos de la placa buscada y los asigna al formulario
+         * @param {Object} data - Datos de la placa
+         */
+        async searchPlaca(data) {
+            if (!data) return;
+
+            console.log("Datos recibidos de la búsqueda de placa:", data);
+
+            // Asignar datos básicos al formulario
+            this.form.serie = data.serie || "";
+            this.form.color = data.color || "";
+            this.form.motor = data.motor || "";
+            this.form.chasis = data.vin || data.serie || "";
+            this.form.numero_motor = data.motor || "";
+
+            // Buscar la marca por nombre
+            if (data.marca) {
+                try {
+                    const marcaResponse = await this.$http.get(
+                        `marcas/buscar?nombre=${encodeURIComponent(data.marca)}`
+                    );
+
+                    if (marcaResponse.data) {
+                        // Encontramos la marca, asignamos su ID
+                        const marca = marcaResponse.data.data[0];
+                        console.log(
+                            `Marca encontrada: ${marca.nombre} (ID: ${
+                                marca.id
+                            })`
+                        );
+
+                        this.form.marca_id = marca.id;
+
+                        // Cargar los modelos de esta marca
+                        await this.loadModelos();
+
+                        // Buscar el modelo por nombre si existe
+                        if (data.modelo && this.modelos.length > 0) {
+                            // Primero intentamos encontrar una coincidencia exacta (ignorando mayúsculas/minúsculas)
+                            const modeloEncontrado = this.modelos.find(
+                                m =>
+                                    m.nombre.toLowerCase() ===
+                                    data.modelo.toLowerCase()
+                            );
+
+                            if (modeloEncontrado) {
+                                this.form.modelo_id = modeloEncontrado.id;
+                            } else {
+                                // Si no hay coincidencia exacta, buscamos en la API
+                                try {
+                                    const modeloResponse = await this.$http.get(
+                                        `modelos/buscar?nombre=${encodeURIComponent(
+                                            data.modelo
+                                        )}&marca_id=${this.form.marca_id}`
+                                    );
+
+                                    if (
+                                        modeloResponse.data &&
+                                        modeloResponse.data.length > 0
+                                    ) {
+                                        const modelo = modeloResponse.data[0];
+                                        this.form.modelo_id = modelo.id;
+                                    } else {
+                                        console.log(
+                                            `No se encontró el modelo: ${
+                                                data.modelo
+                                            }`
+                                        );
+                                    }
+                                } catch (error) {
+                                    console.error(
+                                        "Error al buscar el modelo:",
+                                        error
+                                    );
+                                }
+                            }
+                        }
+                    } else {
+                        console.log(`No se encontró la marca: ${data.marca}`);
+                    }
+                } catch (error) {
+                    console.error("Error al buscar la marca:", error);
+                }
+            }
+
+            this.$message.success("Datos del vehículo cargados correctamente");
         },
         async submit() {
             this.loading = true;

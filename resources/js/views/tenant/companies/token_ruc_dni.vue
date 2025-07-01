@@ -4,8 +4,7 @@
             <h3 class="my-0">Consulta RUC/DNIe</h3>
         </div>
         <div class="card-body">
-            <form autocomplete="off"
-                  @submit.prevent="submit">
+            <form autocomplete="off" @submit.prevent="submit">
                 <div class="form-body">
                     <div class="row">
                         <!--
@@ -20,10 +19,11 @@
                             </div>
                         </div>
                         -->
-                        <div v-if="!form.token_false"
-                             class="col-md-12">
-                            <div :class="{'has-danger': errors.url_apiruc}"
-                                 class="form-group">
+                        <div v-if="!form.token_false" class="col-md-12">
+                            <div
+                                :class="{ 'has-danger': errors.url_apiruc }"
+                                class="form-group"
+                            >
                                 <label class="control-label">
                                     URL
                                 </label>
@@ -35,12 +35,15 @@
                                 ></small>
                             </div>
                         </div>
-                        <div v-if="!form.token_false"
-                             class="col-md-12">
-                            <div :class="{'has-danger': errors.token_apiruc}"
-                                 class="form-group">
+                        <div v-if="!form.token_false" class="col-md-12">
+                            <div
+                                :class="{ 'has-danger': errors.token_apiruc }"
+                                class="form-group"
+                            >
                                 <label class="control-label">Token</label>
-                                <el-input v-model="form.token_apiruc"></el-input>
+                                <el-input
+                                    v-model="form.token_apiruc"
+                                ></el-input>
                                 <small
                                     v-if="errors.token_apiruc"
                                     class="form-control-feedback"
@@ -51,9 +54,11 @@
                     </div>
                 </div>
                 <div class="form-actions text-right pt-2">
-                    <el-button :loading="loading_submit"
-                               native-type="submit"
-                               type="primary">Guardar
+                    <el-button
+                        :loading="loading_submit"
+                        native-type="submit"
+                        type="primary"
+                        >Guardar
                     </el-button>
                 </div>
             </form>
@@ -61,15 +66,12 @@
     </div>
 </template>
 
-
 <script>
-import {mapActions, mapState} from "vuex";
+import { mapActions, mapState } from "vuex";
 
 export default {
     computed: {
-        ...mapState([
-            'config',
-        ]),
+        ...mapState(["config"])
     },
     data() {
         return {
@@ -80,31 +82,27 @@ export default {
                 url_apiruc: null,
                 token_apiruc: null,
                 token_false: false
-            },
+            }
         };
     },
-    created(){
-        this.loadConfiguration()
+    created() {
+        this.loadConfiguration();
     },
     mounted() {
-         this.initForm();
+        this.initForm();
 
-         this.$http.get(`/${this.resource}/apiruc`).then(response => {
-             this.form = response.data
+        this.$http.get(`/${this.resource}/apiruc`).then(response => {
+            this.form = response.data;
             // this.form.url_apiruc = response.data.url_apiruc;
             // this.form.token_apiruc = response.data.token_apiruc;
 
-            if (this.form.token_apiruc == 'false') {
+            if (this.form.token_apiruc == "false") {
                 this.form.token_false = true;
             }
-
-         });
+        });
     },
     methods: {
-
-        ...mapActions([
-            'loadConfiguration',
-        ]),
+        ...mapActions(["loadConfiguration"]),
         initForm() {
             this.errors = {};
             this.form = {
@@ -116,7 +114,7 @@ export default {
         submit() {
             this.loading_submit = true;
             if (this.form.token_false == true) {
-                this.form.token_apiruc = 'false';
+                this.form.token_apiruc = "false";
             }
             this.$http
                 .post(`/${this.resource}/apiruc`, this.form)
@@ -137,8 +135,7 @@ export default {
                 .then(() => {
                     this.loading_submit = false;
                 });
-        },
+        }
     }
 };
 </script>
-

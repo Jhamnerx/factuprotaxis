@@ -133,4 +133,33 @@ class ModelosController extends Controller
 
         return response()->json($records);
     }
+
+    /**
+     * Busca modelos por nombre sin importar mayúsculas o minúsculas
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public function buscarPorNombre(Request $request)
+    {
+        $request->validate([
+            'nombre' => 'required|string',
+            'marca_id' => 'nullable|exists:tenant.marcas,id'
+        ]);
+
+        $nombre = $request->input('nombre');
+        $marcaId = $request->input('marca_id');
+
+        $query = Modelo::with('marca')
+            ->whereRaw('LOWER(nombre) LIKE ?', ['%' . strtolower($nombre) . '%'])
+            ->where('enabled', true);
+
+        if ($marcaId) {
+            $query->where('marca_id', $marcaId);
+        }
+
+        $modelos = $query->orderBy('nombre')->get();
+
+        return ModeloResource::collection($modelos);
+    }
 }

@@ -80,11 +80,12 @@ class ServiceData
     public function saveService($service = 0, $response = [])
     {
 
-        if (isset($response['message']) &&
-            strpos($response['message'], 'Ha superado la cantidad de consultas mensuales') !== false) {
+        if (
+            isset($response['message']) &&
+            strpos($response['message'], 'Ha superado la cantidad de consultas mensuales') !== false
+        ) {
             // Si se ha superado la cantidad, no hace nada.
             return $this;
-
         }
         $number = null;
         if (!empty($this->company)) {
@@ -93,13 +94,15 @@ class ServiceData
         $this->trackApi->setService($number, $service);
         $this->trackApi->push();
         return $this;
-
     }
 
     public function service($type, $number)
     {
-
-        $res = $this->client->request('GET', '/api/' . $type . '/' . $number, $this->parameters);
+        if ($type === 'placa') {
+            $res = $this->client->request('GET', '/v1/placa/info/' . $number, $this->parameters);
+        } else {
+            $res = $this->client->request('GET', '/api/' . $type . '/' . $number, $this->parameters);
+        }
         $response = json_decode($res->getBody()->getContents(), true);
 
         $res_data = [];
@@ -164,13 +167,18 @@ class ServiceData
                     'name' => $data['nombre_o_razon_social'],
                     'trade_name' => '',
                     'address' => $address,
-//                        'department_id' => $department_id,
-//                        'province_id' => $province_id,
-//                        'district_id' => $district_id,
+                    //                        'department_id' => $department_id,
+                    //                        'province_id' => $province_id,
+                    //                        'district_id' => $district_id,
                     'location_id' => $data['ubigeo'],
                     'condition' => $data['condicion'],
                     'state' => $data['estado'],
                 ];
+            }
+
+            if ($type === 'placa') {
+
+                $res_data = $data;
             }
             $response['data'] = $res_data;
         }

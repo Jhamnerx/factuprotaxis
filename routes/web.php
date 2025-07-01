@@ -423,6 +423,7 @@ if ($hostname) {
             Route::get('marcas/columns', 'Tenant\MarcasController@columns');
             Route::get('marcas/records', 'Tenant\MarcasController@records');
             Route::get('marcas/record/{id}', 'Tenant\MarcasController@record');
+            Route::get('marcas/buscar', 'Tenant\MarcasController@buscarPorNombre');
             Route::post('marcas', 'Tenant\MarcasController@store');
             Route::delete('marcas/{marca}', 'Tenant\MarcasController@destroy');
             Route::get('modelos', 'Tenant\ModelosController@index')->name('tenant.taxi.modelos.index');
@@ -430,6 +431,7 @@ if ($hostname) {
             Route::get('modelos/tables', 'Tenant\ModelosController@tables');
             Route::get('modelos/records', 'Tenant\ModelosController@records');
             Route::get('modelos/record/{id}', 'Tenant\ModelosController@record');
+            Route::get('modelos/buscar', 'Tenant\ModelosController@buscarPorNombre');
             Route::get('modelos/por-marca/{marca_id}', 'Tenant\ModelosController@getModelosByMarca');
             Route::post('modelos', 'Tenant\ModelosController@store');
             Route::delete('modelos/{modelo}', 'Tenant\ModelosController@destroy');

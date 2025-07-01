@@ -50,7 +50,7 @@ class Sunat
             return false;
         }
         $random = $this->getRandom();
-        $url = self::URL_CONSULT."?accion=consPorRuc&nroRuc=$ruc&numRnd=$random&tipdoc=1";
+        $url = self::URL_CONSULT . "?accion=consPorRuc&nroRuc=$ruc&numRnd=$random&tipdoc=1";
 
         $dic = $this->getValuesFromUrl($url);
 
@@ -150,7 +150,7 @@ class Sunat
 
         $date = \DateTime::createFromFormat('d/m/Y', $text);
 
-        return $date === false ? null : $date->format('Y-m-d').'T00:00:00.000Z';
+        return $date === false ? null : $date->format('Y-m-d') . 'T00:00:00.000Z';
     }
 
     private function fixDirection(Company $company)
@@ -159,13 +159,12 @@ class Sunat
         if (count($items) !== 3) {
             $company->direccion = preg_replace("[\s+]", ' ', $company->direccion);
             if (trim($company->direccion) === '-') {
-               $company->direccion = '';
+                $company->direccion = '';
             }
             return;
         }
 
-        for ($i=0;$i<=2;$i++)
-        {
+        for ($i = 0; $i <= 2; $i++) {
             $items[$i] = trim($items[$i]);
         }
 
@@ -186,15 +185,15 @@ class Sunat
             case 'DIOS':
                 $department = 'MADRE DE DIOS';
                 $words = 3;
-            break;
+                break;
             case 'MARTIN':
                 $department = 'SAN MARTIN';
                 $words = 2;
-            break;
+                break;
             case 'LIBERTAD':
                 $department = 'LA LIBERTAD';
                 $words = 2;
-            break;
+                break;
         }
 
         return [$words, $department];

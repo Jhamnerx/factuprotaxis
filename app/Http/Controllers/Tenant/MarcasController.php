@@ -79,4 +79,26 @@ class MarcasController extends Controller
             ];
         }
     }
+
+    /**
+     * Busca marcas por nombre sin importar mayúsculas o minúsculas
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function buscarPorNombre(Request $request)
+    {
+        $request->validate([
+            'nombre' => 'required|string'
+        ]);
+
+        $nombre = $request->input('nombre');
+
+        $marcas = Marca::whereRaw('LOWER(nombre) LIKE ?', ['%' . strtolower($nombre) . '%'])
+            ->where('enabled', true)
+            ->orderBy('nombre')
+            ->get();
+
+        return MarcaResource::collection($marcas);
+    }
 }

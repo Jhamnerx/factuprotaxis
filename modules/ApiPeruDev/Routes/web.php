@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 $current_hostname = app(Hyn\Tenancy\Contracts\CurrentHostname::class);
 
-if($current_hostname) {
+if ($current_hostname) {
     Route::domain($current_hostname->fqdn)->group(function () {
         Route::middleware(['auth', 'locked.tenant'])->group(function () {
             Route::prefix('apiperudev')->group(function () {
@@ -23,9 +23,9 @@ if($current_hostname) {
         });
     });
 } else {
-    $prefix = env('PREFIX_URL',null);
-    $prefix = !empty($prefix)?$prefix.".":'';
-    $app_url = $prefix. env('APP_URL_BASE');
+    $prefix = env('PREFIX_URL', null);
+    $prefix = !empty($prefix) ? $prefix . "." : '';
+    $app_url = $prefix . env('APP_URL_BASE');
 
     Route::domain($app_url)->group(function () {
         Route::middleware('auth:admin')->group(function () {
