@@ -242,24 +242,24 @@
                 <table class="datos">
                     <tr>
                         <td class="label">RUC</td>
-                        <td class="value">: {{ $empresa->ruc ?? '20605753176' }}</td>
+                        <td class="value">: {{ $empresa->number }}</td>
                     </tr>
                     <tr>
                         <td class="label">CÓDIGO</td>
-                        <td class="value">: {{ $empresa->codigo ?? 'ST-0160' }}</td>
+                        <td class="value">: {{ $empresa->codigo }}</td>
                     </tr>
                     <tr>
                         <td class="label">RAZÓN SOCIAL</td>
                         <td class="value">:
-                            {{ $empresa->razon_social ?? 'CORPORACIÓN TURISMO H&H SAN PEDRO S.A.C.' }}</td>
+                            {{ $empresa->trade_name }}</td>
                     </tr>
                     <tr>
                         <td class="label">DOMICILIO</td>
-                        <td class="value">: {{ $empresa->direccion ?? 'JR LAS MAGNOLIAS #523' }}</td>
+                        <td class="value">: {{ $establishment->address }}</td>
                     </tr>
                     <tr>
                         <td class="label">PARTIDA REG.</td>
-                        <td class="value">: {{ $empresa->partida_registral ?? '11284117' }}</td>
+                        <td class="value">: {{ $empresa->partida_registral }}</td>
                     </tr>
                 </table>
             </div>
@@ -269,19 +269,19 @@
                 <table class="datos">
                     <tr>
                         <td class="label">NOMBRE</td>
-                        <td class="value">: {{ $representante->nombre ?? 'Eder Pedro HIDALGO HILARIO' }}</td>
+                        <td class="value">: {{ strtoupper($company->representante_legal_name) }}</td>
                     </tr>
                     <tr>
                         <td class="label">DNI</td>
-                        <td class="value">: {{ $representante->dni ?? '44228036' }}</td>
+                        <td class="value">: {{ $company->representante_legal_dni }}</td>
                     </tr>
                     <tr>
                         <td class="label">CELULAR</td>
-                        <td class="value">: {{ $representante->telefono ?? '984 760 460' }}</td>
+                        <td class="value">: {{ $company->representante_legal_phone }}</td>
                     </tr>
                     <tr>
                         <td class="label">CORREO</td>
-                        <td class="value">: {{ $representante->email ?? 'ehidalgohi04@gmail.com' }}</td>
+                        <td class="value">: {{ $representante_legal_email }}</td>
                     </tr>
                 </table>
             </div>
