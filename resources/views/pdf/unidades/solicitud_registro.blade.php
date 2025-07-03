@@ -299,7 +299,7 @@
                     </tr>
                     <tr>
                         <td class="label">PROPIETARIO</td>
-                        <td class="value">: {{ $unidad->propietario }}</td>
+                        <td class="value">: {{ $unidad->propietario->name }}</td>
                     </tr>
                     <tr>
                         <td class="label">CATEGORÍA</td>
@@ -307,11 +307,11 @@
                     </tr>
                     <tr>
                         <td class="label">MARCA</td>
-                        <td class="value">: {{ $unidad->marca }}</td>
+                        <td class="value">: {{ $unidad->marca->nombre }}</td>
                     </tr>
                     <tr>
                         <td class="label">MODELO</td>
-                        <td class="value">: {{ $unidad->modelo }}</td>
+                        <td class="value">: {{ $unidad->modelo->nombre }}</td>
                     </tr>
                     <tr>
                         <td class="label">AÑO</td>
@@ -319,7 +319,7 @@
                     </tr>
                     <tr>
                         <td class="label">MOTOR N°</td>
-                        <td class="value">: {{ $unidad->motor }}</td>
+                        <td class="value">: {{ $unidad->numero_motor }}</td>
                     </tr>
                     <tr>
                         <td class="label">COLOR</td>
