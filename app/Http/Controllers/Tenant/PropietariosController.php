@@ -67,7 +67,7 @@ class PropietariosController extends Controller
             'identity_document_types',
             'configuration',
             'api_service_token',
-            'locations',
+            'locations'
         );
     }
 

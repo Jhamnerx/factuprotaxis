@@ -141,9 +141,7 @@ export const serviceNumber = {
         },
         async searchServiceNumberByType() {
             if (this.form.number === "") {
-                this.$message.error(
-                    "Ingresar el número a buscdd(get_history_messagesar"
-                );
+                this.$message.error("Ingresar el número a buscar");
                 return;
             }
             let identity_document_type_name = "";
