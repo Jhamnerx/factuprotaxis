@@ -281,7 +281,7 @@
                     </tr>
                     <tr>
                         <td class="label">CORREO</td>
-                        <td class="value">: {{ $representante_legal_email }}</td>
+                        <td class="value">: {{ $company->representante_legal_email }}</td>
                     </tr>
                 </table>
             </div>
