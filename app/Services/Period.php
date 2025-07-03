@@ -8,15 +8,13 @@ use Carbon\Carbon;
 
 final class Period
 {
-    /** @var Carbon|string */
     private $start;
 
-    /** @var Carbon|string */
     private $end;
 
-    private string $interval;
+    private $interval;
 
-    private int $period;
+    private $period;
 
     private $is_indeterminate = false;
 
@@ -26,7 +24,7 @@ final class Period
      *
      * @return void
      */
-    public function __construct(string $interval = 'month', int $count = 1, ?Carbon $start = null)
+    public function __construct($interval = 'month', $count = 1, $start = null)
     {
         $this->interval = $interval;
 

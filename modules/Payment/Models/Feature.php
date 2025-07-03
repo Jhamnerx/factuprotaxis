@@ -40,17 +40,13 @@ class Feature extends Model
         'deleted_at' => 'datetime',
     ];
 
-    /**
-     * The attributes that are translatable.
-     *
-     * @var array
-     */
+
     public $translatable = [
         'name',
         'description',
     ];
 
-    public array $sortable = [
+    public $sortable = [
         'order_column_name' => 'sort_order',
     ];
 
