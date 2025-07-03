@@ -3,6 +3,8 @@
 @php
     $logo = "storage/uploads/logos/{$company->logo}";
     $img_firm = "storage/uploads/firms/{$company->img_firm}";
+    $unidad = $solicitud->detalle->first()->infoVehiculo;
+    $propietario = $unidad->propietario;
 @endphp
 
 <head>
