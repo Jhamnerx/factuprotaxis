@@ -242,16 +242,16 @@
                 <table class="datos">
                     <tr>
                         <td class="label">RUC</td>
-                        <td class="value">: {{ $empresa->number }}</td>
+                        <td class="value">: {{ $company->number }}</td>
                     </tr>
                     <tr>
                         <td class="label">CÓDIGO</td>
-                        <td class="value">: {{ $empresa->codigo }}</td>
+                        <td class="value">: {{ $company->codigo }}</td>
                     </tr>
                     <tr>
                         <td class="label">RAZÓN SOCIAL</td>
                         <td class="value">:
-                            {{ $empresa->trade_name }}</td>
+                            {{ $company->trade_name }}</td>
                     </tr>
                     <tr>
                         <td class="label">DOMICILIO</td>
@@ -259,7 +259,7 @@
                     </tr>
                     <tr>
                         <td class="label">PARTIDA REG.</td>
-                        <td class="value">: {{ $empresa->partida_registral }}</td>
+                        <td class="value">: {{ $company->partida_registral }}</td>
                     </tr>
                 </table>
             </div>
