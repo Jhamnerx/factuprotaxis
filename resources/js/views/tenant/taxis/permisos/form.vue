@@ -170,20 +170,89 @@
                             </el-tooltip>
                         </label>
                         <div class="row">
-                            <div class="col-md-5">
+                            <div class="col-md-3 form-group">
+                                <el-select
+                                    v-model="
+                                        nuevaPersona.identity_document_type_id
+                                    "
+                                    dusk="identity_document_type_id"
+                                    filterable
+                                    popper-class="el-select-identity_document_type"
+                                >
+                                    <el-option
+                                        v-for="option in identity_document_types"
+                                        :key="option.id"
+                                        :label="option.description"
+                                        :value="option.id"
+                                    ></el-option>
+                                </el-select>
+                            </div>
+                            <div class="col-md-4 form-group">
                                 <el-input
                                     v-model="nuevaPersona.nombre"
                                     placeholder="Nombre"
                                 ></el-input>
                             </div>
-                            <div class="col-md-5">
-                                <el-input
-                                    v-model="nuevaPersona.documento"
-                                    placeholder="Documento"
-                                    maxlength="8"
-                                ></el-input>
+                            <div class="col-md-4 form-group">
+                                <div v-if="api_service_token != false">
+                                    <x-input-service
+                                        v-model="nuevaPersona.documento"
+                                        placeholder="Documento"
+                                        :identity_document_type_id="
+                                            nuevaPersona.identity_document_type_id
+                                        "
+                                        @search="searchNumber"
+                                    >
+                                    </x-input-service>
+                                </div>
+                                <div v-else>
+                                    <el-input
+                                        v-model="nuevaPersona.documento"
+                                        placeholder="Documento"
+                                        :maxlength="
+                                            nuevaPersona.identity_document_type_id ===
+                                            '6'
+                                                ? 11
+                                                : 8
+                                        "
+                                    >
+                                        <template
+                                            v-if="
+                                                nuevaPersona.identity_document_type_id ===
+                                                    '6' ||
+                                                    nuevaPersona.identity_document_type_id ===
+                                                        '1'
+                                            "
+                                        >
+                                            <el-button
+                                                slot="append"
+                                                :loading="loading_search"
+                                                icon="el-icon-search"
+                                                type="primary"
+                                                @click.prevent="searchCustomer"
+                                            >
+                                                <template
+                                                    v-if="
+                                                        nuevaPersona.identity_document_type_id ===
+                                                            '6'
+                                                    "
+                                                >
+                                                    SUNAT
+                                                </template>
+                                                <template
+                                                    v-if="
+                                                        nuevaPersona.identity_document_type_id ===
+                                                            '1'
+                                                    "
+                                                >
+                                                    RENIEC
+                                                </template>
+                                            </el-button>
+                                        </template>
+                                    </el-input>
+                                </div>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1 form-group">
                                 <el-button
                                     type="primary"
                                     @click="agregarPersona"
@@ -196,6 +265,7 @@
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
+                                    <th>Tipo Doc.</th>
                                     <th>Documento</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -206,6 +276,16 @@
                                     :key="persona.id"
                                 >
                                     <td>{{ persona.nombre }}</td>
+                                    <td>
+                                        {{
+                                            identity_document_types.find(
+                                                t =>
+                                                    t.id ===
+                                                    persona.identity_document_type_id
+                                            ).description ||
+                                                persona.identity_document_type_id
+                                        }}
+                                    </td>
                                     <td>{{ persona.documento }}</td>
                                     <td>
                                         <el-button
@@ -223,7 +303,7 @@
                                                 0
                                     "
                                 >
-                                    <td colspan="3" class="text-center">
+                                    <td colspan="4" class="text-center">
                                         No hay personas autorizadas
                                     </td>
                                 </tr>
@@ -282,7 +362,11 @@
 </template>
 
 <script>
+import { mapActions, mapState } from "vuex/dist/vuex.mjs";
+import { serviceNumber } from "../../../../mixins/functions";
+
 export default {
+    mixins: [serviceNumber],
     props: ["showDialog", "recordId"],
     data() {
         return {
@@ -291,6 +375,7 @@ export default {
             titleDialog: "Permiso de Unidad",
             loading: false,
             resource: "permisos",
+            api_service_token: false,
             form: {
                 id: null,
                 vehiculo_id: null,
@@ -303,23 +388,40 @@ export default {
             },
             vehiculos: [],
             propietarios: [],
+            identity_document_types: [],
             errors: {},
             nextPersonaId: 1, // Para id incremental
             nuevaPersona: {}
         };
     },
     async created() {
+        this.loadConfiguration();
         await this.initForm();
         await this.$http
             .get(`/${this.resource}/tables`)
             .then(response => {
                 this.vehiculos = response.data.vehiculos;
                 this.propietarios = response.data.propietarios;
+                this.identity_document_types =
+                    response.data.identity_document_types;
+                this.api_service_token = response.data.api_service_token;
             })
-            .finally(() => {});
+            .finally(() => {
+                if (this.api_service_token === false) {
+                    if (
+                        this.config &&
+                        this.config.api_service_token !== undefined
+                    ) {
+                        this.api_service_token = this.config.api_service_token;
+                    }
+                }
+            });
     },
-    computed: {},
+    computed: {
+        ...mapState(["config"])
+    },
     methods: {
+        ...mapActions(["loadConfiguration"]),
         initForm() {
             this.errors = {};
             this.form = {
@@ -332,11 +434,14 @@ export default {
                 fecha_fin: new Date().toISOString().slice(0, 10),
                 motivo: "",
                 observaciones: "",
-                nuevaPersona: {},
                 personas_autorizadas: [] // Debe ser array
             };
             this.personaIdCounter = 1;
-            this.nuevaPersona = { nombre: "", documento: "" };
+            this.nuevaPersona = {
+                nombre: "",
+                documento: "",
+                identity_document_type_id: "1" // DNI por defecto
+            };
         },
         async opened() {},
         async create() {
@@ -468,12 +573,40 @@ export default {
                 this.$message.error("Debe ingresar nombre y documento");
                 return;
             }
-            // Validación: documento debe ser de 8 dígitos y solo números
+            // Validación según tipo de documento
             const doc = this.nuevaPersona.documento;
+            const tipoDoc = this.nuevaPersona.identity_document_type_id;
 
-            if (!/^\d{8}$/.test(doc)) {
-                this.$message.error(
-                    "El documento debe tener exactamente 8 dígitos numéricos"
+            let regexPattern;
+            let mensaje;
+
+            if (tipoDoc === "6") {
+                // RUC
+                regexPattern = /^\d{11}$/;
+                mensaje = "El RUC debe tener exactamente 11 dígitos numéricos";
+            } else if (tipoDoc === "1") {
+                // DNI
+                regexPattern = /^\d{8}$/;
+                mensaje = "El DNI debe tener exactamente 8 dígitos numéricos";
+            } else {
+                // Para otros tipos de documento, aceptar alfanuméricos
+                regexPattern = /^.{1,15}$/;
+                mensaje = "El documento debe tener entre 1 y 15 caracteres";
+            }
+
+            if (!regexPattern.test(doc)) {
+                this.$message.error(mensaje);
+                return;
+            }
+
+            // Verificar si ya existe una persona con este documento
+            const existingPersona = this.form.personas_autorizadas.find(
+                p => p.documento === this.nuevaPersona.documento
+            );
+
+            if (existingPersona) {
+                this.$message.warning(
+                    "Esta persona ya está en la lista de autorizados"
                 );
                 return;
             }
@@ -484,7 +617,9 @@ export default {
             this.form.personas_autorizadas.push({
                 id: this.personaIdCounter++,
                 nombre: this.nuevaPersona.nombre,
-                documento: this.nuevaPersona.documento
+                documento: this.nuevaPersona.documento,
+                identity_document_type_id: this.nuevaPersona
+                    .identity_document_type_id
             });
             this.nuevaPersona.nombre = "";
             this.nuevaPersona.documento = "";
@@ -508,6 +643,73 @@ export default {
             this.form.personas_autorizadas = this.form.personas_autorizadas.filter(
                 p => p.id !== id
             );
+        },
+        searchNumber(data) {
+            if (data) {
+                // Asignar el nombre recuperado del servicio a nuevaPersona.nombre
+                this.nuevaPersona.nombre =
+                    data.name || data.nombre || data.razon_social || "";
+
+                // También podemos agregar otros datos si están disponibles
+                if (data.document_type) {
+                    this.nuevaPersona.document_type = data.document_type;
+                }
+
+                // Verificar si ya existe una persona con este documento
+                const existingPersona = this.form.personas_autorizadas.find(
+                    p => p.documento === this.nuevaPersona.documento
+                );
+
+                if (existingPersona) {
+                    this.$message.warning(
+                        "Esta persona ya está en la lista de autorizados"
+                    );
+                }
+            }
+        },
+        searchCustomer() {
+            const tipo = this.nuevaPersona.identity_document_type_id;
+            const numero = this.nuevaPersona.documento;
+
+            if (!numero) {
+                this.$message.error("Debe ingresar un número de documento");
+                return;
+            }
+
+            // Validar longitud según tipo de documento
+            if (tipo === "1" && numero.length !== 8) {
+                this.$message.error("El DNI debe tener 8 dígitos");
+                return;
+            }
+
+            if (tipo === "6" && numero.length !== 11) {
+                this.$message.error("El RUC debe tener 11 dígitos");
+                return;
+            }
+
+            this.loading_search = true;
+
+            // Usamos el mixin serviceNumber para hacer la búsqueda
+            this.searchServiceNumber(tipo, numero)
+                .then(response => {
+                    if (response.success) {
+                        // Asignamos el nombre recuperado
+                        this.nuevaPersona.nombre =
+                            response.data.name ||
+                            response.data.nombre ||
+                            response.data.razon_social ||
+                            "";
+                    } else {
+                        this.$message.error(response.message);
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    this.$message.error("Ocurrió un error al buscar los datos");
+                })
+                .finally(() => {
+                    this.loading_search = false;
+                });
         },
         resetForm() {
             this.errors = {};

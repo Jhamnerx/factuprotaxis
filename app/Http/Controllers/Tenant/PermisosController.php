@@ -10,6 +10,7 @@ use App\Models\Tenant\Taxis\Vehiculos;
 use App\Models\Tenant\Taxis\Propietarios;
 use App\Models\Tenant\Taxis\PermisoUnidad;
 use App\Http\Resources\Tenant\PermisoUnidadResource;
+use App\Models\Tenant\Catalogs\IdentityDocumentType;
 use App\Http\Resources\Tenant\PermisoUnidadCollection;
 
 class PermisosController extends Controller
@@ -87,9 +88,10 @@ class PermisosController extends Controller
             });
 
         $configuration = Configuration::first();
-
+        $identity_document_types = IdentityDocumentType::whereActive()->get();
+        $api_service_token = \App\Models\Tenant\Configuration::getApiServiceToken();
         // Aquí puedes retornar catálogos si es necesario
-        return compact('vehiculos', 'propietarios', 'configuration');
+        return compact('vehiculos', 'propietarios', 'configuration', 'identity_document_types', 'api_service_token');
     }
 
     public function table($table)

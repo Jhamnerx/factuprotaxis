@@ -31,10 +31,10 @@ class Jne
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS =>json_encode(['CODDNI' => $number]),
+            CURLOPT_POSTFIELDS => json_encode(['CODDNI' => $number]),
             CURLOPT_HTTPHEADER => array(
-                "Requestverificationtoken: ".$requestToken,
-                "Authorization: Bearer ".$requestToken,
+                "Requestverificationtoken: " . $requestToken,
+                "Authorization: Bearer " . $requestToken,
                 "Content-Type: application/json"
             ),
         ));
@@ -55,7 +55,7 @@ class Jne
             $person = new Person();
             $person->number = $number;
             $person->verification_code = Functions::verificationCode($number);
-            $person->name = $parts[0].' '.$parts[1].' '.$parts[2];
+            $person->name = $parts[0] . ' ' . $parts[1] . ' ' . $parts[2];
             $person->first_name = $parts[0];
             $person->last_name = $parts[1];
             $person->names = $parts[2];
