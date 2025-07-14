@@ -11,8 +11,8 @@
 |
 */
 
-Route::middleware(['check.permission', 'locked.tenant'])->prefix('ecommerce')->group(function() {
-   // Route::get('/', 'EcommerceController@index');
+Route::middleware(['check.permission', 'locked.tenant'])->prefix('ecommerce')->group(function () {
+    // Route::get('/', 'EcommerceController@index');
 
     Route::get('/', 'EcommerceController@index')->name('tenant.ecommerce.index');
     Route::get('/category/{category}', 'EcommerceController@category')->name('tenant.ecommerce.category');
@@ -54,7 +54,7 @@ Route::middleware(['check.permission', 'locked.tenant'])->prefix('ecommerce')->g
 
 
     //Item Sets
-    Route::prefix('item-sets')->group(function() {
+    Route::prefix('item-sets')->group(function () {
 
         Route::get('', 'ItemSetController@index')->name('tenant.ecommerce.item_sets.index')->middleware('redirect.level');
         Route::get('columns', 'ItemSetController@columns');
@@ -68,14 +68,11 @@ Route::middleware(['check.permission', 'locked.tenant'])->prefix('ecommerce')->g
         Route::post('upload', 'ItemSetController@upload');
         Route::post('visible_store', 'ItemSetController@visibleStore');
         Route::get('item/tables', 'ItemSetController@item_tables');
-
     });
-
-
 });
 
 
-Route::middleware(['locked.tenant'])->group(function() {
+Route::middleware(['locked.tenant'])->group(function () {
     // restaurant
     Route::get('/ecommerce/{name?}', 'EcommerceController@index')->name('tenant.ecommerce.index');
 });

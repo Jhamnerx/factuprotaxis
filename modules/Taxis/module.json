@@ -1,0 +1,14 @@
+{
+    "name": "Taxis",
+    "alias": "taxis",
+    "description": "",
+    "keywords": [],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\Taxis\\Providers\\TaxisServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

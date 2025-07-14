@@ -52,33 +52,41 @@ class UserController extends Controller
         return $module;
     }
 
-    public function tables() {
+    public function tables()
+    {
         /** @var User $user */
         $user = User::find(1);
         $modulesTenant = $user->getCurrentModuleByTenant()
-                              ->pluck('module_id')
-                              ->all();
+            ->pluck('module_id')
+            ->all();
 
         $levelsTenant = $user->getCurrentModuleLevelByTenant()
-                             ->pluck('module_level_id')
-                             ->toArray();
+            ->pluck('module_level_id')
+            ->toArray();
 
 
         $modules = Module::with(['levels' => function ($query) use ($levelsTenant) {
             $query->whereIn('id', $levelsTenant);
         }])
-                         ->orderBy('order_menu')
-                         ->whereIn('id', $modulesTenant)
-                         ->get()
-                         ->each(function ($module) {
-                             return $this->prepareModules($module);
-                         });
+            ->orderBy('order_menu')
+            ->whereIn('id', $modulesTenant)
+            ->get()
+            ->each(function ($module) {
+                return $this->prepareModules($module);
+            });
         $establishments = Establishment::orderBy('description')->get();
         $documents = DocumentType::OnlyAvaibleDocuments()->get();
         $series = Series::FilterEstablishment()->FilterDocumentType()->get();
         $types = [
             ['type' => 'admin', 'description' => 'Administrador'],
             ['type' => 'seller', 'description' => 'Vendedor'],
+            ['type' => 'conductor', 'description' => 'Conductor'],
+            ['type' => 'Propietario', 'description' => 'Propietario'],
+            // ['type' => 'cajero', 'description' => 'Cajero'],
+            // ['type' => 'almacenista', 'description' => 'Almacenista'],
+            // ['type' => 'repartidor', 'description' => 'Repartidor'],
+            // ['type' => 'supervisor', 'description' => 'Supervisor'],
+            // ['type' => 'other', 'description' => 'Otro'],
         ];
 
         $configuration = Configuration::select(['permission_to_edit_cpe', 'regex_password_user'])->first();
@@ -88,27 +96,27 @@ class UserController extends Controller
 
         $identity_document_types = IdentityDocumentType::filterDataForPersons()->get();
 
-        return compact('modules', 'establishments', 'types', 'documents', 'series', 'config_permission_to_edit_cpe','zones', 'identity_document_types', 'config_regex_password_user');
+        return compact('modules', 'establishments', 'types', 'documents', 'series', 'config_permission_to_edit_cpe', 'zones', 'identity_document_types', 'config_regex_password_user');
     }
 
-    public function regenerateToken(User $user){
+    public function regenerateToken(User $user)
+    {
         $data = [
-            'api_token'=>$user->api_token,
-            'success'=>false,
+            'api_token' => $user->api_token,
+            'success' => false,
             'message' => 'No puedes cambiar el token'
         ];
-        if(auth()->user()->isAdmin()){
+        if (auth()->user()->isAdmin()) {
             $user->updateToken()->push();
-            $data['api_token']=$user->api_token;
-            $data['success']=true;
-            $data['message']='Token cambiado';
-
+            $data['api_token'] = $user->api_token;
+            $data['success'] = true;
+            $data['message'] = 'Token cambiado';
         }
         return $data;
     }
 
 
-    public function store(UserRequest $request) 
+    public function store(UserRequest $request)
     {
         $id = $request->input('id');
 
@@ -131,10 +139,10 @@ class UserController extends Controller
             $user->establishment_id = $request->input('establishment_id');
             $user->type = $request->input('type');
 
-            if($request->input('restaurant_pin')){
+            if ($request->input('restaurant_pin')) {
                 $user->restaurant_pin = $request->input('restaurant_pin');
             }
-            
+
             // Zona por usuario
             // $user->zone_id = $request->input('zone_id');
 
@@ -163,7 +171,7 @@ class UserController extends Controller
             $user->permission_force_send_by_summary = $request->input('permission_force_send_by_summary');
             $user->permission_edit_item_prices = $request->permission_edit_item_prices;
 
-            if($user->isDirty('password')) $user->last_password_update = date('Y-m-d H:i:s');
+            if ($user->isDirty('password')) $user->last_password_update = date('Y-m-d H:i:s');
 
             $this->setAdditionalData($user, $request);
 
@@ -173,9 +181,8 @@ class UserController extends Controller
             $this->saveDefaultDocumentTypes($user, $request);
 
             if ($user->id != 1) {
-                $user->setModuleAndLevelModule($request->modules,$request->levels);
+                $user->setModuleAndLevelModule($request->modules, $request->levels);
             }
-
         });
 
         return [
@@ -184,7 +191,7 @@ class UserController extends Controller
         ];
     }
 
-    
+
     /**
      * 
      * Asignar datos
@@ -227,15 +234,14 @@ class UserController extends Controller
     {
         $temp_path = $request->photo_temp_path;
 
-        if($temp_path) 
-        {
+        if ($temp_path) {
             $old_filename = $request->photo_filename;
-            $user->photo_filename = UploadFileHelper:: uploadImageFromTempFile('users', $old_filename, $temp_path, $user->id, true);
+            $user->photo_filename = UploadFileHelper::uploadImageFromTempFile('users', $old_filename, $temp_path, $user->id, true);
             $user->save();
         }
     }
 
-    
+
     /**
      * 
      * Guardar documentos por defecto
@@ -248,8 +254,7 @@ class UserController extends Controller
     {
         $user->default_document_types()->delete();
 
-        foreach ($request->default_document_types as $row) 
-        {
+        foreach ($request->default_document_types as $row) {
             $user->default_document_types()->create($row);
         }
     }
@@ -273,7 +278,7 @@ class UserController extends Controller
         ];
     }
 
-        
+
     /**
      *
      * @param  Request $request
@@ -281,36 +286,29 @@ class UserController extends Controller
      */
     public function changeActive(Request $request)
     {
-        try 
-        {
+        try {
             $request->validate([
                 'id' => 'required',
                 'active' => 'required',
             ]);
-            
+
             $user = User::findOrFail($request->id);
             $user->active = !$request->active;
             $active_message = null;
 
-            if($user->active)
-            {
+            if ($user->active) {
                 (new UserControlHelper)->checkLimitUsers();
                 $active_message = 'habilitado';
-                $user->name = trim(str_replace(User::TEXT_INACTIVE_USER , '' , $user->name));
-            }
-            else
-            {
+                $user->name = trim(str_replace(User::TEXT_INACTIVE_USER, '', $user->name));
+            } else {
                 $active_message = 'inhabilitado';
                 $user->name = "{$user->name} " . User::TEXT_INACTIVE_USER;
             }
 
             $user->save();
-            
-            return $this->generalResponse(true, "Usuario {$active_message} con éxito.");
 
-        } 
-        catch(Exception $e)
-        {
+            return $this->generalResponse(true, "Usuario {$active_message} con éxito.");
+        } catch (Exception $e) {
             return $this->generalResponse(false, $e->getMessage());
         }
     }

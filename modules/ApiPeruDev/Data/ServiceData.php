@@ -100,13 +100,17 @@ class ServiceData
     {
         if ($type === 'placa') {
             $res = $this->client->request('GET', '/v1/placa/info/' . $number, $this->parameters);
+        } else if ($type === 'licencia') {
+            $res = $this->client->request('GET', 'v1/licencia/info/' . $number, $this->parameters);
         } else {
             $res = $this->client->request('GET', '/api/' . $type . '/' . $number, $this->parameters);
         }
+
         $response = json_decode($res->getBody()->getContents(), true);
 
         $res_data = [];
-        if ($response['success']) {
+        if (array_key_exists('success', $response) && $response['success']) {
+
             $data = $response['data'];
             if ($type === 'dni') {
                 $department_id = '';
@@ -180,6 +184,11 @@ class ServiceData
 
                 $res_data = $data;
             }
+
+            if ($type === 'licencia') {
+                $res_data = $data;
+            }
+
             $response['data'] = $res_data;
         }
         $this->saveService(1, $response);

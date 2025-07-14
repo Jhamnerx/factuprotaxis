@@ -26,6 +26,14 @@ class UpdateModulesLevelsTaxiTable extends Migration
             ['id' => '103', 'value' => 'constancia_baja', 'description' => 'Constancia de Baja', 'module_id' => 53],
             ['id' => '104', 'value' => 'declaraciones', 'description' => 'Declaraciones', 'module_id' => 53],
             ['id' => '105', 'value' => 'pagos', 'description' => 'Pagos', 'module_id' => 53],
+            ['id' => '106', 'value' => 'mensajes', 'description' => 'Mensajes', 'module_id' => 53],
+            ['id' => '107', 'value' => 'plantillas', 'description' => 'Plantillas de Mensajes', 'module_id' => 53],
+            ['id' => '108', 'value' => 'conductores', 'description' => 'Conductores', 'module_id' => 53],
+            ['id' => '109', 'value' => 'ajustes_web', 'description' => 'Ajustes Web', 'module_id' => 53],
+            ['id' => '110', 'value' => 'config_notificaciones', 'description' => 'Configuración de notificaciones', 'module_id' => 53],
+            ['id' => '111', 'value' => 'politicas_privacidad', 'description' => 'Políticas de privacidad', 'module_id' => 53],
+            ['id' => '112', 'value' => 'terminos_condiciones', 'description' => 'Términos y condiciones', 'module_id' => 53],
+
         ]);
     }
 
@@ -36,6 +44,6 @@ class UpdateModulesLevelsTaxiTable extends Migration
      */
     public function down()
     {
-        //
+        DB::table('module_levels')->whereIn('id', ['106', '107', '108', '109', '110', '111', '112'])->delete();
     }
 }

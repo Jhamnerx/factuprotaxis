@@ -1001,6 +1001,11 @@ Vue.component(
 // Vue.component('x-input-service', require('./components/InputService.vue'));
 
 Vue.component(
+    "x-input-service-conductor",
+    require("./components/InputServiceConductor.vue")
+);
+
+Vue.component(
     "tenant-items-ecommerce-index",
     require("./views/tenant/items_ecommerce/index.vue")
 );
@@ -1303,6 +1308,10 @@ Vue.component(
     require("./views/tenant/taxis/propietarios/index.vue")
 );
 Vue.component(
+    "tenant-taxis-conductores-index",
+    require("./views/tenant/taxis/conductores/index.vue")
+);
+Vue.component(
     "tenant-taxis-unidades-index",
     require("./views/tenant/taxis/unidades/index.vue")
 );
@@ -1343,6 +1352,11 @@ Vue.component(
 Vue.component(
     "tenant-taxis-pagos-form",
     require("./views/tenant/taxis/pagos/form.vue")
+);
+
+Vue.component(
+    "tenant-taxis-mensajes-plantillas",
+    require("./views/tenant/taxis/mensajes/plantillas.vue")
 );
 
 import VueClipboard from "vue-clipboard2";

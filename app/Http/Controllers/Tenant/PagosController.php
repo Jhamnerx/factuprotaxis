@@ -14,7 +14,7 @@ use App\Http\Resources\Tenant\VehiculoCollection;
 
 class PagosController extends Controller
 {
-    public function index()
+    public function calendario()
     {
         $company = Company::active();
 

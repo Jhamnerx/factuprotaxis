@@ -34,7 +34,8 @@ class EcommerceController extends Controller
      * Display a listing of the resource.
      * @return Response
      */
-    public function __construct(){
+    public function __construct()
+    {
         return view()->share('records', Item::where('apply_store', 1)->orderBy('id', 'DESC')->take(2)->get());
     }
 
@@ -51,7 +52,7 @@ class EcommerceController extends Controller
         }
 
         $category = Category::where('name', $name)->first();
-        
+
         $dataPaginate = Item::where([['apply_store', 1], ['internal_id', '!=', null]])
             ->category($category ? $category->id : null)
             ->paginate(8);
@@ -63,7 +64,7 @@ class EcommerceController extends Controller
             'configuration' => $configuration->stock_control,
         ])->with('categories', $categories);
     }
-    
+
     // public function category(Request $request)
     // {
     //   $dataPaginate = Item::select('i.*')
@@ -85,7 +86,7 @@ class EcommerceController extends Controller
     {
         $row = Item::find($id);
         $exchange_rate_sale = $this->getExchangeRateSale();
-        $sale_unit_price = ($row->has_igv) ? $row->sale_unit_price : $row->sale_unit_price*1.18;
+        $sale_unit_price = ($row->has_igv) ? $row->sale_unit_price : $row->sale_unit_price * 1.18;
 
         $description = $promotion_id ? $this->getDescriptionWithPromotion($row, $promotion_id) : $row->description;
 
@@ -129,7 +130,6 @@ class EcommerceController extends Controller
         $records = Item::where('apply_store', 1)->get();
         // return new ItemCollection($records);
         return new ItemBarCollection($records);
-
     }
 
     public function partialItem($id)
@@ -145,14 +145,14 @@ class EcommerceController extends Controller
         $history_records = [];
         if (auth('ecommerce')->user()) {
             $email_user = auth('ecommerce')->user()->email;
-            $history_records = Order::where('customer', 'LIKE', '%'.$email_user.'%')
-                    ->get()
-                    ->transform(function($row) {
-                        /** @var  Order $row */
-                        return $row->getCollectionData();
-                    })->toArray();
+            $history_records = Order::where('customer', 'LIKE', '%' . $email_user . '%')
+                ->get()
+                ->transform(function ($row) {
+                    /** @var  Order $row */
+                    return $row->getCollectionData();
+                })->toArray();
         }
-        return view('ecommerce::cart.detail', compact(['configuration','history_records']));
+        return view('ecommerce::cart.detail', compact(['configuration', 'history_records']));
     }
 
     public function pay()
@@ -170,24 +170,22 @@ class EcommerceController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (Auth::guard('ecommerce')->attempt($credentials)) {
-           return[
-               'success' => true,
-               'message' => 'Login Success'
-           ];
-        }
-        else{
-            return[
+            return [
+                'success' => true,
+                'message' => 'Login Success'
+            ];
+        } else {
+            return [
                 'success' => false,
                 'message' => 'Usuario o Password incorrectos'
             ];
         }
-
     }
 
     public function logout()
     {
         Auth::guard('ecommerce')->logout();
-        return[
+        return [
             'success' => true,
             'message' => 'Logout Success'
         ];
@@ -195,7 +193,7 @@ class EcommerceController extends Controller
 
     public function storeUser(Request $request)
     {
-        try{
+        try {
 
             $validator = Validator::make($request->all(), [
                 'email' => 'required|email',
@@ -212,39 +210,38 @@ class EcommerceController extends Controller
             }
 
             $verify = Person::where('email', $request->email)->first();
-            if($verify)
-            {
+            if ($verify) {
                 return [
                     'success' => false,
                     'message' => 'Email no disponible'
                 ];
             }
 
-            $type = (strlen($request->ruc)==8) ? 'dni' : 'ruc';
+            $type = (strlen($request->ruc) == 8) ? 'dni' : 'ruc';
             $name = $request->name;
-            $identity_document_type_id = (strlen($request->ruc)==8) ? 1 : 6;
+            $identity_document_type_id = (strlen($request->ruc) == 8) ? 1 : 6;
             $address = null;
             $department_id = null;
             $province_id = null;
             $district_id = null;
 
-            $dataDocument = $this->searchDocument($type,$request->ruc);
+            $dataDocument = $this->searchDocument($type, $request->ruc);
 
 
-            if($dataDocument["success"]){
+            if ($dataDocument["success"]) {
                 $name = $dataDocument["data"]["name"];
-                if($type==='ruc'){
+                if ($type === 'ruc') {
                     $address = $dataDocument['data']['address'];
                     $departmentId = $dataDocument['data']['location_id'][0] ?? null;
                     $provinceId = $dataDocument['data']['location_id'][1] ?? null;
                     $districtId = $dataDocument['data']['location_id'][2] ?? null;
                 }
             }
-            
-            if(!($dataDocument["success"]) && $type==='dni'){
+
+            if (!($dataDocument["success"]) && $type === 'dni') {
                 $identity_document_type_id = 0;
             }
-            
+
             $person = new Person();
             $person->type = 'customers';
             $person->identity_document_type_id = $identity_document_type_id;
@@ -259,29 +256,26 @@ class EcommerceController extends Controller
             $person->establishment_code = '0000';
             $person->email = $request->email;
             $person->password = bcrypt($request->pswd);
-            
+
             $person->save();
 
-            $credentials = [ 'email' => $person->email, 'password' => $request->pswd ];
+            $credentials = ['email' => $person->email, 'password' => $request->pswd];
             Auth::guard('ecommerce')->attempt($credentials);
             return [
                 'success' => true,
                 'message' => 'Usuario registrado'
             ];
-
-        }catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return [
                 'success' => false,
                 'message' =>  $e->getMessage()
             ];
         }
-
     }
 
     public function transactionFinally(Request $request)
     {
-        try{
+        try {
             //1. confirmar dato de comprobante en order
             $order_generated = Order::find($request->orderId);
             $order_generated->document_external_id = $request->document_external_id;
@@ -293,20 +287,17 @@ class EcommerceController extends Controller
                 'message' => 'Order Actualizada',
                 'order_total' => $order_generated->total
             ];
-        }
-        catch(Exception $e)
-        {
+        } catch (Exception $e) {
             return [
                 'success' => false,
                 'message' =>  $e->getMessage()
             ];
         }
-
     }
 
     public function paymentCash(Request $request)
     {
-        
+
         $validator = Validator::make($request->customer, [
             'telefono' => 'required|numeric',
             'direccion' => 'required',
@@ -319,12 +310,12 @@ class EcommerceController extends Controller
             return response()->json($validator->errors(), 422);
         } else {
             try {
-                $type = ($request->purchase["datos_del_cliente_o_receptor"]["codigo_tipo_documento_identidad"]=='6')?'ruc':'dni';
+                $type = ($request->purchase["datos_del_cliente_o_receptor"]["codigo_tipo_documento_identidad"] == '6') ? 'ruc' : 'dni';
                 $document_number = $request->purchase["datos_del_cliente_o_receptor"]["numero_documento"];
-                
-                $dataDocument = $this->searchDocument($type,$document_number);
+
+                $dataDocument = $this->searchDocument($type, $document_number);
                 if ($dataDocument["success"]) {
-                    $clientData = [ "apellidos_y_nombres_o_razon_social" => $dataDocument["data"]["name"] ];
+                    $clientData = ["apellidos_y_nombres_o_razon_social" => $dataDocument["data"]["name"]];
                     if ($type === 'ruc') {
                         $clientData["direccion"] = $dataDocument['data']['address'];
                         $clientData["ubigeo"] = $dataDocument['data']['location_id'][2] ?? null;
@@ -341,39 +332,37 @@ class EcommerceController extends Controller
 
                 $user = auth('ecommerce')->user();
                 $order = Order::create([
-                'external_id' => Str::uuid()->toString(),
-                'customer' =>  $request->customer,
-                'shipping_address' => 'direccion 1',
-                'items' =>  $request->items,
-                'total' => $request->precio_culqi,
-                'reference_payment' => 'efectivo',
-                'status_order_id' => 1,
-                'purchase' => $request->purchase
-              ]);
+                    'external_id' => Str::uuid()->toString(),
+                    'customer' =>  $request->customer,
+                    'shipping_address' => 'direccion 1',
+                    'items' =>  $request->items,
+                    'total' => $request->precio_culqi,
+                    'reference_payment' => 'efectivo',
+                    'status_order_id' => 1,
+                    'purchase' => $request->purchase
+                ]);
 
-            $customer_email = $user->email;
-            $document = new stdClass;
-            $document->client = $user->name;
-            $document->product = $request->producto;
-            $document->total = $request->precio_culqi;
-            $document->items = $request->items;
+                $customer_email = $user->email;
+                $document = new stdClass;
+                $document->client = $user->name;
+                $document->product = $request->producto;
+                $document->total = $request->precio_culqi;
+                $document->items = $request->items;
 
-            $this->paymentCashEmail($customer_email, $document);
+                $this->paymentCashEmail($customer_email, $document);
 
-            //Mail::to($customer_email)->send(new CulqiEmail($document));
-            return [
-                'success' => true,
-                'order' => $order
-            ];
-
-        }catch(Exception $e)
-        {
-            return [
-                'success' => false,
-                'message' =>  $e->getMessage()
-            ];
+                //Mail::to($customer_email)->send(new CulqiEmail($document));
+                return [
+                    'success' => true,
+                    'order' => $order
+                ];
+            } catch (Exception $e) {
+                return [
+                    'success' => false,
+                    'message' =>  $e->getMessage()
+                ];
+            }
         }
-      }
     }
 
     public function paymentCashEmail($customer_email, $document)
@@ -382,7 +371,7 @@ class EcommerceController extends Controller
             $email = $customer_email;
             $mailable = new CulqiEmail($document);
             $id = (int) $document->id;
-            $model = __FILE__.";;".__LINE__;
+            $model = __FILE__ . ";;" . __LINE__;
             $sendIt = EmailController::SendMail($email, $mailable, $id, $model);
             /*
             Configuration::setConfigSmtpMail();
@@ -397,59 +386,53 @@ class EcommerceController extends Controller
             } else {
                 Mail::to($customer_email)->send(new CulqiEmail($document));
             }*/
-        }catch(\Exception $e)
-        {
+        } catch (\Exception $e) {
             return true;
         }
     }
 
     public function ratingItem(Request $request)
     {
-        if(auth('ecommerce')->user())
-        {
+        if (auth('ecommerce')->user()) {
             $user_id = auth('ecommerce')->id();
-            $row = ItemsRating::firstOrNew( ['user_id' => $user_id, 'item_id' => $request->item_id ] );
+            $row = ItemsRating::firstOrNew(['user_id' => $user_id, 'item_id' => $request->item_id]);
             $row->value = $request->value;
             $row->save();
-            return[
+            return [
                 'success' => false,
                 'message' => 'Rating Guardado'
             ];
         }
-        return[
+        return [
             'success' => false,
             'message' => 'No se guardo Rating'
         ];
-
     }
 
     public function getRating($id)
     {
-        if(auth('ecommerce')->user())
-        {
+        if (auth('ecommerce')->user()) {
             $user_id = auth('ecommerce')->id();
             $row = ItemsRating::where('user_id', $user_id)->where('item_id', $id)->first();
-            return[
+            return [
                 'success' => true,
                 'value' => ($row) ? $row->value : 0,
                 'message' => 'Valor Obtenido'
             ];
         }
-        return[
+        return [
             'success' => false,
             'value' => 0,
             'message' => 'No se obtuvo valor'
         ];
-
     }
 
-    private function getExchangeRateSale(){
+    private function getExchangeRateSale()
+    {
 
         $exchange_rate = app(ServiceController::class)->exchangeRateTest(date('Y-m-d'));
 
         return (array_key_exists('sale', $exchange_rate)) ? $exchange_rate['sale'] : 1;
-
-
     }
 
     public function saveDataUser(Request $request)
@@ -465,13 +448,10 @@ class EcommerceController extends Controller
         $user->save();
 
         return ['success' => true];
-
     }
 
     public function searchDocument($type, $number)
     {
         return (new ServiceData)->service($type, $number);
     }
-
-
 }
