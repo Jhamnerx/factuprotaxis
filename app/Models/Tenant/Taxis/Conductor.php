@@ -5,87 +5,124 @@ namespace App\Models\Tenant\Taxis;
 use App\Models\Tenant\ModelTenant;
 use Hyn\Tenancy\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 
-class Conductor extends ModelTenant
+class Conductor extends Authenticatable
 {
     use UsesTenantConnection;
     use SoftDeletes;
-
-    protected $table = 'conductores';
+    use Notifiable;
 
     protected $fillable = [
         'name',
         'number',
-        'licencias',
+        'fecha_nacimiento',
+        'licencia',
         'address',
         'telephone_1',
         'telephone_2',
         'telephone_3',
-        'enabled',
+        'email',
+        'password',
+        'enabled'
+    ];
+
+    protected $dates = [
+        'fecha_nacimiento'
     ];
 
     protected $casts = [
+        'licencia' => 'array',
         'enabled' => 'boolean',
-        'licencias' => 'array',
+        'email_verified_at' => 'datetime',
     ];
 
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $table = 'conductores';
+
     /**
-     * Obtener datos para la colección
+     * Mutator para hashear la contraseña
      */
-    public function getCollectionData($withFullAddress = false)
+    public function setPasswordAttribute($value)
+    {
+        if ($value) {
+            $this->attributes['password'] = Hash::make($value);
+        }
+    }
+
+    /**
+     * Obtener el campo de email para autenticación
+     */
+    public function getEmailForPasswordReset()
+    {
+        return $this->email;
+    }
+
+    /**
+     * Obtener el tipo de usuario para guards
+     */
+    public function getUserTypeAttribute()
+    {
+        return 'conductor';
+    }
+
+    /**
+     * Scope para conductores activos
+     */
+    public function scopeWhereEnabled($query)
+    {
+        return $query->where('enabled', true);
+    }
+
+    /**
+     * Obtener información para la colección de datos
+     */
+    public function getCollectionData()
     {
         return [
             'id' => $this->id,
             'name' => $this->name,
             'number' => $this->number,
-            'licencias' => $this->licencias ?? [],
-            'primary_license' => $this->getPrimaryLicense(),
+            'fecha_nacimiento' => $this->fecha_nacimiento ? $this->fecha_nacimiento->format('Y-m-d') : null,
+            'fecha_nacimiento_formatted' => $this->fecha_nacimiento ? $this->fecha_nacimiento->format('d/m/Y') : null,
+            'edad' => $this->fecha_nacimiento ? $this->fecha_nacimiento->diffInYears(now()) : null,
             'address' => $this->address,
             'telephone_1' => $this->telephone_1,
             'telephone_2' => $this->telephone_2,
             'telephone_3' => $this->telephone_3,
-            'enabled' => (bool)$this->enabled,
-            'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
-            'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
+            'email' => $this->email,
+            'licencia' => $this->licencia ?? [],
+            'primary_license' => $this->getPrimaryLicense(),
+            'enabled' => $this->enabled,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at
         ];
     }
 
     /**
-     * Obtener la licencia principal (primera licencia vigente)
+     * Obtener la licencia principal del conductor
      */
     public function getPrimaryLicense()
     {
-        if (!$this->licencias || !is_array($this->licencias)) {
-            return null;
-        }
-
-        // Buscar la primera licencia vigente
-        foreach ($this->licencias as $licencia) {
-            if (isset($licencia['estado']) && strtoupper($licencia['estado']) === 'VIGENTE') {
-                return $licencia;
-            }
-        }
-
-        // Si no hay licencias vigentes, devolver la primera
-        return $this->licencias[0] ?? null;
+        return $this->licencia;
     }
 
     /**
-     * Verificar si tiene licencias vigentes
+     * Verificar si el conductor tiene una licencia válida
      */
-    public function hasValidLicenses()
+    public function hasValidLicense()
     {
-        if (!$this->licencias || !is_array($this->licencias)) {
+        if (!$this->licencia || !is_array($this->licencia)) {
             return false;
         }
 
-        foreach ($this->licencias as $licencia) {
-            if (isset($licencia['estado']) && strtoupper($licencia['estado']) === 'VIGENTE') {
-                return true;
-            }
-        }
-
-        return false;
+        return isset($this->licencia['estado']) && strtoupper($this->licencia['estado']) === 'VIGENTE';
     }
 
     /**
@@ -101,8 +138,56 @@ class Conductor extends ModelTenant
      */
     public function hasVehiclesAssigned()
     {
-        // Esta función se implementará cuando se tenga la relación con vehículos
-        // return $this->vehiculos()->exists();
+        // Implementar lógica para verificar vehículos asignados
         return false;
+    }
+
+    /**
+     * Obtener el nombre completo del conductor
+     */
+    public function getFullNameAttribute()
+    {
+        return $this->name;
+    }
+
+    /**
+     * Obtener la información de la licencia formateada
+     */
+    public function getFormattedLicenseAttribute()
+    {
+        if (!$this->licencia) {
+            return 'Sin licencia';
+        }
+
+        $licencia = $this->licencia;
+        $numero = $licencia['numero'] ?? 'No especificado';
+        $estado = $licencia['estado'] ?? 'No especificado';
+        $vigencia = $licencia['vigencia'] ?? 'No especificado';
+
+        return "Licencia: {$numero} - Estado: {$estado} - Vigencia: {$vigencia}";
+    }
+
+    /**
+     * Scope para buscar conductores por DNI
+     */
+    public function scopeWhereSearchDni($query, $number)
+    {
+        if (!$number) {
+            return $query;
+        }
+
+        return $query->where('number', 'like', '%' . $number . '%');
+    }
+
+    /**
+     * Scope para buscar conductores por nombre
+     */
+    public function scopeWhereSearchName($query, $name)
+    {
+        if (!$name) {
+            return $query;
+        }
+
+        return $query->where('name', 'like', '%' . $name . '%');
     }
 }

@@ -17,18 +17,22 @@ use App\Models\Tenant\Taxis\ConstanciaBaja;
 use Hyn\Tenancy\Traits\UsesTenantConnection;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Tenant\Catalogs\IdentityDocumentType;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 
-class Propietarios extends ModelTenant
+class Propietarios extends Authenticatable
 {
     use UsesTenantConnection;
-
     use SoftDeletes;
+    use Notifiable;
 
     protected $table = 'propietarios';
     protected $fillable = [
         'identity_document_type_id',
         'number',
         'name',
+        'fecha_nacimiento',
         'trade_name',
         'country_id',
         'department_id',
@@ -36,11 +40,28 @@ class Propietarios extends ModelTenant
         'district_id',
         'address_type_id',
         'address',
-        'telephone',
+        'telephone_1',
+        'telephone_2',
+        'telephone_3',
         'email',
+        'password',
         'enabled',
         'website',
         'user_id'
+    ];
+
+    protected $dates = [
+        'fecha_nacimiento'
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'enabled' => 'boolean',
     ];
 
     protected $with = [
@@ -50,6 +71,32 @@ class Propietarios extends ModelTenant
         'province',
         'district'
     ];
+
+    /**
+     * Mutator para hashear la contraseña
+     */
+    public function setPasswordAttribute($value)
+    {
+        if ($value) {
+            $this->attributes['password'] = Hash::make($value);
+        }
+    }
+
+    /**
+     * Obtener el campo de email para autenticación
+     */
+    public function getEmailForPasswordReset()
+    {
+        return $this->email;
+    }
+
+    /**
+     * Obtener el tipo de usuario para guards
+     */
+    public function getUserTypeAttribute()
+    {
+        return 'propietario';
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -155,6 +202,9 @@ class Propietarios extends ModelTenant
             'id' => $this->id,
             'name' => $this->name,
             'number' => $this->number,
+            'fecha_nacimiento' => $this->fecha_nacimiento ? $this->fecha_nacimiento->format('Y-m-d') : null,
+            'fecha_nacimiento_formatted' => $this->fecha_nacimiento ? $this->fecha_nacimiento->format('d/m/Y') : null,
+            'edad' => $this->fecha_nacimiento ? $this->fecha_nacimiento->diffInYears(now()) : null,
             'enabled' => (bool)$this->enabled,
             'identity_document_type_id' => $this->identity_document_type_id,
             'identity_document_type_code' => $this->identity_document_type->code,
@@ -168,7 +218,9 @@ class Propietarios extends ModelTenant
             'province' => $province,
             'district_id' => $district['id'] ?? null,
             'district' => $district,
-            'telephone' => $this->telephone,
+            'telephone_1' => $this->telephone_1,
+            'telephone_2' => $this->telephone_2,
+            'telephone_3' => $this->telephone_3,
             'email' => $this->email,
             'addresses' => $addresses,
             'location_id' => $location_id,

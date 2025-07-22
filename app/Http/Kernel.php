@@ -71,5 +71,6 @@ class Kernel extends HttpKernel
         //'locked.admin' => \App\Http\Middleware\LockedAdmin::class,
         'tenant.internal.mode' => \App\Http\Middleware\InternalModeTenant::class,
         'tenant.auto.login' => \Modules\MultiUser\Http\Middleware\Tenant\AutoLogin::class,
+        'taxis.auth' => \App\Http\Middleware\TaxisAuth::class,
     ];
 }

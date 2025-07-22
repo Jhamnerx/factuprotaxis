@@ -29,18 +29,9 @@ class CreatePlantillaMensajesTable extends Migration
         // Verificar si ya existen datos antes de insertar
         if (DB::table('plantilla_mensajes')->count() == 0) {
             // Insertar plantillas predeterminadas
-            DB::table('plantilla_mensajes')->insert([
+            DB::table('plantilla_mensajes')->insert(
                 [
                     'tipo' => 'bienvenida',
-                    'asunto' => 'Bienvenido/a a nuestra plataforma',
-                    'contenido' => 'Estimado/a [nombre], le damos la bienvenida a nuestra plataforma de taxis.',
-                    'descripcion' => 'Mensaje de bienvenida para nuevos usuarios',
-                    'estado' => true,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ],
-                [
-                    'tipo' => 'bienvenida_conductor',
                     'asunto' => 'Bienvenido a la familia San Pedro',
                     'contenido' => "Estimado [nombre]:
 
@@ -123,24 +114,6 @@ Con aprecio, tu equipo San Pedro",
                     'asunto' => 'Vencimiento de licencia',
                     'contenido' => 'Estimado/a conductor [nombre], le recordamos que su licencia vencerá el [fecha_vencimiento].',
                     'descripcion' => 'Mensaje de recordatorio de vencimiento de licencia para conductores',
-                    'estado' => true,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ],
-                [
-                    'tipo' => 'vencimiento_licencia_encargado',
-                    'asunto' => 'Vencimiento de licencia',
-                    'contenido' => 'Estimado/a encargado [nombre], le recordamos que su licencia vencerá el [fecha_vencimiento].',
-                    'descripcion' => 'Mensaje de recordatorio de vencimiento de licencia para encargados',
-                    'estado' => true,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ],
-                [
-                    'tipo' => 'vencimiento_licencia_propietario',
-                    'asunto' => 'Vencimiento de licencia',
-                    'contenido' => 'Estimado/a propietario [nombre], le recordamos que su licencia vencerá el [fecha_vencimiento].',
-                    'descripcion' => 'Mensaje de recordatorio de vencimiento de licencia para propietarios',
                     'estado' => true,
                     'created_at' => now(),
                     'updated_at' => now()

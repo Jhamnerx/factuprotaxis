@@ -11,7 +11,7 @@ use Modules\WhatsAppApi\Http\Requests\Api\SendMessageRequest;
 
 class WhatsAppApiController extends Controller
 {
-    
+
     /**
      * Enviar mensaje
      * Disponible texto y documento pdf
@@ -23,5 +23,4 @@ class WhatsAppApiController extends Controller
     {
         return (new WhatsAppCloudApi())->sendMessage($request->all());
     }
-
 }

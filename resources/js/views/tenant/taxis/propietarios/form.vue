@@ -147,6 +147,38 @@
                                     ></small>
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div
+                                    :class="{
+                                        'has-danger': errors.fecha_nacimiento
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Fecha de Nacimiento</label
+                                    >
+                                    <el-date-picker
+                                        v-model="form.fecha_nacimiento"
+                                        type="date"
+                                        placeholder="Seleccione fecha"
+                                        format="dd/MM/yyyy"
+                                        value-format="yyyy-MM-dd"
+                                        :picker-options="{
+                                            disabledDate(time) {
+                                                return (
+                                                    time.getTime() > Date.now()
+                                                );
+                                            }
+                                        }"
+                                        style="width: 100%"
+                                    ></el-date-picker>
+                                    <small
+                                        v-if="errors.fecha_nacimiento"
+                                        class="form-control-feedback"
+                                        v-text="errors.fecha_nacimiento[0]"
+                                    ></small>
+                                </div>
+                            </div>
                             <div v-if="form.state" class="col-md-6">
                                 <div class="form-group">
                                     <label class="control-label"
@@ -191,6 +223,71 @@
                                             type="error"
                                         ></el-alert>
                                     </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos de Acceso al Sistema -->
+                        <div class="row">
+                            <!-- Correo electronico contacto -->
+                            <div class="col-md-6">
+                                <div
+                                    :class="{ 'has-danger': errors.email }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Correo electrónico
+                                        <span class="text-danger"
+                                            >*</span
+                                        ></label
+                                    >
+                                    <el-input
+                                        v-model="form.email"
+                                        dusk="email"
+                                        type="email"
+                                        placeholder="ejemplo@correo.com"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.email"
+                                        class="form-control-feedback"
+                                        v-text="errors.email[0]"
+                                    ></small>
+                                    <small class="text-muted">
+                                        Este correo será usado para acceder al
+                                        módulo de taxis
+                                    </small>
+                                </div>
+                            </div>
+                            <!-- Contraseña para acceso al sistema -->
+                            <div class="col-md-6">
+                                <div
+                                    :class="{ 'has-danger': errors.password }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Contraseña para acceso al
+                                        sistema</label
+                                    >
+                                    <el-input
+                                        v-model="form.password"
+                                        dusk="password"
+                                        type="password"
+                                        show-password
+                                        :placeholder="
+                                            recordId
+                                                ? 'Dejar vacío para mantener la contraseña actual'
+                                                : 'Ingrese la contraseña'
+                                        "
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.password"
+                                        class="form-control-feedback"
+                                        v-text="errors.password[0]"
+                                    ></small>
+                                    <small class="text-muted">
+                                        Esta contraseña permitirá al propietario
+                                        acceder al módulo de taxis
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -270,43 +367,72 @@
                         </div>
 
                         <div class="row">
-                            <!-- Telefono -->
-                            <div class="col-md-6">
+                            <!-- Teléfono 1 -->
+                            <div class="col-md-4">
                                 <div
-                                    :class="{ 'has-danger': errors.telephone }"
+                                    :class="{
+                                        'has-danger': errors.telephone_1
+                                    }"
                                     class="form-group"
                                 >
                                     <label class="control-label"
-                                        >Teléfono</label
+                                        >Teléfono 1</label
                                     >
                                     <el-input
-                                        v-model="form.telephone"
-                                        dusk="telephone"
+                                        v-model="form.telephone_1"
+                                        dusk="telephone_1"
+                                        maxlength="20"
                                     ></el-input>
                                     <small
-                                        v-if="errors.telephone"
+                                        v-if="errors.telephone_1"
                                         class="form-control-feedback"
-                                        v-text="errors.telephone[0]"
+                                        v-text="errors.telephone_1[0]"
                                     ></small>
                                 </div>
                             </div>
-                            <!-- Correo electronico contacto -->
-                            <div class="col-md-6">
+                            <!-- Teléfono 2 -->
+                            <div class="col-md-4">
                                 <div
-                                    :class="{ 'has-danger': errors.email }"
+                                    :class="{
+                                        'has-danger': errors.telephone_2
+                                    }"
                                     class="form-group"
                                 >
                                     <label class="control-label"
-                                        >Correo electrónico</label
+                                        >Teléfono 2</label
                                     >
                                     <el-input
-                                        v-model="form.email"
-                                        dusk="email"
+                                        v-model="form.telephone_2"
+                                        dusk="telephone_2"
+                                        maxlength="20"
                                     ></el-input>
                                     <small
-                                        v-if="errors.email"
+                                        v-if="errors.telephone_2"
                                         class="form-control-feedback"
-                                        v-text="errors.email[0]"
+                                        v-text="errors.telephone_2[0]"
+                                    ></small>
+                                </div>
+                            </div>
+                            <!-- Teléfono 3 -->
+                            <div class="col-md-4">
+                                <div
+                                    :class="{
+                                        'has-danger': errors.telephone_3
+                                    }"
+                                    class="form-group"
+                                >
+                                    <label class="control-label"
+                                        >Teléfono 3</label
+                                    >
+                                    <el-input
+                                        v-model="form.telephone_3"
+                                        dusk="telephone_3"
+                                        maxlength="20"
+                                    ></el-input>
+                                    <small
+                                        v-if="errors.telephone_3"
+                                        class="form-control-feedback"
+                                        v-text="errors.telephone_3[0]"
                                     ></small>
                                 </div>
                             </div>
@@ -388,8 +514,12 @@ export default {
                 identity_document_type_id: "6",
                 number: "",
                 name: null,
-                telephone: null,
+                fecha_nacimiento: null,
+                telephone_1: null,
+                telephone_2: null,
+                telephone_3: null,
                 email: null,
+                password: null,
                 country_id: "PE",
                 location_id: [],
                 department_id: null,
@@ -430,6 +560,8 @@ export default {
                     .get(`/${this.resource}/record/${this.recordId}`)
                     .then(response => {
                         this.form = response.data.data;
+                        // Limpiar la contraseña para no mostrarla en modo edición
+                        this.form.password = "";
                         this.filterProvinces();
                         this.filterDistricts();
                     });
@@ -487,16 +619,74 @@ export default {
                 success: true
             };
         },
+        validateEmail() {
+            if (this.form.email) {
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(this.form.email)) {
+                    return {
+                        success: false,
+                        message:
+                            "El formato del correo electrónico no es válido."
+                    };
+                }
+            }
+            return {
+                success: true
+            };
+        },
+        validateRequiredFields() {
+            // Validar email requerido
+            if (!this.form.email || this.form.email.trim() === "") {
+                return {
+                    success: false,
+                    message: "El correo electrónico es requerido."
+                };
+            }
+
+            // Validar contraseña requerida solo en nuevos registros
+            if (
+                !this.recordId &&
+                (!this.form.password || this.form.password.trim() === "")
+            ) {
+                return {
+                    success: false,
+                    message:
+                        "La contraseña es requerida para nuevos propietarios."
+                };
+            }
+
+            return {
+                success: true
+            };
+        },
         async submit() {
             let val_digits = await this.validateDigits();
             if (!val_digits.success) {
                 return this.$message.error(val_digits.message);
             }
 
+            let val_required = await this.validateRequiredFields();
+            if (!val_required.success) {
+                return this.$message.error(val_required.message);
+            }
+
+            let val_email = await this.validateEmail();
+            if (!val_email.success) {
+                return this.$message.error(val_email.message);
+            }
+
             this.loading_submit = true;
 
+            // Preparar datos para el envío
+            let formData = { ...this.form };
+
+            // Si la contraseña está vacía en modo edición, eliminarla del objeto
+            if (this.recordId && !formData.password) {
+                delete formData.password;
+            }
+
             await this.$http
-                .post(`/${this.resource}`, this.form)
+                .post(`/${this.resource}`, formData)
                 .then(response => {
                     if (response.data.success) {
                         this.$message.success(response.data.message);

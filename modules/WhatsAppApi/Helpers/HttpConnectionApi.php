@@ -10,7 +10,7 @@ class HttpConnectionApi
 {
 
     protected $token;
-    
+
     /**
      *
      * @param  string $token
@@ -21,7 +21,7 @@ class HttpConnectionApi
         $this->token = $token;
     }
 
-    
+
     /**
      * 
      * Petición
@@ -52,18 +52,15 @@ class HttpConnectionApi
             $response = curl_exec($ch);
             $curl_error = curl_error($ch);
 
-            if($curl_error) return $this->responseMessage(false, 'Error en la petición a la Api');
+            if ($curl_error) return $this->responseMessage(false, 'Error en la petición a la Api');
 
             return json_decode($response, true);
-
-        }catch (Exception $e)
-        {
+        } catch (Exception $e) {
             return $this->responseError($e);
         }
-
     }
 
-        
+
     /**
      *
      * @param  boolean $success
@@ -77,8 +74,8 @@ class HttpConnectionApi
             'message' => $message,
         ];
     }
-    
-    
+
+
     /**
      *
      * @param  Exception $e
@@ -93,5 +90,4 @@ class HttpConnectionApi
             'message' => "Error desconocido: {$e->getMessage()}",
         ];
     }
-
 }

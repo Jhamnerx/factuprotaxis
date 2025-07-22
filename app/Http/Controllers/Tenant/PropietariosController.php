@@ -32,9 +32,13 @@ class PropietariosController extends Controller
         return [
             'name' => 'Nombre',
             'number' => 'Número de documento',
+            'fecha_nacimiento_formatted' => 'Fecha de Nacimiento',
+            'edad' => 'Edad',
             'identity_document_type' => 'Tipo de documento',
             'address' => 'Dirección',
-            'telephone' => 'Teléfono',
+            'telephone_1' => 'Teléfono 1',
+            'telephone_2' => 'Teléfono 2',
+            'telephone_3' => 'Teléfono 3',
             'email' => 'Correo electrónico',
             'department' => 'Departamento',
             'province' => 'Provincia',
@@ -109,7 +113,7 @@ class PropietariosController extends Controller
                 $person->name = $propietario->name;
                 $person->identity_document_type_id = $propietario->identity_document_type_id;
                 $person->email = $propietario->email;
-                $person->telephone = $propietario->telephone;
+                $person->telephone = $propietario->telephone_1;
                 $person->address = $propietario->address;
                 $person->country_id = $propietario->country_id;
                 $location_id = $request->input('location_id');

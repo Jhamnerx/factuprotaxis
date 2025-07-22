@@ -58,10 +58,28 @@
                             Correo
                         </th>
                         <th
-                            v-if="columns.telephone.visible === true"
+                            v-if="columns.fecha_nacimiento.visible === true"
                             class="text-center"
                         >
-                            Telefono
+                            Fecha de Nacimiento
+                        </th>
+                        <th
+                            v-if="columns.telephone_1.visible === true"
+                            class="text-center"
+                        >
+                            Teléfono 1
+                        </th>
+                        <th
+                            v-if="columns.telephone_2.visible === true"
+                            class="text-center"
+                        >
+                            Teléfono 2
+                        </th>
+                        <th
+                            v-if="columns.telephone_3.visible === true"
+                            class="text-center"
+                        >
+                            Teléfono 3
                         </th>
                         <th
                             v-if="columns.department.visible === true"
@@ -101,10 +119,28 @@
                             {{ row.email }}
                         </td>
                         <td
-                            v-if="columns.telephone.visible === true"
+                            v-if="columns.fecha_nacimiento.visible === true"
                             class="text-center"
                         >
-                            {{ row.telephone ? row.telephone : "" }}
+                            {{ row.fecha_nacimiento_formatted }}
+                        </td>
+                        <td
+                            v-if="columns.telephone_1.visible === true"
+                            class="text-center"
+                        >
+                            {{ row.telephone_1 ? row.telephone_1 : "" }}
+                        </td>
+                        <td
+                            v-if="columns.telephone_2.visible === true"
+                            class="text-center"
+                        >
+                            {{ row.telephone_2 ? row.telephone_2 : "" }}
+                        </td>
+                        <td
+                            v-if="columns.telephone_3.visible === true"
+                            class="text-center"
+                        >
+                            {{ row.telephone_3 ? row.telephone_3 : "" }}
                         </td>
                         <td
                             v-if="columns.department.visible === true"
@@ -200,12 +236,24 @@ export default {
             recordId: null,
             resource: "propietarios",
             columns: {
-                email: {
-                    label: "Correo electrónico",
+                fecha_nacimiento: {
+                    label: "Fecha de Nacimiento",
                     visible: false
                 },
-                telephone: {
-                    label: "Teléfono",
+                telephone_1: {
+                    label: "Teléfono 1",
+                    visible: false
+                },
+                telephone_2: {
+                    label: "Teléfono 2",
+                    visible: false
+                },
+                telephone_3: {
+                    label: "Teléfono 3",
+                    visible: false
+                },
+                email: {
+                    label: "Correo electrónico",
                     visible: false
                 },
                 department: {

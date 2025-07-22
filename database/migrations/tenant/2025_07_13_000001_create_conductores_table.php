@@ -17,7 +17,8 @@ class CreateConductoresTable extends Migration
             $table->increments('id');
             $table->string('name');
             $table->string('number', 20)->unique(); // DNI o número de licencia
-            $table->json('licencias')->nullable(); // Array de licencias
+            $table->date('fecha_nacimiento')->nullable(); // Fecha de nacimiento
+            $table->json('licencia')->nullable(); // Licencia única
             $table->string('address')->nullable();
             $table->string('telephone_1', 20)->nullable();
             $table->string('telephone_2', 20)->nullable();

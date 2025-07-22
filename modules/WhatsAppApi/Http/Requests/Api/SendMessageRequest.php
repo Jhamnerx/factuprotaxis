@@ -28,10 +28,9 @@ class SendMessageRequest extends FormRequest
                 'numeric',
             ]
         ];
-        
 
-        if($send_type === 'document')
-        {
+
+        if ($send_type === 'document') {
             $validations = [
                 'document.link' => [
                     'required',
@@ -40,20 +39,14 @@ class SendMessageRequest extends FormRequest
                     'required',
                 ],
             ];
-        }
-        else
-        {
+        } else {
             $validations = [
                 'message' => [
                     'required',
                 ],
             ];
-
         }
 
         return array_merge($general_validations, $validations);
-
     }
-
-
 }

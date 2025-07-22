@@ -60,6 +60,21 @@ return [
             'provider' => 'customers',
         ],
 
+        'propietarios' => [
+            'driver' => 'session',
+            'provider' => 'propietarios',
+        ],
+
+        'conductores' => [
+            'driver' => 'session',
+            'provider' => 'conductores',
+        ],
+
+        'taxis' => [
+            'driver' => 'session',
+            'provider' => 'taxis_users',
+        ],
+
     ],
 
     /*
@@ -92,6 +107,21 @@ return [
         'customers' => [
             'driver' => 'eloquent',
             'model' => App\Models\Tenant\Person::class,
+        ],
+
+        'propietarios' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Tenant\Taxis\Propietarios::class,
+        ],
+
+        'conductores' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Tenant\Taxis\Conductor::class,
+        ],
+
+        'taxis_users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Tenant\Taxis\Propietarios::class,
         ],
     ],
 

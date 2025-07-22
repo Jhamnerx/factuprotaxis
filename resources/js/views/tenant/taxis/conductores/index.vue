@@ -51,7 +51,11 @@
                     <tr slot="heading">
                         <th>Nombre</th>
                         <th class="text-right">Número de documento</th>
-                        <th class="text-center">Licencias</th>
+                        <th class="text-center">Licencia</th>
+                        <th v-if="columns.fecha_nacimiento_formatted.visible">
+                            Fecha de Nacimiento
+                        </th>
+                        <th v-if="columns.edad.visible">Edad</th>
                         <th v-if="columns.address.visible">Dirección</th>
                         <th v-if="columns.telephone_1.visible">Teléfono 1</th>
                         <th v-if="columns.telephone_2.visible">Teléfono 2</th>
@@ -66,18 +70,16 @@
                         <td>{{ row.name }}</td>
                         <td class="text-right">{{ row.number }}</td>
                         <td class="text-center">
-                            <div v-if="row.licencias_count > 0">
+                            <div v-if="row.licencia && row.licencia.numero">
                                 <el-tag
                                     :type="
-                                        row.has_valid_licenses
+                                        row.has_valid_license
                                             ? 'success'
                                             : 'warning'
                                     "
                                     size="mini"
                                 >
-                                    {{ row.licencias_count }} licencia{{
-                                        row.licencias_count > 1 ? "s" : ""
-                                    }}
+                                    {{ row.primary_license_status }}
                                 </el-tag>
                                 <br />
                                 <small class="text-muted">
@@ -85,13 +87,21 @@
                                         row.primary_license_category
                                     }})
                                 </small>
+                                <br />
+                                <small class="text-muted">
+                                    Vence: {{ row.primary_license_expiration }}
+                                </small>
                             </div>
                             <div v-else>
                                 <el-tag type="danger" size="mini"
-                                    >Sin licencias</el-tag
+                                    >Sin licencia</el-tag
                                 >
                             </div>
                         </td>
+                        <td v-if="columns.fecha_nacimiento_formatted.visible">
+                            {{ row.fecha_nacimiento_formatted }}
+                        </td>
+                        <td v-if="columns.edad.visible">{{ row.edad }} años</td>
                         <td v-if="columns.address.visible">
                             {{ row.address }}
                         </td>
@@ -161,6 +171,14 @@ export default {
             columns: {
                 address: {
                     label: "Dirección",
+                    visible: false
+                },
+                fecha_nacimiento_formatted: {
+                    label: "Fecha de Nacimiento",
+                    visible: false
+                },
+                edad: {
+                    label: "Edad",
                     visible: false
                 },
                 telephone_1: {

@@ -11,6 +11,6 @@
 |
 */
 
-Route::prefix('whatsappapi')->group(function() {
+Route::prefix('whatsappapi')->group(function () {
     Route::get('/', 'WhatsAppApiController@index');
 });

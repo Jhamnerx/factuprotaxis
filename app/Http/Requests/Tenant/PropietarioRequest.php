@@ -30,11 +30,18 @@ class PropietarioRequest extends FormRequest
                     return $query->where('id', '<>', $id);
                 })
             ],
-            'telephone' => 'nullable|string|max:20',
+            'fecha_nacimiento' => 'nullable|date|before:today',
+            'telephone_1' => 'nullable|string|max:20',
+            'telephone_2' => 'nullable|string|max:20',
+            'telephone_3' => 'nullable|string|max:20',
             'email' => [
                 'nullable',
                 'email',
+                Rule::unique('tenant.propietarios')->where(function ($query) use ($id) {
+                    return $query->where('id', '<>', $id);
+                })
             ],
+            'password' => 'nullable|string|min:6',
             'location_id' => 'required',
             'country_id' => [
                 'required',

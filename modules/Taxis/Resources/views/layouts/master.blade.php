@@ -36,7 +36,7 @@
 
         @include('taxis::components.sidebar')
         <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-
+            @include('taxis::components.header')
             <main class="grow">
                 @yield('content')
             </main>

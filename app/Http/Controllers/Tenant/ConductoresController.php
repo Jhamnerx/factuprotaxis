@@ -26,7 +26,9 @@ class ConductoresController extends Controller
         return [
             'name' => 'Nombre',
             'number' => 'Número de documento',
-            'licencias' => 'Licencias',
+            'fecha_nacimiento_formatted' => 'Fecha de Nacimiento',
+            'edad' => 'Edad',
+            'licencia' => 'Licencia',
             'address' => 'Dirección',
             'telephone_1' => 'Teléfono 1',
             'telephone_2' => 'Teléfono 2',
@@ -58,8 +60,10 @@ class ConductoresController extends Controller
 
     public function store(ConductorRequest $request)
     {
+
         try {
             $id = $request->input('id');
+
             $conductor = Conductor::firstOrNew(['id' => $id]);
             $data = $request->all();
             unset($data['id']);
@@ -120,7 +124,7 @@ class ConductoresController extends Controller
             ->where(function ($query) use ($term) {
                 $query->where('name', 'like', "%{$term}%")
                     ->orWhere('number', 'like', "%{$term}%")
-                    ->orWhere('licencias', 'like', "%{$term}%");
+                    ->orWhere('licencia', 'like', "%{$term}%");
             })
             ->orderBy('name')
             ->take(15)

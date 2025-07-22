@@ -41,8 +41,8 @@ export default {
             loading: false,
             resource: "service",
             searchType: "licencia", // Por defecto licencia
-            maxLength: 20,
-            placeholder: "Número de licencia",
+            maxLength: 8,
+            placeholder: "Número de DNI (8 dígitos)",
             buttonText: "LICENCIA"
         };
     },
@@ -57,48 +57,25 @@ export default {
             this.$emit("input", "");
 
             if (this.searchType === "dni") {
-                this.maxLength = 8;
-                this.placeholder = "Número de DNI (8 dígitos)";
                 this.buttonText = "DNI";
             } else {
-                this.maxLength = 20;
-                this.placeholder = "Número de licencia";
                 this.buttonText = "LICENCIA";
             }
         },
         handleInput(value) {
-            if (this.searchType === "dni") {
-                // Solo permitir números y máximo 8 caracteres para DNI
-                const numericValue = value
-                    .replace(/[^0-9]/g, "")
-                    .substring(0, 8);
-                this.$emit("input", numericValue);
-            } else {
-                // Para licencia, permitir alfanuméricos
-                const alphanumericValue = value
-                    .replace(/[^a-zA-Z0-9]/g, "")
-                    .substring(0, 20);
-                this.$emit("input", alphanumericValue.toUpperCase());
-            }
+            // Siempre manejar como DNI (solo números, máximo 8 caracteres)
+            const numericValue = value.replace(/[^0-9]/g, "").substring(0, 8);
+            this.$emit("input", numericValue);
         },
         clickSearch() {
             if (!this.value || this.value.trim() === "") {
-                const fieldName =
-                    this.searchType === "dni" ? "DNI" : "número de licencia";
-                this.$message.warning(`Por favor ingrese un ${fieldName}`);
+                this.$message.warning("Por favor ingrese un número de DNI");
                 return;
             }
 
-            if (this.searchType === "dni" && this.value.length !== 8) {
+            if (this.value.length !== 8) {
                 this.$message.warning(
                     "El DNI debe tener exactamente 8 dígitos"
-                );
-                return;
-            }
-
-            if (this.searchType === "licencia" && this.value.length < 3) {
-                this.$message.warning(
-                    "El número de licencia debe tener al menos 3 caracteres"
                 );
                 return;
             }
@@ -126,4 +103,15 @@ export default {
                         error.response.data &&
                         error.response.data.message
                     ) {
-                        this.$message.error(error.response.data.mes
+                        this.$message.error(error.response.data.message);
+                    } else {
+                        this.$message.error("Error al consultar el servicio");
+                    }
+                })
+                .then(() => {
+                    this.loading = false;
+                });
+        }
+    }
+};
+</script>
