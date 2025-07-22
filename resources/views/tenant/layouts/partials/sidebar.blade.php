@@ -353,7 +353,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                         @endif
                         @if (in_array('taxis', $vc_modules))
                             <li
-                                class="nav-parent {{ in_array($firstLevel, ['mensajes', 'propietarios', 'conductores', 'unidades', 'marcas', 'modelos', 'planes', 'condiciones', 'pagos', 'permisos', 'hoja_ruta', 'manifiesto', 'constancias', 'informes', 'solicitudes', 'contratos', 'declaraciones', 'constancia_trabajo']) ? 'nav-active nav-expanded' : '' }}">
+                                class="nav-parent {{ in_array($firstLevel, ['mensajes', 'propietarios', 'conductores', 'unidades', 'marcas', 'modelos', 'planes', 'condiciones', 'pagos', 'permisos', 'hoja_ruta', 'manifiesto', 'constancias', 'informes', 'solicitudes', 'contratos', 'declaraciones', 'constancia_trabajo', 'vehicle_services']) ? 'nav-active nav-expanded' : '' }}">
                                 <a class="nav-link" href="#">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -442,6 +442,24 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                                                     </ul>
                                                 </li>
                                             </ul>
+                                        </li>
+                                    @endif
+
+                                    @if (in_array('unidades', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'vehicle_services' ? 'nav-active' : '' }}">
+                                            <a class="nav-link"
+                                                href="{{ route('tenant.taxi.vehicle_services.index') }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                                    <path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                                    <path
+                                                        d="M5 17h-2v-6l2-5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-6m-6 -6h15m-6 0v-5">
+                                                    </path>
+                                                </svg>
+                                                <span>Servicios de Vehículos</span>
+                                            </a>
                                         </li>
                                     @endif
 

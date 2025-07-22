@@ -16,6 +16,7 @@ use App\Http\Requests\Tenant\PropietarioRequest;
 use App\Http\Resources\Tenant\PropietarioResource;
 use App\Http\Resources\Tenant\PropietarioCollection;
 use App\Models\Tenant\Catalogs\IdentityDocumentType;
+use App\Jobs\Tenant\SendWelcomeMessageJob;
 
 class PropietariosController extends Controller
 {
@@ -128,6 +129,12 @@ class PropietariosController extends Controller
 
             $propietario->person_id = $person_id;
             $propietario->save();
+
+            // Enviar mensaje de bienvenida si es un nuevo propietario
+            if (!$id && $propietario->telephone_1) {
+                SendWelcomeMessageJob::dispatch('propietario', $propietario->toArray())
+                    ->delay(now()->addMinutes(1));
+            }
 
             $msg = ($id) ? 'Propietario editado con éxito' : 'Propietario registrado con éxito';
 

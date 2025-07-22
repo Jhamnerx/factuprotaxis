@@ -49,6 +49,9 @@ class Company extends ModelTenant
         'user_pse',
         'ws_api_token',
         'ws_api_phone_number_id',
+        'ws_unofficial_api_key',
+        'ws_unofficial_sender',
+        'ws_unofficial_url',
         'soap_sunat_username',
         'soap_sunat_password',
         'api_sunat_id',
@@ -188,7 +191,7 @@ class Company extends ModelTenant
      */
     public function scopeSelectDataWhatsAppApi($query)
     {
-        return $query->select('ws_api_token', 'ws_api_phone_number_id');
+        return $query->select('ws_api_token', 'ws_api_phone_number_id', 'ws_unofficial_api_key', 'ws_unofficial_sender', 'ws_unofficial_url');
     }
 
     /**

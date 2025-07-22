@@ -493,6 +493,28 @@ if ($hostname) {
             Route::post('condiciones', 'Tenant\CondicionesController@store');
             Route::delete('condiciones/{condicion}', 'Tenant\CondicionesController@destroy');
 
+            // Plantillas de Mensajes WhatsApp
+            Route::get('plantillas-mensajes', 'Tenant\PlantillaMensajeController@index')->name('tenant.taxi.plantillas_mensajes.index');
+            Route::get('plantillas-mensajes/columns', 'Tenant\PlantillaMensajeController@columns');
+            Route::get('plantillas-mensajes/records', 'Tenant\PlantillaMensajeController@records');
+            Route::get('plantillas-mensajes/record/{id}', 'Tenant\PlantillaMensajeController@record');
+            Route::get('plantillas-mensajes/tables', 'Tenant\PlantillaMensajeController@tables');
+            Route::post('plantillas-mensajes', 'Tenant\PlantillaMensajeController@store');
+            Route::delete('plantillas-mensajes/{id}', 'Tenant\PlantillaMensajeController@destroy');
+            Route::post('plantillas-mensajes/preview', 'Tenant\PlantillaMensajeController@preview');
+            Route::get('plantillas-mensajes/variables/{tipo}', 'Tenant\PlantillaMensajeController@getAvailableVariables');
+
+            // Servicios de Vehículos (SOAT, Revisión Técnica, etc.)
+            Route::get('vehicle-services', 'Tenant\VehicleServiceController@index')->name('tenant.taxi.vehicle_services.index');
+            Route::get('vehicle-services/columns', 'Tenant\VehicleServiceController@columns');
+            Route::get('vehicle-services/records', 'Tenant\VehicleServiceController@records');
+            Route::get('vehicle-services/record/{id}', 'Tenant\VehicleServiceController@record');
+            Route::get('vehicle-services/tables', 'Tenant\VehicleServiceController@tables');
+            Route::post('vehicle-services', 'Tenant\VehicleServiceController@store');
+            Route::delete('vehicle-services/{id}', 'Tenant\VehicleServiceController@destroy');
+            Route::get('vehicle-services/dashboard', 'Tenant\VehicleServiceController@dashboard');
+            Route::post('vehicle-services/{id}/send-notification', 'Tenant\VehicleServiceController@sendNotification');
+
             Route::get('pagos/calendario', 'Tenant\PagosController@calendario')->name('tenant.taxi.pagos.calendario');
             Route::get('pagos/listado', 'Tenant\PagosController@index')->name('tenant.taxi.pagos.index');
             Route::get('pagos/columns', 'Tenant\PagosController@columns');

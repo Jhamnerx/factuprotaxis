@@ -88,14 +88,14 @@ Con aprecio, tu equipo San Pedro",
                     'updated_at' => now()
                 ],
                 [
-                    'tipo' => 'cumpleanos_encargado',
+                    'tipo' => 'cumpleanos_personal',
                     'asunto' => 'Feliz Cumpleaños',
                     'contenido' => "Estimado [nombre]:
 
 En tu onomástico, la familia San Pedro te envía un cálido saludo y nuestras más sinceras felicitaciones. Agradecemos tu gestión y dedicación con nuestros servicios. ¡Te deseamos un día lleno de felicidad y éxito!
 
 Con aprecio, tu equipo San Pedro",
-                    'descripcion' => 'Mensaje de felicitación de cumpleaños para encargados',
+                    'descripcion' => 'Mensaje de felicitación de cumpleaños para personal',
                     'estado' => true,
                     'created_at' => now(),
                     'updated_at' => now()
@@ -135,8 +135,8 @@ Con aprecio, tu equipo San Pedro",
                     'estado' => true,
                     'created_at' => now(),
                     'updated_at' => now()
-                ]
-            ]);
+                ],
+            );
         }
     }
 

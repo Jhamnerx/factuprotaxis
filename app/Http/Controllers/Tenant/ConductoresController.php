@@ -11,6 +11,7 @@ use App\Models\Tenant\Taxis\Conductor;
 use App\Http\Requests\Tenant\ConductorRequest;
 use App\Http\Resources\Tenant\ConductorResource;
 use App\Http\Resources\Tenant\ConductorCollection;
+use App\Jobs\Tenant\SendWelcomeMessageJob;
 
 class ConductoresController extends Controller
 {
@@ -69,6 +70,22 @@ class ConductoresController extends Controller
             unset($data['id']);
             $conductor->fill($data);
             $conductor->save();
+
+            // Enviar mensaje de bienvenida si es un nuevo conductor
+            if (!$id && $conductor->telephone_1) {
+                // Buscar si el conductor tiene vehículo asignado para incluir datos del vehículo
+                $vehicleData = null;
+                if (method_exists($conductor, 'vehiculos') && $conductor->vehiculos()->exists()) {
+                    $vehiculo = $conductor->vehiculos()->first();
+                    $vehicleData = [
+                        'numero_interno' => $vehiculo->numero_interno,
+                        'placa' => $vehiculo->placa
+                    ];
+                }
+
+                SendWelcomeMessageJob::dispatch('conductor', $conductor->toArray(), $vehicleData)
+                    ->delay(now()->addMinutes(1));
+            }
 
             $msg = ($id) ? 'Conductor editado con éxito' : 'Conductor registrado con éxito';
 

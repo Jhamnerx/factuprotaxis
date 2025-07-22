@@ -1359,6 +1359,16 @@ Vue.component(
     require("./views/tenant/taxis/mensajes/plantillas.vue")
 );
 
+Vue.component(
+    "tenant-taxis-services-index",
+    require("./views/tenant/taxis/services/index.vue")
+);
+
+Vue.component(
+    "taxis-services-form",
+    require("./views/tenant/taxis/services/form.vue")
+);
+
 import VueClipboard from "vue-clipboard2";
 Vue.use(VueClipboard);
 
