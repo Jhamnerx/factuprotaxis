@@ -83,7 +83,7 @@ class PermisosController extends Controller
             ->orderBy('numero_interno')
             ->take(20)
             ->get()->transform(function ($row) {
-                /** @var Vehiculo $row */
+                /** @var Vehiculos $row */
                 return $row->getCollectionData();
             });
 

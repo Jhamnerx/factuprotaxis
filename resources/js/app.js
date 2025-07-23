@@ -53,6 +53,10 @@ Vue.component(
     "tenant-whatsapp-api-index",
     require("./views/tenant/companies/whatsapp_api/index.vue")
 );
+Vue.component(
+    "tenant-whatsapp-api-unofficial-index",
+    require("./views/tenant/companies/whatsapp_api/unofficial_index.vue")
+);
 
 Vue.component(
     "tenant-companies-form",

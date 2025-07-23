@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenant\VehicleService;
 use App\Models\Tenant\Taxis\Vehiculos;
 use App\Models\Tenant\Configuration;
+use App\Http\Resources\Tenant\VehicleServiceResource;
+use App\Http\Resources\Tenant\VehicleServiceCollection;
 use Carbon\Carbon;
 
 class VehicleServiceController extends Controller
@@ -52,56 +54,18 @@ class VehicleServiceController extends Controller
 
         $data = $records->paginate(config('tenant.items_per_page'));
 
-        // Agregar información calculada
-        $data->getCollection()->transform(function ($service) {
-            $diasRestantes = $service->diasHastaVencimiento();
-
-            return [
-                'id' => $service->id,
-                'vehiculo_placa' => $service->vehiculo->placa ?? 'Sin placa',
-                'vehiculo_numero_interno' => $service->vehiculo->numero_interno ?? '',
-                'name' => $service->name,
-                'expires_date' => $service->expires_date ? $service->expires_date->format('d/m/Y') : '',
-                'dias_restantes' => $diasRestantes,
-                'dias_restantes_badge' => $this->getDiasRestantesBadge($diasRestantes),
-                'mobile_phone' => $service->mobile_phone,
-                'event_sent' => $service->event_sent ? 'Sí' : 'No',
-                'event_sent_boolean' => $service->event_sent,
-                'expired' => $service->expired ? 'Sí' : 'No',
-                'expired_boolean' => $service->expired,
-                'description' => $service->description,
-                'propietario_nombre' => $service->nombre_propietario,
-            ];
-        });
-
-        return response()->json([
-            'data' => $data->items(),
-            'pagination' => [
-                'total' => $data->total(),
-                'per_page' => $data->perPage(),
-                'current_page' => $data->currentPage(),
-                'last_page' => $data->lastPage(),
-                'from' => $data->firstItem(),
-                'to' => $data->lastItem(),
-            ]
-        ]);
+        return new VehicleServiceCollection($data);
     }
 
     public function tables()
     {
-        $vehiculos = Vehiculos::where('estado', '!=', 'DE BAJA')
-            ->with('propietario:id,name')
-            ->orderBy('placa')
-            ->get(['id', 'placa', 'numero_interno', 'propietario_id'])
-            ->map(function ($vehiculo) {
-                return [
-                    'id' => $vehiculo->id,
-                    'placa' => $vehiculo->placa,
-                    'numero_interno' => $vehiculo->numero_interno,
-                    'propietario' => $vehiculo->propietario->name ?? 'Sin propietario'
-                ];
+        $vehiculos = Vehiculos::where('estado', 'activo')
+            ->orderBy('numero_interno')
+            ->take(20)
+            ->get()->transform(function ($row) {
+                /** @var Vehiculos $row */
+                return $row->getCollectionData();
             });
-
         $tiposServicios = VehicleService::tiposServicios();
 
         return compact('vehiculos', 'tiposServicios');
@@ -111,21 +75,7 @@ class VehicleServiceController extends Controller
     {
         $service = VehicleService::with(['vehiculo'])->findOrFail($id);
 
-        return [
-            'id' => $service->id,
-            'device_id' => $service->device_id,
-            'name' => $service->name,
-            'expires_date' => $service->expires_date ? $service->expires_date->format('Y-m-d') : '',
-            'remind_date' => $service->remind_date ? $service->remind_date->format('Y-m-d') : '',
-            'mobile_phone' => $service->mobile_phone,
-            'email' => $service->email,
-            'description' => $service->description,
-            'vehiculo' => $service->vehiculo ? [
-                'id' => $service->vehiculo->id,
-                'placa' => $service->vehiculo->placa,
-                'numero_interno' => $service->vehiculo->numero_interno
-            ] : null,
-        ];
+        return new VehicleServiceResource($service);
     }
 
     public function store(Request $request)
@@ -167,7 +117,7 @@ class VehicleServiceController extends Controller
             return [
                 'success' => true,
                 'message' => $msg,
-                'id' => $service->id
+                'data' => new VehicleServiceResource($service->fresh(['vehiculo']))
             ];
         } catch (Exception $e) {
             return [
@@ -198,7 +148,7 @@ class VehicleServiceController extends Controller
     /**
      * Obtener badge para días restantes
      */
-    private function getDiasRestantesBadge($dias)
+    public function getDiasRestantesBadge($dias)
     {
         if ($dias === null) return ['class' => 'secondary', 'text' => 'Sin fecha'];
         if ($dias < 0) return ['class' => 'danger', 'text' => 'Vencido'];
@@ -226,6 +176,21 @@ class VehicleServiceController extends Controller
             'total_servicios' => $totalServicios,
             'servicios_por_tipo' => $serviciosPorTipo
         ];
+    }
+
+    /**
+     * Búsqueda de vehículos
+     */
+    public function searchVehiculos(Request $request)
+    {
+        $vehiculos = Vehiculos::where('placa', 'like', "%{$request->input}%")
+            ->orWhere('numero_interno', 'like', "%{$request->input}%")
+            ->whereIsEnabled()
+            ->get()->transform(function ($row) {
+                return $row->getCollectionData();
+            });
+
+        return compact('vehiculos');
     }
 
     /**

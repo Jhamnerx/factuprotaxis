@@ -104,6 +104,10 @@ if ($hostname) {
             Route::post('companies/store-whatsapp-api', 'Tenant\CompanyController@storeWhatsAppApi');
             Route::get('companies/record-whatsapp-api', 'Tenant\CompanyController@recordWhatsAppApi');
 
+            //configuracion WhatsApp Api No Oficial
+            Route::post('companies/store-whatsapp-unofficial', 'Tenant\CompanyController@storeWhatsappUnofficial');
+            Route::get('companies/record-whatsapp-unofficial', 'Tenant\CompanyController@recordWhatsappUnofficial');
+
 
             //Card Brands
             Route::get('card_brands/records', 'Tenant\CardBrandController@records');
@@ -510,6 +514,7 @@ if ($hostname) {
             Route::get('vehicle-services/records', 'Tenant\VehicleServiceController@records');
             Route::get('vehicle-services/record/{id}', 'Tenant\VehicleServiceController@record');
             Route::get('vehicle-services/tables', 'Tenant\VehicleServiceController@tables');
+            Route::get('vehicle-services/search/vehiculos', 'Tenant\VehicleServiceController@searchVehiculos');
             Route::post('vehicle-services', 'Tenant\VehicleServiceController@store');
             Route::delete('vehicle-services/{id}', 'Tenant\VehicleServiceController@destroy');
             Route::get('vehicle-services/dashboard', 'Tenant\VehicleServiceController@dashboard');

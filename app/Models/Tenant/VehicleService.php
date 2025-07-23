@@ -134,7 +134,7 @@ class VehicleService extends ModelTenant
      */
     public function getNombrePropietarioAttribute()
     {
-        return $this->vehiculo?->propietario?->name ?? 'Sin propietario';
+        return $this->vehiculo->propietario->name ?? 'Sin propietario';
     }
 
     /**
@@ -142,7 +142,7 @@ class VehicleService extends ModelTenant
      */
     public function getTelefonoPropietarioAttribute()
     {
-        return $this->vehiculo?->propietario?->telephone_1 ?? null;
+        return $this->vehiculo->propietario->telephone_1 ?? null;
     }
 
     /**

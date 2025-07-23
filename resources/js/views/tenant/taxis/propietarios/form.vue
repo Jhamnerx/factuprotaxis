@@ -655,6 +655,21 @@ export default {
                 };
             }
 
+            // Validar que los campos obligatorios estén presentes
+            if (!this.form.name || this.form.name.trim() === "") {
+                return {
+                    success: false,
+                    message: "El nombre es requerido."
+                };
+            }
+
+            if (!this.form.number || this.form.number.trim() === "") {
+                return {
+                    success: false,
+                    message: "El número de documento es requerido."
+                };
+            }
+
             return {
                 success: true
             };
@@ -673,6 +688,24 @@ export default {
             let val_email = await this.validateEmail();
             if (!val_email.success) {
                 return this.$message.error(val_email.message);
+            }
+
+            // Validar location_id
+            if (
+                !this.form.location_id ||
+                !Array.isArray(this.form.location_id) ||
+                this.form.location_id.length !== 3
+            ) {
+                return this.$message.error(
+                    "Debe seleccionar un ubigeo válido (departamento, provincia y distrito)."
+                );
+            }
+
+            // Verificar que los valores de location_id no sean nulos o vacíos
+            if (this.form.location_id.some(item => !item)) {
+                return this.$message.error(
+                    "Los valores de ubigeo no pueden estar vacíos. Seleccione departamento, provincia y distrito."
+                );
             }
 
             this.loading_submit = true;
@@ -699,10 +732,24 @@ export default {
                     }
                 })
                 .catch(error => {
-                    if (error.response.status === 422) {
+                    if (error.response && error.response.status === 422) {
                         this.errors = error.response.data;
+                    } else if (
+                        error.response &&
+                        error.response.data &&
+                        error.response.data.message
+                    ) {
+                        // Mostrar mensaje de error detallado si existe
+                        this.$message.error(
+                            `Error: ${error.response.data.message}`
+                        );
+                        console.error("Error detallado:", error.response.data);
                     } else {
-                        console.log(error);
+                        // Mostrar mensaje genérico si no hay detalles
+                        this.$message.error(
+                            "Ha ocurrido un error al guardar los datos."
+                        );
+                        console.error("Error:", error);
                     }
                 })
                 .finally(() => {
@@ -716,17 +763,33 @@ export default {
             //cambios apiperu
             this.form.name = data.name;
             this.form.trade_name = data.trade_name;
-            this.form.location_id = data.location_id;
+
+            // Asignar location_id si viene en la respuesta
+            if (
+                data.location_id &&
+                Array.isArray(data.location_id) &&
+                data.location_id.length === 3
+            ) {
+                this.form.location_id = data.location_id;
+            }
+
             this.form.address = data.address;
-            // this.form.department_id = data.department_id;
-            // this.form.department_id = data.department_id;
-            // this.form.province_id = data.province_id;
-            // this.form.district_id = data.district_id;
+
+            // Asignar department_id, province_id, district_id si vienen en la respuesta
+            if (data.department_id) {
+                this.form.department_id = data.department_id;
+            }
+
+            if (data.province_id) {
+                this.form.province_id = data.province_id;
+            }
+
+            if (data.district_id) {
+                this.form.district_id = data.district_id;
+            }
+
             this.form.condition = data.condition;
             this.form.state = data.state;
-            // this.filterProvinces()
-            // this.filterDistricts()
-            //                this.form.addresses[0].telephone = data.telefono;
         },
         close() {
             this.$emit("update:showDialog", false);

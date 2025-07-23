@@ -215,4 +215,41 @@ class CompanyController extends Controller
             'ws_api_phone_number_id' => $company->ws_api_phone_number_id,
         ];
     }
+
+    /**
+     * Registrar datos de configuracion para WhatsApp Api No Oficial
+     *
+     * @param  Request $request
+     * @return array
+     */
+    public function storeWhatsappUnofficial(Request $request)
+    {
+        $company = Company::active();
+        $company->ws_unofficial_api_key = $request->ws_unofficial_api_key;
+        $company->ws_unofficial_sender = $request->ws_unofficial_sender;
+        $company->ws_unofficial_url = $request->ws_unofficial_url;
+        $company->save();
+
+        return [
+            'success' => true,
+            'message' => 'Datos guardados correctamente'
+        ];
+    }
+
+    /**
+     *
+     * Obtener datos de configuracion de WhatsApp Api No Oficial
+     *
+     * @return array
+     */
+    public function recordWhatsappUnofficial()
+    {
+        $company = Company::active();
+
+        return [
+            'ws_unofficial_api_key' => $company->ws_unofficial_api_key,
+            'ws_unofficial_sender' => $company->ws_unofficial_sender,
+            'ws_unofficial_url' => $company->ws_unofficial_url,
+        ];
+    }
 }

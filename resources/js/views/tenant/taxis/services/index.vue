@@ -61,10 +61,21 @@
                     </tr>
                     <tr slot-scope="{ row }">
                         <td>{{ row.vehiculo_placa }}</td>
-                        <td>{{ row.service_name }}</td>
+                        <td>{{ row.name }}</td>
                         <td>{{ row.expires_date }}</td>
                         <td>
                             <span
+                                v-if="row.dias_restantes_badge"
+                                :class="
+                                    `badge badge-${
+                                        row.dias_restantes_badge.class
+                                    }`
+                                "
+                            >
+                                {{ row.dias_restantes_badge.text }}
+                            </span>
+                            <span
+                                v-else
                                 :class="
                                     `badge badge-${getBadgeClass(
                                         row.dias_restantes
@@ -87,18 +98,23 @@
                                 <span
                                     :class="
                                         `badge badge-${
-                                            row.event_sent
+                                            row.event_sent_boolean
                                                 ? 'success'
                                                 : 'secondary'
                                         } mr-2`
                                     "
                                 >
                                     {{
-                                        row.event_sent ? "Enviada" : "Pendiente"
+                                        row.event_sent_boolean
+                                            ? "Enviada"
+                                            : "Pendiente"
                                     }}
                                 </span>
                                 <button
-                                    v-if="row.mobile_phone && !row.event_sent"
+                                    v-if="
+                                        row.mobile_phone &&
+                                            !row.event_sent_boolean
+                                    "
                                     class="btn btn-info btn-xs"
                                     @click="sendNotification(row)"
                                     title="Enviar notificación WhatsApp"
@@ -111,11 +127,15 @@
                             <span
                                 :class="
                                     `badge badge-${
-                                        row.expired ? 'danger' : 'success'
+                                        row.expired_boolean
+                                            ? 'danger'
+                                            : 'success'
                                     }`
                                 "
                             >
-                                {{ row.expired ? "Vencido" : "Vigente" }}
+                                {{
+                                    row.expired_boolean ? "Vencido" : "Vigente"
+                                }}
                             </span>
                         </td>
                         <td class="text-right">
@@ -137,17 +157,13 @@
                     </tr>
                 </data-table>
             </div>
-        </div>
 
-        <app-dialog
-            ref="modal"
-            :title="'Servicios de Vehículos'"
-            :show="showDialog"
-            modal-size="modal-xl"
-            @close="closeDialog"
-        >
-            <taxis-services-form :recordId="recordId" @close="closeDialog" />
-        </app-dialog>
+            <taxis-services-form
+                :showDialog.sync="showDialog"
+                :recordId="recordId"
+                @close="closeDialog"
+            ></taxis-services-form>
+        </div>
     </div>
 </template>
 

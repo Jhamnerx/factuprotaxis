@@ -40,15 +40,16 @@
                                 @keyup.enter.native="keyupVehicle"
                             >
                                 <el-option
-                                    v-for="option in vehiculos"
-                                    :key="option.id"
+                                    v-for="vehiculo in vehiculos"
+                                    :key="vehiculo.id"
                                     :label="
-                                        option.placa +
-                                            ' - ' +
-                                            option.propietario.name
+                                        `${vehiculo.placa} - ${
+                                            vehiculo.numero_interno
+                                        } (${vehiculo.propietario.name})`
                                     "
-                                    :value="option.id"
-                                ></el-option>
+                                    :value="vehiculo.id"
+                                >
+                                </el-option>
                             </el-select>
                             <small
                                 v-if="errors.vehicle_id"
