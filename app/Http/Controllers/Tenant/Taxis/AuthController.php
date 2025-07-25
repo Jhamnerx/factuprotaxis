@@ -35,14 +35,11 @@ class AuthController extends Controller
 
         // Intentar autenticación según el tipo de usuario
         $user = null;
-        $guard = null;
 
         if ($userType === 'propietario') {
             $user = Propietarios::where('email', $credentials['email'])->first();
-            $guard = 'propietarios';
         } elseif ($userType === 'conductor') {
             $user = Conductor::where('email', $credentials['email'])->first();
-            $guard = 'conductores';
         }
 
         if ($user && Hash::check($credentials['password'], $user->password)) {
@@ -53,11 +50,18 @@ class AuthController extends Controller
                 ]);
             }
 
-            // Iniciar sesión
-            Auth::guard($guard)->login($user, $request->filled('remember'));
+            // Guardar información del usuario en sesión
+            session([
+                'taxis_authenticated' => true,
+                'taxis_user' => array_merge($user->toArray(), ['type' => $userType])
+            ]);
 
-            // Redirigir al dashboard
-            return redirect()->intended(route('taxis.dashboard'));
+            // Redirigir según el tipo de usuario
+            if ($userType === 'propietario') {
+                return redirect()->route('taxis.propietario.dashboard');
+            } else {
+                return redirect()->route('taxis.conductor.dashboard');
+            }
         }
 
         return back()->withErrors([
@@ -70,9 +74,8 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        // Cerrar sesión en ambos guards
-        Auth::guard('propietarios')->logout();
-        Auth::guard('conductores')->logout();
+        // Limpiar sesión de taxis
+        session()->forget(['taxis_authenticated', 'taxis_user']);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -85,14 +88,16 @@ class AuthController extends Controller
      */
     public function dashboard()
     {
-        if (Auth::guard('propietarios')->check()) {
-            $user = Auth::guard('propietarios')->user();
-            return view('taxis::dashboard.propietario', compact('user'));
+        if (!session('taxis_authenticated')) {
+            return redirect()->route('taxis.login');
         }
 
-        if (Auth::guard('conductores')->check()) {
-            $user = Auth::guard('conductores')->user();
-            return view('taxis::dashboard.conductor', compact('user'));
+        $user = session('taxis_user');
+
+        if ($user['type'] === 'propietario') {
+            return redirect()->route('taxis.propietario.dashboard');
+        } elseif ($user['type'] === 'conductor') {
+            return redirect()->route('taxis.conductor.dashboard');
         }
 
         return redirect()->route('taxis.login');
@@ -103,20 +108,13 @@ class AuthController extends Controller
      */
     public function user()
     {
-        if (Auth::guard('propietarios')->check()) {
+        if (session('taxis_authenticated')) {
             return response()->json([
-                'user' => Auth::guard('propietarios')->user(),
-                'type' => 'propietario'
+                'user' => session('taxis_user'),
+                'authenticated' => true
             ]);
         }
 
-        if (Auth::guard('conductores')->check()) {
-            return response()->json([
-                'user' => Auth::guard('conductores')->user(),
-                'type' => 'conductor'
-            ]);
-        }
-
-        return response()->json(['user' => null], 401);
+        return response()->json(['user' => null, 'authenticated' => false], 401);
     }
 }
