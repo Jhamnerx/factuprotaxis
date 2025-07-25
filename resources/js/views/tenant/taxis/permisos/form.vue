@@ -509,7 +509,6 @@ export default {
                 return;
             }
             this.loading_submit = true;
-            console.log("Submitting form:", this.form);
             await this.$http
                 .post(`/${this.resource}`, this.form)
                 .then(response => {

@@ -428,6 +428,20 @@
                                     >
                                         Descargar Contrato
                                     </button>
+                                    <button
+                                        class="dropdown-item"
+                                        @click.prevent="viewServices(row)"
+                                    >
+                                        <i class="fas fa-tools"></i> Ver
+                                        Servicios
+                                    </button>
+                                    <button
+                                        class="dropdown-item"
+                                        @click.prevent="crearContrato(row)"
+                                    >
+                                        <i class="fas fa-file-contract"></i>
+                                        Crear Contrato
+                                    </button>
                                 </div>
                             </div>
                         </td>
@@ -447,6 +461,160 @@
                 :type="subscriptionType"
                 @saved="onSubscriptionSaved"
             />
+
+            <!-- Modal de Servicios -->
+            <el-dialog
+                title="Servicios del Vehículo"
+                :visible.sync="showServicesModal"
+                width="60%"
+                :close-on-click-modal="false"
+            >
+                <div v-if="selectedVehicleForServices">
+                    <h4 class="mb-3">
+                        <i class="fas fa-car"></i>
+                        {{ selectedVehicleForServices.placa }} -
+                        {{ selectedVehicleForServices.numero_interno }}
+                    </h4>
+
+                    <div
+                        v-if="vehicleServices.length === 0"
+                        class="text-center py-4"
+                    >
+                        <i class="fas fa-tools fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">
+                            No hay servicios registrados para este vehículo
+                        </p>
+                    </div>
+
+                    <div v-else>
+                        <div class="services-list">
+                            <div
+                                v-for="service in vehicleServices"
+                                :key="service.id"
+                                class="service-card mb-3"
+                            >
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <h5 class="mb-2">
+                                                    <i
+                                                        class="fas fa-wrench text-primary"
+                                                    ></i>
+                                                    {{ service.name }}
+                                                </h5>
+                                                <p class="mb-1">
+                                                    <strong
+                                                        >Fecha de
+                                                        vencimiento:</strong
+                                                    >
+                                                    {{
+                                                        formatDate(
+                                                            service.expires_date
+                                                        )
+                                                    }}
+                                                </p>
+                                                <p
+                                                    class="mb-1"
+                                                    v-if="service.description"
+                                                >
+                                                    <strong
+                                                        >Descripción:</strong
+                                                    >
+                                                    {{ service.description }}
+                                                </p>
+                                                <p
+                                                    class="mb-1"
+                                                    v-if="service.mobile_phone"
+                                                >
+                                                    <strong>Teléfono:</strong>
+                                                    {{ service.mobile_phone }}
+                                                </p>
+
+                                                <!-- Barra de progreso -->
+                                                <div
+                                                    class="progress-container mt-3"
+                                                >
+                                                    <div
+                                                        class="d-flex justify-content-between mb-1"
+                                                    >
+                                                        <span
+                                                            class="progress-label"
+                                                        >
+                                                            {{
+                                                                getProgressLabel(
+                                                                    service.dias_restantes
+                                                                )
+                                                            }}
+                                                        </span>
+                                                        <span
+                                                            class="progress-days"
+                                                        >
+                                                            {{
+                                                                getProgressDaysText(
+                                                                    service.dias_restantes
+                                                                )
+                                                            }}
+                                                        </span>
+                                                    </div>
+                                                    <el-progress
+                                                        :percentage="
+                                                            getProgressPercentage(
+                                                                service.dias_restantes
+                                                            )
+                                                        "
+                                                        :status="
+                                                            getProgressStatus(
+                                                                service.dias_restantes
+                                                            )
+                                                        "
+                                                        :stroke-width="8"
+                                                    ></el-progress>
+                                                </div>
+
+                                                <!-- Estado del servicio -->
+                                                <div class="mt-2">
+                                                    <el-tag
+                                                        :type="
+                                                            getServiceStatusType(
+                                                                service.dias_restantes
+                                                            )
+                                                        "
+                                                        size="small"
+                                                    >
+                                                        {{
+                                                            getServiceStatusText(
+                                                                service.dias_restantes
+                                                            )
+                                                        }}
+                                                    </el-tag>
+
+                                                    <el-tag
+                                                        v-if="
+                                                            service.event_sent
+                                                        "
+                                                        type="info"
+                                                        size="small"
+                                                        class="ml-2"
+                                                    >
+                                                        Notificación enviada
+                                                    </el-tag>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <span slot="footer" class="dialog-footer">
+                    <el-button @click="showServicesModal = false"
+                        >Cerrar</el-button
+                    >
+                </span>
+            </el-dialog>
         </div>
     </div>
 </template>
@@ -478,6 +646,10 @@ export default {
             showSubscriptionModal: false,
             selectedVehiculo: null,
             subscriptionType: "create",
+            showServicesModal: false,
+            selectedVehicleForServices: null,
+            vehicleServices: [],
+            loadingServices: false,
             estadosTuc: [
                 "TUC",
                 "RECIBO",
@@ -639,9 +811,36 @@ export default {
             }
         },
         formatDate(dateString) {
+            console.log("Formatting date:", dateString);
+
             if (!dateString) return "";
+
+            // Si la fecha viene en formato dd/MM/yyyy (como "04/09/2025")
+            if (dateString.includes("/") && dateString.length === 10) {
+                const parts = dateString.split("/");
+                if (parts.length === 3) {
+                    // Convertir de dd/MM/yyyy a yyyy-MM-dd para que JavaScript lo entienda
+                    const day = parts[0];
+                    const month = parts[1];
+                    const year = parts[2];
+                    const isoDate = `${year}-${month}-${day}`;
+                    const date = new Date(isoDate);
+
+                    // Verificar si la fecha es válida
+                    if (!isNaN(date.getTime())) {
+                        return date.toLocaleDateString("es-ES");
+                    }
+                }
+            }
+
+            // Fallback para otros formatos
             const date = new Date(dateString);
-            return date.toLocaleDateString("es-ES");
+            if (!isNaN(date.getTime())) {
+                return date.toLocaleDateString("es-ES");
+            }
+
+            // Si no se puede parsear, devolver la fecha original
+            return dateString;
         },
         formatNumber(number, decimals = 2) {
             if (number === null || number === undefined) return "";
@@ -741,6 +940,117 @@ export default {
 
             // Usar texto blanco si es oscuro, negro si es claro
             return yiq >= 128 ? "#000000" : "#FFFFFF";
+        },
+
+        // Métodos para servicios
+        viewServices(vehiculo) {
+            this.selectedVehicleForServices = vehiculo;
+            this.showServicesModal = true;
+            this.loadVehicleServices(vehiculo.id);
+        },
+
+        loadVehicleServices(vehiculoId) {
+            this.loadingServices = true;
+            this.$http
+                .get(`/vehicle-services/records?vehicle_id=${vehiculoId}`)
+                .then(response => {
+                    this.vehicleServices = response.data.data || [];
+                })
+                .catch(error => {
+                    console.error("Error al cargar servicios:", error);
+                    this.$message.error(
+                        "Error al cargar los servicios del vehículo"
+                    );
+                })
+                .finally(() => {
+                    this.loadingServices = false;
+                });
+        },
+
+        sendServiceNotification(service) {
+            this.$http
+                .post(`/vehicle-services/${service.id}/send-notification`)
+                .then(response => {
+                    if (response.data.success) {
+                        this.$message.success(
+                            "Notificación enviada correctamente"
+                        );
+                        this.loadVehicleServices(
+                            this.selectedVehicleForServices.id
+                        );
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al enviar notificación:", error);
+                    this.$message.error("Error al enviar la notificación");
+                });
+        },
+
+        // Métodos para la barra de progreso
+        getProgressPercentage(diasRestantes) {
+            if (diasRestantes === null || diasRestantes === undefined) return 0;
+
+            // Consideramos 365 días como el 100% (un año completo)
+            const maxDias = 365;
+
+            if (diasRestantes <= 0) return 0;
+            if (diasRestantes >= maxDias) return 100;
+
+            return Math.round((diasRestantes / maxDias) * 100);
+        },
+
+        getProgressStatus(diasRestantes) {
+            if (diasRestantes === null || diasRestantes === undefined)
+                return "exception";
+            if (diasRestantes < 0) return "exception";
+            if (diasRestantes <= 7) return "exception";
+            if (diasRestantes <= 30) return "warning";
+            return "success";
+        },
+
+        getProgressLabel(diasRestantes) {
+            if (diasRestantes === null || diasRestantes === undefined)
+                return "Sin fecha";
+            if (diasRestantes < 0) return "Vencido";
+            if (diasRestantes <= 7) return "Crítico";
+            if (diasRestantes <= 30) return "Próximo a vencer";
+            return "Vigente";
+        },
+
+        getProgressDaysText(diasRestantes) {
+            if (diasRestantes === null || diasRestantes === undefined)
+                return "";
+            if (diasRestantes < 0)
+                return `${Math.abs(diasRestantes)} días vencido`;
+            if (diasRestantes === 0) return "Vence hoy";
+            if (diasRestantes === 1) return "1 día restante";
+            return `${diasRestantes} días restantes`;
+        },
+
+        getServiceStatusType(diasRestantes) {
+            if (diasRestantes === null || diasRestantes === undefined)
+                return "info";
+            if (diasRestantes < 0) return "danger";
+            if (diasRestantes <= 7) return "danger";
+            if (diasRestantes <= 30) return "warning";
+            return "success";
+        },
+
+        getServiceStatusText(diasRestantes) {
+            if (diasRestantes === null || diasRestantes === undefined)
+                return "Sin fecha";
+            if (diasRestantes < 0) return "Vencido";
+            if (diasRestantes <= 7) return "Crítico";
+            if (diasRestantes <= 30) return "Por vencer";
+            return "Vigente";
+        },
+
+        /**
+         * Abre la página de contratos para crear un nuevo contrato con el vehículo preseleccionado
+         */
+        crearContrato(vehiculo) {
+            const url = `/contratos?vehiculo_id=${vehiculo.id}`;
+            window.open(url, "_blank");
         }
     }
 };
@@ -911,5 +1221,49 @@ button.btn-danger {
 .el-tag--primary {
     background-color: rgba(64, 158, 255, 0.1);
     color: #409eff;
+}
+
+/* Estilos para el modal de servicios */
+.service-card {
+    transition: all 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.progress-container {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #409eff;
+}
+
+.progress-label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.progress-days {
+    font-size: 12px;
+    color: #666;
+}
+
+.service-actions .el-button {
+    margin-left: 5px;
+}
+
+.service-actions .el-button:first-child {
+    margin-left: 0;
+}
+
+.services-list {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.dialog-footer {
+    text-align: right;
 }
 </style>

@@ -16,36 +16,35 @@
                             <option value="bienvenida"
                                 >Mensaje de Bienvenida</option
                             >
-                            <option value="bienvenida_conductor"
-                                >Mensaje de Bienvenida al Conductor</option
-                            >
                             <option value="registro"
                                 >Mensaje de Registro</option
                             >
+
                             <option value="cumpleanos_propietario"
                                 >Saludo por Cumpleaños (Propietario)</option
                             >
                             <option value="cumpleanos_conductor"
                                 >Saludo por Cumpleaños (Conductor)</option
                             >
-                            <option value="cumpleanos_encargado"
-                                >Saludo por Cumpleaños (Encargado)</option
+                            <option value="cumpleanos_personal"
+                                >Saludo por Cumpleaños (Personal)</option
                             >
                             <option value="regalo_mes">Regalo de Mes</option>
                             <option value="vencimiento_licencia_conductor"
                                 >Vencimiento de Licencia (Conductor)</option
                             >
-                            <option value="vencimiento_licencia_encargado"
-                                >Vencimiento de Licencia (Encargado)</option
-                            >
-                            <option value="vencimiento_licencia_propietario"
-                                >Vencimiento de Licencia (Propietario)</option
-                            >
+
                             <option value="vencimiento_soat"
                                 >Vencimiento de SOAT</option
                             >
+                            <option value="vencimiento_afocat"
+                                >Vencimiento de AFOCAT</option
+                            >
                             <option value="vencimiento_revision_tecnica"
                                 >Vencimiento de Revisión Técnica</option
+                            >
+                            <option value="vencimiento_mantenimiento"
+                                >Mantenimiento</option
                             >
                         </select>
                     </div>

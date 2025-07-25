@@ -2,22 +2,23 @@
 
 namespace App\Jobs\Tenant;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
+use App\Models\Tenant\Personal;
+use Illuminate\Support\Facades\Log;
+use Hyn\Tenancy\Queue\TenantAwareJob;
+use App\Models\Tenant\Taxis\Conductor;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Tenant\PlantillaMensaje;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Models\Tenant\Taxis\Propietarios;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Modules\WhatsAppApi\Services\WhatsAppService;
-use App\Models\Tenant\PlantillaMensaje;
-use App\Models\Tenant\Taxis\Propietarios;
-use App\Models\Tenant\Taxis\Conductor;
-use App\Models\Tenant\Personal;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class SendBirthdayMessagesJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, TenantAwareJob;
 
     /**
      * Execute the job.
@@ -41,6 +42,7 @@ class SendBirthdayMessagesJob implements ShouldQueue
 
             Log::info('Job de cumpleaños completado exitosamente');
         } catch (\Exception $e) {
+
             Log::error("Error en SendBirthdayMessagesJob", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -133,6 +135,7 @@ class SendBirthdayMessagesJob implements ShouldQueue
      */
     private function sendBirthdayMessage($person, $plantilla, $whatsappService, $type)
     {
+
         try {
             // Calcular edad
             $fechaNacimiento = Carbon::parse($person->fecha_nacimiento);
@@ -167,6 +170,7 @@ class SendBirthdayMessagesJob implements ShouldQueue
                 'prefix_number' => '51'
             ]);
 
+            dd('Resultado del envío: ' . json_encode($result));
             if ($result['success']) {
                 Log::info("Mensaje de cumpleaños enviado exitosamente", [
                     'type' => $type,
@@ -182,6 +186,7 @@ class SendBirthdayMessagesJob implements ShouldQueue
                 ]);
             }
         } catch (\Exception $e) {
+
             Log::error("Error al enviar mensaje de cumpleaños individual", [
                 'type' => $type,
                 'name' => $person->name ?? 'Sin nombre',

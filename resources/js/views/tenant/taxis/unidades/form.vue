@@ -760,7 +760,12 @@ export default {
 
                         this.$eventHub.$emit("reloadData");
 
-                        this.close();
+                        // Si es una nueva unidad (no está editando), preguntar si desea crear contrato
+                        if (!this.form.id && response.data.id) {
+                            this.preguntarCrearContrato(response.data.id);
+                        } else {
+                            this.close();
+                        }
                     } else {
                         this.$message.error(response.data.message);
                     }
@@ -775,6 +780,40 @@ export default {
                 .finally(() => {
                     this.loading = false;
                 });
+        },
+
+        /**
+         * Pregunta al usuario si desea crear un contrato para la unidad recién creada
+         */
+        preguntarCrearContrato(vehiculoId) {
+            this.$confirm(
+                "¿Desea crear un contrato para esta unidad?",
+                "Crear Contrato",
+                {
+                    confirmButtonText: "Sí, crear contrato",
+                    cancelButtonText: "No, ahora no",
+                    type: "question",
+                    center: true
+                }
+            )
+                .then(() => {
+                    // Abrir página de contratos con el vehículo preseleccionado
+                    this.abrirCrearContrato(vehiculoId);
+                    this.close();
+                })
+                .catch(() => {
+                    // El usuario canceló, solo cerrar el formulario
+                    this.close();
+                });
+        },
+
+        /**
+         * Abre la página de contratos para crear un nuevo contrato con el vehículo preseleccionado
+         */
+        abrirCrearContrato(vehiculoId) {
+            // Usar router para navegar a la página de contratos con el vehículo preseleccionado
+            const url = `/contratos?vehiculo_id=${vehiculoId}`;
+            window.open(url, "_blank");
         },
         close() {
             this.$emit("update:showDialog", false);

@@ -36,6 +36,9 @@ class VehicleServiceController extends Controller
     public function records(Request $request)
     {
         $records = VehicleService::with(['vehiculo'])
+            ->when($request->vehicle_id, function ($query) use ($request) {
+                $query->where('device_id', $request->vehicle_id);
+            })
             ->when($request->column && $request->value, function ($query) use ($request) {
                 switch ($request->column) {
                     case 'vehiculo_placa':
@@ -53,6 +56,12 @@ class VehicleServiceController extends Controller
             ->orderBy('expires_date', 'asc');
 
         $data = $records->paginate(config('tenant.items_per_page'));
+
+        // Calcular días restantes para cada servicio
+        $data->getCollection()->transform(function ($service) {
+            $service->dias_restantes = $service->diasHastaVencimiento();
+            return $service;
+        });
 
         return new VehicleServiceCollection($data);
     }

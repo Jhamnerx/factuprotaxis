@@ -64,12 +64,6 @@ if ($hostname) {
             Route::post('tasks', 'Tenant\TaskController@store');
             Route::delete('tasks/{task}', 'Tenant\TaskController@destroy');
 
-            // Web Taxis Routes
-            Route::get('web-taxis/create', [WebController::class, 'config'])->name('tenant.taxis.config.index');
-            Route::get('web-taxis/record', [WebController::class, 'record']);
-            Route::post('web-taxis', [WebController::class, 'store']);
-            Route::post('web-taxis/uploads', [WebController::class, 'uploads']);
-
             //Orders
             Route::get('orders', 'Tenant\OrderController@index')->name('tenant_orders_index');
             Route::get('orders/columns', 'Tenant\OrderController@columns');
@@ -392,11 +386,13 @@ if ($hostname) {
             Route::get('retentions/table/{table}', 'Tenant\RetentionController@table');
 
 
-            //config taxis
+            //Taxis           
+
+            // Web Taxis Routes
             Route::get('web-taxis/create', [WebController::class, 'config'])->name('tenant.taxis.config.index');
             Route::get('web-taxis/record', [WebController::class, 'record']);
             Route::post('web-taxis', [WebController::class, 'store']);
-            //Taxis           
+            Route::post('web-taxis/uploads', [WebController::class, 'uploads']);
 
             Route::get('mensajes/plantillas', [MensajesController::class, 'index'])->name('tenant.taxi.mensajes.plantillas');
             Route::get('mensajes/records', [MensajesController::class, 'records']);
@@ -404,27 +400,6 @@ if ($hostname) {
             Route::get('mensajes/tipo/{tipo}', [MensajesController::class, 'getByTipo']);
             Route::post('mensajes', [MensajesController::class, 'store']);
             Route::post('mensajes/render', [MensajesController::class, 'renderTemplate']);
-            Route::delete('mensajes/{id}', [MensajesController::class, 'destroy']);
-
-            // Gestión - Ajustes Web
-            Route::get('ajustes_web', 'Tenant\AjustesWebController@index')->name('tenant.taxi.ajustes_web.index');
-            Route::get('ajustes_web/records', 'Tenant\AjustesWebController@records');
-            Route::get('ajustes_web/record/{id}', 'Tenant\AjustesWebController@record');
-            Route::post('ajustes_web', 'Tenant\AjustesWebController@store');
-            Route::delete('ajustes_web/{id}', 'Tenant\AjustesWebController@destroy');
-
-            // Configuración de notificaciones
-            Route::get('politicas_privacidad', 'Tenant\PoliticasPrivacidadController@index')->name('tenant.taxi.politicas_privacidad.index');
-            Route::get('politicas_privacidad/records', 'Tenant\PoliticasPrivacidadController@records');
-            Route::get('politicas_privacidad/record/{id}', 'Tenant\PoliticasPrivacidadController@record');
-            Route::post('politicas_privacidad', 'Tenant\PoliticasPrivacidadController@store');
-            Route::delete('politicas_privacidad/{id}', 'Tenant\PoliticasPrivacidadController@destroy');
-
-            Route::get('terminos_condiciones', 'Tenant\TerminosCondicionesController@index')->name('tenant.taxi.terminos_condiciones.index');
-            Route::get('terminos_condiciones/records', 'Tenant\TerminosCondicionesController@records');
-            Route::get('terminos_condiciones/record/{id}', 'Tenant\TerminosCondicionesController@record');
-            Route::post('terminos_condiciones', 'Tenant\TerminosCondicionesController@store');
-            Route::delete('terminos_condiciones/{id}', 'Tenant\TerminosCondicionesController@destroy');
 
             Route::get('propietarios', 'Tenant\PropietariosController@index')->name('tenant.taxi.propietarios');
             Route::get('propietarios/columns', 'Tenant\PropietariosController@columns');
@@ -462,6 +437,17 @@ if ($hostname) {
             Route::get('unidades/payment-colors/{id}', 'Tenant\UnidadesController@paymentColors');
             Route::post('unidades/update-payment-color', 'Tenant\UnidadesController@updatePaymentColor');
 
+            // Rutas de contratos
+            Route::get('contratos', 'Tenant\ContratosController@index')->name('tenant.taxi.contratos.index');
+            Route::get('contratos/columns', 'Tenant\ContratosController@columns');
+            Route::get('contratos/records', 'Tenant\ContratosController@records');
+            Route::get('contratos/record/{id}', 'Tenant\ContratosController@record');
+            Route::get('contratos/tables', 'Tenant\ContratosController@tables');
+            Route::post('contratos', 'Tenant\ContratosController@store');
+            Route::delete('contratos/{contrato}', 'Tenant\ContratosController@destroy');
+            Route::post('contratos/create-from-vehicle', 'Tenant\ContratosController@createFromVehicle');
+            Route::post('contratos/search-vehiculos', 'Tenant\ContratosController@searchVehiculos');
+
             Route::get('marcas', 'Tenant\MarcasController@index')->name('tenant.taxi.marcas.index');
             Route::get('marcas/columns', 'Tenant\MarcasController@columns');
             Route::get('marcas/records', 'Tenant\MarcasController@records');
@@ -498,15 +484,15 @@ if ($hostname) {
             Route::delete('condiciones/{condicion}', 'Tenant\CondicionesController@destroy');
 
             // Plantillas de Mensajes WhatsApp
-            Route::get('plantillas-mensajes', 'Tenant\PlantillaMensajeController@index')->name('tenant.taxi.plantillas_mensajes.index');
-            Route::get('plantillas-mensajes/columns', 'Tenant\PlantillaMensajeController@columns');
-            Route::get('plantillas-mensajes/records', 'Tenant\PlantillaMensajeController@records');
-            Route::get('plantillas-mensajes/record/{id}', 'Tenant\PlantillaMensajeController@record');
-            Route::get('plantillas-mensajes/tables', 'Tenant\PlantillaMensajeController@tables');
-            Route::post('plantillas-mensajes', 'Tenant\PlantillaMensajeController@store');
-            Route::delete('plantillas-mensajes/{id}', 'Tenant\PlantillaMensajeController@destroy');
-            Route::post('plantillas-mensajes/preview', 'Tenant\PlantillaMensajeController@preview');
-            Route::get('plantillas-mensajes/variables/{tipo}', 'Tenant\PlantillaMensajeController@getAvailableVariables');
+            // Route::get('plantillas-mensajes', 'Tenant\PlantillaMensajeController@index')->name('tenant.taxi.plantillas_mensajes.index');
+            // Route::get('plantillas-mensajes/columns', 'Tenant\PlantillaMensajeController@columns');
+            // Route::get('plantillas-mensajes/records', 'Tenant\PlantillaMensajeController@records');
+            // Route::get('plantillas-mensajes/record/{id}', 'Tenant\PlantillaMensajeController@record');
+            // Route::get('plantillas-mensajes/tables', 'Tenant\PlantillaMensajeController@tables');
+            // Route::post('plantillas-mensajes', 'Tenant\PlantillaMensajeController@store');
+            // Route::delete('plantillas-mensajes/{id}', 'Tenant\PlantillaMensajeController@destroy');
+            // Route::post('plantillas-mensajes/preview', 'Tenant\PlantillaMensajeController@preview');
+            // Route::get('plantillas-mensajes/variables/{tipo}', 'Tenant\PlantillaMensajeController@getAvailableVariables');
 
             // Servicios de Vehículos (SOAT, Revisión Técnica, etc.)
             Route::get('vehicle-services', 'Tenant\VehicleServiceController@index')->name('tenant.taxi.vehicle_services.index');
@@ -543,9 +529,6 @@ if ($hostname) {
             Route::get('solicitudes/download-file/{id}/{index}', 'Tenant\SolicitudesController@downloadFile');
             Route::post('solicitudes/delete-file/{id}', 'Tenant\SolicitudesController@deleteFile');
             Route::get('solicitudes/generar-pdf/{id}', 'Tenant\SolicitudesController@generarPDF');
-
-
-            Route::get('contratos', 'Tenant\ContratosController@index')->name('tenant.taxi.contratos.index');
 
 
             Route::get('permisos', 'Tenant\PermisosController@index')->name('tenant.taxi.permisos.index');
@@ -590,8 +573,6 @@ if ($hostname) {
             Route::get('pdf/constancia/{constancia}', 'Tenant\PdfController@constancias')->name('tenant.pdf.constancia');
             Route::get('pdf/declaracion/{declaracion}', 'Tenant\PdfController@declaraciones')->name('tenant.pdf.declaracion');
             Route::get('pdf/permiso-viaje/{permiso}', 'Tenant\PdfController@permisoViaje')->name('tenant.pdf.permiso-viaje');
-
-
 
 
             /** Dispatches

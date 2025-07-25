@@ -128,10 +128,28 @@ Con aprecio, tu equipo San Pedro",
                     'updated_at' => now()
                 ],
                 [
+                    'tipo' => 'vencimiento_afocat',
+                    'asunto' => 'Vencimiento de AFOCAT',
+                    'contenido' => 'Estimado/a [nombre], le recordamos que el AFOCAT de su vehículo [placa] vencerá el [fecha_vencimiento].',
+                    'descripcion' => 'Mensaje de recordatorio de vencimiento de AFOCAT',
+                    'estado' => true,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ],
+                [
                     'tipo' => 'vencimiento_revision_tecnica',
                     'asunto' => 'Vencimiento de revisión técnica',
                     'contenido' => 'Estimado/a [nombre], le recordamos que la revisión técnica de su vehículo [placa] vencerá el [fecha_vencimiento].',
                     'descripcion' => 'Mensaje de recordatorio de vencimiento de revisión técnica',
+                    'estado' => true,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ],
+                [
+                    'tipo' => 'vencimiento_mantenimiento',
+                    'asunto' => 'Vencimiento de mantenimiento',
+                    'contenido' => 'Estimado/a [nombre], le recordamos que el mantenimiento de su vehículo [placa] vencerá el [fecha_vencimiento].',
+                    'descripcion' => 'Mensaje de recordatorio de vencimiento de mantenimiento',
                     'estado' => true,
                     'created_at' => now(),
                     'updated_at' => now()

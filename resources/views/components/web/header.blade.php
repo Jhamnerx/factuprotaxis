@@ -3,7 +3,7 @@
         <nav class="navbar navbar-expand-lg custom_nav-container ">
             <a class="navbar-brand" href="{{ route('tenant.web.home') }}">
                 <span>
-                    Taxi
+                    {{ $company->name ?? 'FactuPro Taxis' }}
                 </span>
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"

@@ -353,7 +353,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                         @endif
                         @if (in_array('taxis', $vc_modules))
                             <li
-                                class="nav-parent {{ in_array($firstLevel, ['mensajes', 'propietarios', 'conductores', 'unidades', 'marcas', 'modelos', 'planes', 'condiciones', 'pagos', 'permisos', 'hoja_ruta', 'manifiesto', 'constancias', 'informes', 'solicitudes', 'contratos', 'declaraciones', 'constancia_trabajo', 'vehicle_services']) ? 'nav-active nav-expanded' : '' }}">
+                                class="nav-parent {{ in_array($firstLevel, ['mensajes', 'web-taxis', 'propietarios', 'conductores', 'unidades', 'marcas', 'modelos', 'planes', 'condiciones', 'pagos', 'permisos', 'hoja_ruta', 'manifiesto', 'constancias', 'informes', 'solicitudes', 'contratos', 'declaraciones', 'constancia_trabajo', 'vehicle-services']) ? 'nav-active nav-expanded' : '' }}">
                                 <a class="nav-link" href="#">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -376,8 +376,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                                                 <span>Mensajes</span>
                                             </a>
                                             <ul class="nav nav-children" style="">
-                                                <li
-                                                    class="{{ $firstLevel === 'mensajes' && $secondLevel === 'plantillas' ? 'nav-active' : '' }}">
+                                                <li class="{{ $firstLevel === 'mensajes' ? 'nav-active' : '' }}">
                                                     <a class="nav-link"
                                                         href="{{ route('tenant.taxi.mensajes.plantillas') }}">Ajuste
                                                         de plantillas</a>
@@ -445,19 +444,10 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                                         </li>
                                     @endif
 
-                                    @if (in_array('unidades', $vc_module_levels))
-                                        <li class="{{ $firstLevel === 'vehicle_services' ? 'nav-active' : '' }}">
+                                    @if (in_array('servicios', $vc_module_levels))
+                                        <li class="{{ $firstLevel === 'vehicle-services' ? 'nav-active' : '' }}">
                                             <a class="nav-link"
                                                 href="{{ route('tenant.taxi.vehicle_services.index') }}">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                                                    <path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                                                    <path
-                                                        d="M5 17h-2v-6l2-5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-6m-6 -6h15m-6 0v-5">
-                                                    </path>
-                                                </svg>
                                                 <span>Servicios de Vehículos</span>
                                             </a>
                                         </li>
@@ -563,7 +553,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                                                     <li
                                                         class="{{ $firstLevel === 'contratos' ? 'nav-active' : '' }}">
                                                         <a class="nav-link"
-                                                            href="{{ route('tenant.taxi.contratos.index') }}">Contrato</a>
+                                                            href="{{ route('tenant.taxi.contratos.index') }}">Contratos</a>
                                                     </li>
                                                 @endif
                                                 @if (in_array('declaraciones', $vc_module_levels))
@@ -588,44 +578,17 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
 
                                     @if (in_array('ajustes_web', $vc_module_levels))
                                         <li
-                                            class="nav-parent {{ $firstLevel === 'ajustes_web' ? 'nav-active nav-expanded' : '' }}">
+                                            class="nav-parent {{ $firstLevel === 'web-taxis' ? 'nav-active nav-expanded' : '' }}">
                                             <a class="nav-link" href="#">
                                                 <span>Gestión</span>
                                             </a>
                                             <ul class="nav nav-children" style="">
                                                 <li
-                                                    class="{{ $firstLevel === 'ajustes_web' && $secondLevel === '' ? 'nav-active' : '' }}">
+                                                    class="{{ $firstLevel === 'web-taxis' && $secondLevel === '' ? 'nav-active' : '' }}">
                                                     <a class="nav-link"
-                                                        href="{{ route('tenant.taxi.ajustes_web.index') }}">Ajustes
+                                                        href="{{ route('tenant.taxis.config.index') }}">Ajustes
                                                         Web</a>
                                                 </li>
-                                            </ul>
-                                        </li>
-                                    @endif
-
-                                    @if (in_array('config_notificaciones', $vc_module_levels))
-                                        <li
-                                            class="nav-parent {{ $firstLevel === 'config_notificaciones' || $firstLevel === 'politicas_privacidad' || $firstLevel === 'terminos_condiciones' ? 'nav-active nav-expanded' : '' }}">
-                                            <a class="nav-link" href="#">
-                                                <span>Configuración de notificaciones</span>
-                                            </a>
-                                            <ul class="nav nav-children" style="">
-                                                @if (in_array('politicas_privacidad', $vc_module_levels))
-                                                    <li
-                                                        class="{{ $firstLevel === 'politicas_privacidad' ? 'nav-active' : '' }}">
-                                                        <a class="nav-link"
-                                                            href="{{ route('tenant.taxi.politicas_privacidad.index') }}">Políticas
-                                                            de privacidad</a>
-                                                    </li>
-                                                @endif
-                                                @if (in_array('terminos_condiciones', $vc_module_levels))
-                                                    <li
-                                                        class="{{ $firstLevel === 'terminos_condiciones' ? 'nav-active' : '' }}">
-                                                        <a class="nav-link"
-                                                            href="{{ route('tenant.taxi.terminos_condiciones.index') }}">Términos
-                                                            y condiciones</a>
-                                                    </li>
-                                                @endif
                                             </ul>
                                         </li>
                                     @endif

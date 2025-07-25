@@ -1373,6 +1373,16 @@ Vue.component(
     require("./views/tenant/taxis/services/form.vue")
 );
 
+Vue.component(
+    "tenant-taxis-contratos-index",
+    require("./views/tenant/taxis/contratos/index.vue")
+);
+
+Vue.component(
+    "contratos-form",
+    require("./views/tenant/taxis/contratos/form.vue")
+);
+
 import VueClipboard from "vue-clipboard2";
 Vue.use(VueClipboard);
 
