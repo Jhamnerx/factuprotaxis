@@ -49,6 +49,7 @@ Route::middleware(['check.permission', 'locked.tenant'])->prefix('taxis')->group
 
             // Servicios del conductor
             Route::get('servicios', [ConductorController::class, 'servicios'])->name('taxis.conductor.servicios');
+            Route::get('servicios/records', [ConductorController::class, 'serviciosRecords'])->name('taxis.conductor.servicios.records');
 
             // Perfil del conductor
             Route::get('perfil', [ConductorController::class, 'perfil'])->name('taxis.conductor.perfil');
@@ -90,85 +91,11 @@ Route::middleware(['check.permission', 'locked.tenant'])->prefix('taxis')->group
 
             // Servicios del propietario
             Route::get('servicios', [PropietarioController::class, 'servicios'])->name('taxis.propietario.servicios');
+            Route::get('servicios/records', [PropietarioController::class, 'serviciosRecords'])->name('taxis.propietario.servicios.records');
 
             // Perfil del propietario
             Route::get('perfil', [PropietarioController::class, 'perfil'])->name('taxis.propietario.perfil');
             Route::post('perfil', [PropietarioController::class, 'actualizarPerfil'])->name('taxis.propietario.perfil.update');
         });
-
-        // Rutas adicionales del módulo (mantenidas para compatibilidad)
-        Route::get('profile', function () {
-            return view('taxis::profile');
-        })->name('taxis.profile');
-
-        // Módulos Principales del Sistema de Taxis (rutas heredadas - deprecar gradualmente)
-        // Vehículos
-        Route::get('vehiculos', function () {
-            return view('taxis::vehiculos.index');
-        })->name('taxis.vehiculos.index');
-        Route::get('vehiculos/create', function () {
-            return view('taxis::vehiculos.create');
-        })->name('taxis.vehiculos.create');
-        Route::get('vehiculos/{id}', function ($id) {
-            return view('taxis::vehiculos.show', compact('id'));
-        })->name('taxis.vehiculos.show');
-        Route::get('vehiculos/{id}/edit', function ($id) {
-            return view('taxis::vehiculos.edit', compact('id'));
-        })->name('taxis.vehiculos.edit');
-
-        // Pagos
-        Route::get('pagos', function () {
-            return view('taxis::pagos.index');
-        })->name('taxis.pagos.index');
-        Route::get('pagos/create', function () {
-            return view('taxis::pagos.create');
-        })->name('taxis.pagos.create');
-        Route::get('pagos/{id}', function ($id) {
-            return view('taxis::pagos.show', compact('id'));
-        })->name('taxis.pagos.show');
-
-        // Contratos
-        Route::get('contratos', function () {
-            return view('taxis::contratos.index');
-        })->name('taxis.contratos.index');
-        Route::get('contratos/create', function () {
-            return view('taxis::contratos.create');
-        })->name('taxis.contratos.create');
-        Route::get('contratos/{id}', function ($id) {
-            return view('taxis::contratos.show', compact('id'));
-        })->name('taxis.contratos.show');
-
-        // Solicitudes
-        Route::get('solicitudes', function () {
-            return view('taxis::solicitudes.index');
-        })->name('taxis.solicitudes.index');
-        Route::get('solicitudes/create', function () {
-            return view('taxis::solicitudes.create');
-        })->name('taxis.solicitudes.create');
-        Route::get('solicitudes/{id}', function ($id) {
-            return view('taxis::solicitudes.show', compact('id'));
-        })->name('taxis.solicitudes.show');
-
-        // Constancias
-        Route::get('constancias', function () {
-            return view('taxis::constancias.index');
-        })->name('taxis.constancias.index');
-        Route::get('constancias/create', function () {
-            return view('taxis::constancias.create');
-        })->name('taxis.constancias.create');
-        Route::get('constancias/{id}', function ($id) {
-            return view('taxis::constancias.show', compact('id'));
-        })->name('taxis.constancias.show');
-
-        // Permisos
-        Route::get('permisos', function () {
-            return view('taxis::permisos.index');
-        })->name('taxis.permisos.index');
-        Route::get('permisos/create', function () {
-            return view('taxis::permisos.create');
-        })->name('taxis.permisos.create');
-        Route::get('permisos/{id}', function ($id) {
-            return view('taxis::permisos.show', compact('id'));
-        })->name('taxis.permisos.show');
     });
 });

@@ -170,6 +170,31 @@ class ConductorController extends Controller
     }
 
     /**
+     * API: Obtener servicios del vehículo del conductor
+     */
+    public function serviciosRecords(Request $request)
+    {
+        $conductor = session('taxis_user');
+
+        $vehiculo = Vehiculos::where('conductor_id', $conductor['id'])
+            ->where('estado', 'activo')
+            ->first();
+
+        if (!$vehiculo) {
+            return response()->json([
+                'data' => [],
+                'message' => 'No tienes un vehículo asignado.'
+            ]);
+        }
+
+        $records = \App\Models\Tenant\Taxis\Servicios::where('vehiculo_id', $vehiculo->id)
+            ->with(['vehiculo'])
+            ->orderBy('id', 'desc');
+
+        return new \App\Http\Resources\Tenant\ServicioCollection($records->paginate(config('tenant.items_per_page')));
+    }
+
+    /**
      * Ver perfil del conductor
      */
     public function perfil()

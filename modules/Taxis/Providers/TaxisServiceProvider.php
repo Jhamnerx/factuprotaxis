@@ -105,6 +105,7 @@ class TaxisServiceProvider extends ServiceProvider
     {
         $router = $this->app['router'];
 
+        $router->aliasMiddleware('taxis.auth', \Modules\Taxis\Http\Middleware\TaxisAuthMiddleware::class);
         $router->aliasMiddleware('taxis.conductor', \Modules\Taxis\Http\Middleware\TaxisConductorMiddleware::class);
         $router->aliasMiddleware('taxis.propietario', \Modules\Taxis\Http\Middleware\TaxisPropietarioMiddleware::class);
     }

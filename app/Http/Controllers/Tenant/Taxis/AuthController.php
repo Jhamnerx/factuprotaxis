@@ -14,8 +14,20 @@ class AuthController extends Controller
     /**
      * Mostrar el formulario de login
      */
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
+        // Si ya está autenticado, redirigir al dashboard correspondiente
+        if (session('taxis_authenticated')) {
+            $user = session('taxis_user');
+            if ($user && isset($user['type'])) {
+                if ($user['type'] === 'propietario') {
+                    return redirect()->route('taxis.propietario.dashboard');
+                } elseif ($user['type'] === 'conductor') {
+                    return redirect()->route('taxis.conductor.dashboard');
+                }
+            }
+        }
+
         return view('taxis::auth.login');
     }
 

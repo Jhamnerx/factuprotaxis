@@ -137,40 +137,6 @@
                 localStorage.setItem('dark-mode', 'true');
             }
         }
-
-        // Check if user is authenticated and redirect
-        document.addEventListener('DOMContentLoaded', function() {
-            // This will be handled by Laravel's redirect logic after successful login
-            @auth('propietarios')
-                // Show a success message before redirect
-                if (window.location.pathname.includes('login')) {
-                    const successDiv = document.createElement('div');
-                    successDiv.className =
-                        'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-                    successDiv.innerHTML = '✓ Acceso autorizado como Propietario. Redirigiendo...';
-                    document.body.appendChild(successDiv);
-
-                    setTimeout(() => {
-                        window.location.href = "{{ route('taxis.dashboard') }}";
-                    }, 1500);
-                }
-            @endauth
-
-            @auth('conductores')
-                // Show a success message before redirect
-                if (window.location.pathname.includes('login')) {
-                    const successDiv = document.createElement('div');
-                    successDiv.className =
-                        'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-                    successDiv.innerHTML = '✓ Acceso autorizado como Conductor. Redirigiendo...';
-                    document.body.appendChild(successDiv);
-
-                    setTimeout(() => {
-                        window.location.href = "{{ route('taxis.dashboard') }}";
-                    }, 1500);
-                }
-            @endauth
-        });
     </script>
 </body>
 

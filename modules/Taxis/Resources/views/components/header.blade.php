@@ -355,74 +355,93 @@
                 <hr class="w-px h-6 bg-gray-200 dark:bg-gray-700/60 border-none" />
 
                 <!-- User button -->
-                <div class="relative inline-flex" x-data="{ open: false }">
-                    <button class="inline-flex justify-center items-center group" aria-haspopup="true"
-                        @click.prevent="open = !open" :aria-expanded="open">
-                        @php
-                            $user = Auth::guard('propietarios')->user() ?: Auth::guard('conductores')->user();
-                            $userType = Auth::guard('propietarios')->check() ? 'Propietario' : 'Conductor';
-                            $gravatarUrl =
-                                'https://www.gravatar.com/avatar/' . md5(strtolower(trim($user->email))) . '?s=32&d=mp';
-                        @endphp
-                        <img class="w-8 h-8 rounded-full" src="{{ $gravatarUrl }}" width="32" height="32"
-                            alt="User" />
-                        <div class="flex items-center truncate">
-                            <span
-                                class="truncate ml-2 text-sm font-medium text-gray-600 dark:text-gray-100 group-hover:text-gray-800 dark:group-hover:text-white">
-                                {{ $user->name }}
-                            </span>
-                            <svg class="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500"
-                                viewBox="0 0 12 12">
-                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                            </svg>
-                        </div>
-                    </button>
-                    <div class="origin-top-right z-10 absolute top-full right-0 min-w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden mt-1"
-                        @click.outside="open = false" @keydown.escape.window="open = false" x-show="open"
-                        x-transition:enter="transition ease-out duration-200 transform"
-                        x-transition:enter-start="opacity-0 -translate-y-2"
-                        x-transition:enter-end="opacity-100 translate-y-0"
-                        x-transition:leave="transition ease-out duration-200" x-transition:leave-start="opacity-100"
-                        x-transition:leave-end="opacity-0" x-cloak>
-                        <div class="pt-0.5 pb-2 px-3 mb-1 border-b border-gray-200 dark:border-gray-700/60">
-                            <div class="font-medium text-gray-800 dark:text-gray-100">{{ $user->name }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 italic">{{ $userType }}
+                @if (session('taxis_authenticated'))
+                    @php
+                        $user = session('taxis_user');
+                        $userType = $user['type'] ?? null;
+                        $gravatarUrl =
+                            'https://www.gravatar.com/avatar/' .
+                            md5(strtolower(trim($user['email'] ?? ''))) .
+                            '?s=32&d=mp';
+                    @endphp
+                    <div class="relative inline-flex" x-data="{ open: false }">
+                        <button class="inline-flex justify-center items-center group" aria-haspopup="true"
+                            @click.prevent="open = !open" :aria-expanded="open">
+                            <img class="w-8 h-8 rounded-full" src="{{ $gravatarUrl }}" width="32"
+                                height="32" alt="User" />
+                            <div class="flex items-center truncate">
+                                <span
+                                    class="truncate ml-2 text-sm font-medium text-gray-600 dark:text-gray-100 group-hover:text-gray-800 dark:group-hover:text-white">
+                                    {{ $user['name'] ?? 'Usuario' }}
+                                </span>
+                                <svg class="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500"
+                                    viewBox="0 0 12 12">
+                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                </svg>
                             </div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">{{ $user->email }}</div>
-                        </div>
-                        <ul>
-                            <li>
-                                <a class="font-medium text-sm text-violet-500 hover:text-violet-600 dark:hover:text-violet-400 flex items-center py-1 px-3"
-                                    href="{{ route('taxis.profile') }}" @click="open = false" @focus="open = true"
-                                    @focusout="open = false">
+                        </button>
+                        <div class="origin-top-right z-10 absolute top-full right-0 min-w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden mt-1"
+                            @click.outside="open = false" @keydown.escape.window="open = false" x-show="open"
+                            x-transition:enter="transition ease-out duration-200 transform"
+                            x-transition:enter-start="opacity-0 -translate-y-2"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-out duration-200"
+                            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" x-cloak>
+                            <div class="pt-0.5 pb-2 px-3 mb-1 border-b border-gray-200 dark:border-gray-700/60">
+                                <div class="font-medium text-gray-800 dark:text-gray-100">
+                                    {{ $user['name'] ?? 'Usuario' }}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 italic">{{ ucfirst($userType) }}
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ $user['email'] ?? '' }}</div>
+                            </div>
+                            <ul>
+                                <li>
+                                    @if ($userType === 'conductor')
+                                        <a class="font-medium text-sm text-violet-500 hover:text-violet-600 dark:hover:text-violet-400 flex items-center py-1 px-3"
+                                            href="{{ route('taxis.conductor.perfil') }}" @click="open = false"
+                                            @focus="open = true" @focusout="open = false">
+                                        @elseif($userType === 'propietario')
+                                            <a class="font-medium text-sm text-violet-500 hover:text-violet-600 dark:hover:text-violet-400 flex items-center py-1 px-3"
+                                                href="{{ route('taxis.propietario.perfil') }}" @click="open = false"
+                                                @focus="open = true" @focusout="open = false">
+                                    @endif
                                     <svg class="w-3 h-3 fill-current text-violet-500 shrink-0 mr-2"
                                         viewBox="0 0 12 12">
                                         <path
                                             d="M6 0a6 6 0 100 12A6 6 0 006 0zM6 2a2 2 0 110 4 2 2 0 010-4zm0 8a4 4 0 01-3.464-2A3 3 0 016 6a3 3 0 013.464 2A4 4 0 016 10z" />
                                     </svg>
-                                    Perfil
-                                </a>
-                            </li>
-                            <li>
-                                <form method="POST" action="{{ route('taxis.logout') }}" style="display: inline;">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full text-left font-medium text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 flex items-center py-1 px-3"
-                                        @click="open = false" @focus="open = true" @focusout="open = false">
-                                        <svg class="w-3 h-3 fill-current text-red-500 shrink-0 mr-2"
-                                            viewBox="0 0 12 12">
-                                            <path
-                                                d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
-                                            <path
-                                                d="M8 6V4a4 4 0 00-8 0v2a2 2 0 00-2 2v4a2 2 0 002 2h8a2 2 0 002-2V8a2 2 0 00-2-2zM2 4a2 2 0 014 0v2H2V4z" />
-                                        </svg>
-                                        Cerrar Sesión
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
+                                    Mi Perfil
+                                    </a>
+                                </li>
+                                <li>
+                                    <form method="POST" action="{{ route('taxis.logout') }}"
+                                        style="display: inline;">
+                                        @csrf
+                                        <button type="submit"
+                                            class="w-full text-left font-medium text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 flex items-center py-1 px-3"
+                                            @click="open = false" @focus="open = true" @focusout="open = false">
+                                            <svg class="w-3 h-3 fill-current text-red-500 shrink-0 mr-2"
+                                                viewBox="0 0 12 12">
+                                                <path
+                                                    d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
+                                                <path
+                                                    d="M8 6V4a4 4 0 00-8 0v2a2 2 0 00-2 2v4a2 2 0 002 2h8a2 2 0 002-2V8a2 2 0 00-2-2zM2 4a2 2 0 014 0v2H2V4z" />
+                                            </svg>
+                                            Cerrar Sesión
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
+                @else
+                    <div class="flex items-center">
+                        <a href="{{ route('taxis.login') }}"
+                            class="bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-150">
+                            Iniciar Sesión
+                        </a>
+                    </div>
+                @endif
 
             </div>
 

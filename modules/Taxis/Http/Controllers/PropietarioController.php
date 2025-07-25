@@ -18,6 +18,7 @@ use App\Http\Resources\Tenant\ConductorCollection;
 use App\Http\Resources\Tenant\PermisoUnidadCollection;
 use App\Http\Resources\Tenant\ConstanciaBajaCollection;
 use App\Http\Resources\Tenant\SubscriptionCollection;
+use App\Models\Tenant\Taxis\Conductor;
 
 class PropietarioController extends Controller
 {
@@ -29,17 +30,20 @@ class PropietarioController extends Controller
         $propietario = session('taxis_user');
 
         // Estadísticas del propietario
+        $vehiculosIds = Vehiculos::where('propietario_id', $propietario['id'])->pluck('id')->toArray();
+
         $stats = [
             'total_vehiculos' => Vehiculos::where('propietario_id', $propietario['id'])->count(),
             'vehiculos_activos' => Vehiculos::where('propietario_id', $propietario['id'])
                 ->where('estado', 'activo')->count(),
-            'total_conductores' => Conductores::whereHas('vehiculos', function ($q) use ($propietario) {
+            'total_conductores' => Conductor::whereHas('vehiculo', function ($q) use ($propietario) {
                 $q->where('propietario_id', $propietario['id']);
             })->count(),
             'contratos_activos' => Contratos::where('propietario_id', $propietario['id'])
                 ->where('estado', 'activo')->count(),
-            'solicitudes_pendientes' => Solicitud::where('propietario_id', $propietario['id'])
-                ->where('estado', 'pendiente')->count(),
+            'solicitudes_pendientes' => Solicitud::whereHas('detalle', function ($q) use ($vehiculosIds) {
+                $q->whereIn('vehiculo_id', $vehiculosIds);
+            })->where('estado', 'pendiente')->count(),
             'pagos_pendientes' => SubscriptionInvoice::whereHas('vehiculo', function ($q) use ($propietario) {
                 $q->where('propietario_id', $propietario['id']);
             })->where('estado', 'pendiente')->count()
@@ -147,7 +151,15 @@ class PropietarioController extends Controller
     {
         $propietario = session('taxis_user');
 
-        $records = Solicitud::where('propietario_id', $propietario['id'])
+        // Primero obtenemos los IDs de los vehículos del propietario
+        $vehiculosIds = Vehiculos::where('propietario_id', $propietario['id'])
+            ->pluck('id')
+            ->toArray();
+
+        // Luego obtenemos las solicitudes que tienen detalles con esos vehículos
+        $records = Solicitud::whereHas('detalle', function ($q) use ($vehiculosIds) {
+            $q->whereIn('vehiculo_id', $vehiculosIds);
+        })->with(['detalle.vehiculo'])
             ->orderBy('id', 'desc');
 
         return new SolicitudCollection($records->paginate(config('tenant.items_per_page')));
@@ -229,6 +241,21 @@ class PropietarioController extends Controller
     {
         $propietario = session('taxis_user');
         return view('taxis::propietario.servicios.index', compact('propietario'));
+    }
+
+    /**
+     * API: Obtener servicios del propietario
+     */
+    public function serviciosRecords(Request $request)
+    {
+        $propietario = session('taxis_user');
+
+        // Obtener servicios a través de los vehículos del propietario
+        $records = \App\Models\Tenant\Taxis\Servicios::whereHas('vehiculo', function ($q) use ($propietario) {
+            $q->where('propietario_id', $propietario['id']);
+        })->with(['vehiculo'])->orderBy('id', 'desc');
+
+        return new \App\Http\Resources\Tenant\ServicioCollection($records->paginate(config('tenant.items_per_page')));
     }
 
     /**

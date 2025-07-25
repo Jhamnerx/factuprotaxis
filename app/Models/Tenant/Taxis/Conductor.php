@@ -190,4 +190,9 @@ class Conductor extends Authenticatable
 
         return $query->where('name', 'like', '%' . $name . '%');
     }
+
+    public function vehiculo()
+    {
+        return $this->hasOne(Vehiculos::class, 'conductor_id');
+    }
 }

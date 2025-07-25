@@ -40,6 +40,8 @@ class CreateVehiculosTable extends Migration
             $table->unsignedBigInteger('plan_id')->nullable(); // ID del plan de suscripción
             $table->unsignedBigInteger('subscription_id')->nullable(); // ID de la suscripción
             $table->unsignedInteger('user_id');
+            $table->unsignedInteger('conductor_id')->nullable(); // ID del conductor asignado
+            $table->foreign('conductor_id')->references('id')->on('conductores');
             $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
             $table->softDeletes();

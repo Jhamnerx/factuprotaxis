@@ -1,4 +1,4 @@
-@extends('taxis::layouts.app')
+@extends('taxis::layouts.master')
 
 @section('title', 'Dashboard - Conductor')
 
