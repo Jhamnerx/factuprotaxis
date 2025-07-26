@@ -96,6 +96,12 @@ Route::middleware(['check.permission', 'locked.tenant'])->prefix('taxis')->group
             // Perfil del propietario
             Route::get('perfil', [PropietarioController::class, 'perfil'])->name('taxis.propietario.perfil');
             Route::post('perfil', [PropietarioController::class, 'actualizarPerfil'])->name('taxis.propietario.perfil.update');
+
+            // PDF Downloads
+            Route::get('pdf/contrato/{vehiculo}', [PropietarioController::class, 'descargarContrato'])->name('taxis.propietario.pdf.contrato');
+            Route::get('pdf/solicitud/{solicitud}', [PropietarioController::class, 'descargarSolicitud'])->name('taxis.propietario.pdf.solicitud');
+            Route::get('pdf/constancia/{constancia}', [PropietarioController::class, 'descargarConstancia'])->name('taxis.propietario.pdf.constancia');
+            Route::get('pdf/permiso/{permiso}', [PropietarioController::class, 'descargarPermiso'])->name('taxis.propietario.pdf.permiso');
         });
     });
 });

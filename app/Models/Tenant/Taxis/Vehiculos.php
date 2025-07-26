@@ -47,6 +47,7 @@ class Vehiculos extends ModelTenant
         'estado_tuc_id',
         'estado',
         'propietario_id',
+        'conductor_id',
         'plan_id',
         'subscription_id',
         'user_id'
@@ -67,6 +68,7 @@ class Vehiculos extends ModelTenant
         'propietario_id' => 'integer',
         'marca_id' => 'integer',
         'modelo_id' => 'integer',
+        'conductor_id' => 'integer',
         'plan_id' => 'integer',
         'subscription_id' => 'integer',
         'user_id' => 'integer'
@@ -137,6 +139,12 @@ class Vehiculos extends ModelTenant
     {
         return $this->hasMany(Solicitud::class, 'vehiculo_id', 'id');
     }
+
+    public function conductor()
+    {
+        return $this->belongsTo(Conductor::class, 'conductor_id', 'id');
+    }
+
     public function paymentColors()
     {
         return $this->morphMany(PaymentColor::class, 'colorable');

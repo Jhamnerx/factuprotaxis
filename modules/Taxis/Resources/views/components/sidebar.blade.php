@@ -171,10 +171,12 @@
                             </li>
 
                             <!-- Documentos -->
-                            <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 relative" x-data="{ open: {{ request()->routeIs('taxis.propietario.contratos*', 'taxis.propietario.solicitudes*', 'taxis.propietario.constancias*', 'taxis.propietario.permisos*') ? 'true' : 'false' }} }">
+                            <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 relative {{ request()->routeIs('taxis.propietario.contratos*', 'taxis.propietario.solicitudes*', 'taxis.propietario.constancias*', 'taxis.propietario.permisos*') ? 'bg-gradient-to-r from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }}"
+                                x-data="{ open: {{ request()->routeIs('taxis.propietario.contratos*', 'taxis.propietario.solicitudes*', 'taxis.propietario.constancias*', 'taxis.propietario.permisos*') ? 'true' : 'false' }} }">
                                 <button
                                     class="w-full text-left text-gray-800 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white truncate transition"
-                                    @click="open = !open" :class="{ 'text-violet-500': open }">
+                                    @click="open = !open; sidebarExpanded = true"
+                                    :class="open ? 'text-violet-500' : ''">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center">
                                             <svg class="shrink-0 fill-current"
@@ -194,30 +196,44 @@
                                         </svg>
                                     </div>
                                 </button>
-                                <ul class="pl-9 mt-1" x-show="open"
-                                    x-transition:enter="transition ease-out duration-150"
-                                    x-transition:enter-start="opacity-0 transform -translate-y-2"
-                                    x-transition:enter-end="opacity-100 transform translate-y-0"
-                                    x-transition:leave="transition ease-in duration-150"
-                                    x-transition:leave-start="opacity-100 transform translate-y-0"
-                                    x-transition:leave-end="opacity-0 transform -translate-y-2">
-                                    <li class="mb-1 last:mb-0">
-                                        <a class="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white py-2 text-sm transition {{ request()->routeIs('taxis.propietario.contratos*') ? 'text-violet-500 font-medium' : '' }}"
-                                            href="{{ route('taxis.propietario.contratos') }}">Contratos</a>
-                                    </li>
-                                    <li class="mb-1 last:mb-0">
-                                        <a class="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white py-2 text-sm transition {{ request()->routeIs('taxis.propietario.solicitudes*') ? 'text-violet-500 font-medium' : '' }}"
-                                            href="{{ route('taxis.propietario.solicitudes') }}">Solicitudes</a>
-                                    </li>
-                                    <li class="mb-1 last:mb-0">
-                                        <a class="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white py-2 text-sm transition {{ request()->routeIs('taxis.propietario.constancias*') ? 'text-violet-500 font-medium' : '' }}"
-                                            href="{{ route('taxis.propietario.constancias') }}">Constancias</a>
-                                    </li>
-                                    <li class="mb-1 last:mb-0">
-                                        <a class="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white py-2 text-sm transition {{ request()->routeIs('taxis.propietario.permisos*') ? 'text-violet-500 font-medium' : '' }}"
-                                            href="{{ route('taxis.propietario.permisos') }}">Permisos</a>
-                                    </li>
-                                </ul>
+                                <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
+                                    <ul class="pl-8 mt-1" x-show="open"
+                                        x-transition:enter="transition ease-out duration-150"
+                                        x-transition:enter-start="opacity-0 transform -translate-y-2"
+                                        x-transition:enter-end="opacity-100 transform translate-y-0"
+                                        x-transition:leave="transition ease-in duration-150"
+                                        x-transition:leave-start="opacity-100 transform translate-y-0"
+                                        x-transition:leave-end="opacity-0 transform -translate-y-2">
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="block {{ request()->routeIs('taxis.propietario.contratos*') ? 'text-violet-500' : 'text-gray-600 dark:text-gray-400' }} hover:text-gray-900 dark:hover:text-white py-2 text-sm transition truncate"
+                                                href="{{ route('taxis.propietario.contratos') }}">
+                                                <span
+                                                    class="text-sm {{ request()->routeIs('taxis.propietario.contratos*') ? 'font-medium' : '' }} lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Contratos</span>
+                                            </a>
+                                        </li>
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="block {{ request()->routeIs('taxis.propietario.solicitudes*') ? 'text-violet-500' : 'text-gray-600 dark:text-gray-400' }} hover:text-gray-900 dark:hover:text-white py-2 text-sm transition truncate"
+                                                href="{{ route('taxis.propietario.solicitudes') }}">
+                                                <span
+                                                    class="text-sm {{ request()->routeIs('taxis.propietario.solicitudes*') ? 'font-medium' : '' }} lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Solicitudes</span>
+                                            </a>
+                                        </li>
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="block {{ request()->routeIs('taxis.propietario.constancias*') ? 'text-violet-500' : 'text-gray-600 dark:text-gray-400' }} hover:text-gray-900 dark:hover:text-white py-2 text-sm transition truncate"
+                                                href="{{ route('taxis.propietario.constancias') }}">
+                                                <span
+                                                    class="text-sm {{ request()->routeIs('taxis.propietario.constancias*') ? 'font-medium' : '' }} lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Constancias</span>
+                                            </a>
+                                        </li>
+                                        <li class="mb-1 last:mb-0">
+                                            <a class="block {{ request()->routeIs('taxis.propietario.permisos*') ? 'text-violet-500' : 'text-gray-600 dark:text-gray-400' }} hover:text-gray-900 dark:hover:text-white py-2 text-sm transition truncate"
+                                                href="{{ route('taxis.propietario.permisos') }}">
+                                                <span
+                                                    class="text-sm {{ request()->routeIs('taxis.propietario.permisos*') ? 'font-medium' : '' }} lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Permisos</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </li>
 
                             <!-- Servicios -->

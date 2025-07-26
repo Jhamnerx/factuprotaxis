@@ -90,20 +90,52 @@
                             </button>
                         </td>
                         <td class="text-right">
-                            <button
-                                class="btn btn-custom btn-xs mr-1"
-                                type="button"
-                                @click.prevent="clickEdit(row.id)"
+                            <el-dropdown
+                                @command="handleCommand"
+                                trigger="click"
                             >
-                                <i class="fa fa-edit"></i>
-                            </button>
-                            <button
-                                class="btn btn-danger btn-xs"
-                                type="button"
-                                @click.prevent="clickDelete(row.id)"
-                            >
-                                <i class="fa fa-trash"></i>
-                            </button>
+                                <el-button type="primary" size="mini">
+                                    Acciones
+                                    <i
+                                        class="el-icon-arrow-down el-icon--right"
+                                    ></i>
+                                </el-button>
+                                <el-dropdown-menu slot="dropdown">
+                                    <el-dropdown-item
+                                        :command="{
+                                            action: 'edit',
+                                            id: row.id
+                                        }"
+                                    >
+                                        <i class="fa fa-edit"></i> Editar
+                                    </el-dropdown-item>
+                                    <el-dropdown-item
+                                        :command="{
+                                            action: 'changeStatus',
+                                            id: row.id,
+                                            currentStatus: row.estado
+                                        }"
+                                        :disabled="row.estado === 'finalizado'"
+                                    >
+                                        <i class="fa fa-exchange-alt"></i>
+                                        {{
+                                            row.estado === "activo"
+                                                ? "Cancelar"
+                                                : "Activar"
+                                        }}
+                                    </el-dropdown-item>
+                                    <el-dropdown-item
+                                        :command="{
+                                            action: 'delete',
+                                            id: row.id
+                                        }"
+                                        divided
+                                        style="color: #f56c6c"
+                                    >
+                                        <i class="fa fa-trash"></i> Eliminar
+                                    </el-dropdown-item>
+                                </el-dropdown-menu>
+                            </el-dropdown>
                         </td>
                     </tr>
                 </data-table>
@@ -112,7 +144,6 @@
 
         <!-- Modal de formulario -->
         <contratos-form
-            v-if="showDialog"
             :showDialog.sync="showDialog"
             :recordId="recordId"
             :vehiculo-preseleccionado="vehiculoPreseleccionado"
@@ -172,7 +203,7 @@ export default {
         },
         clickDelete(id) {
             this.destroy(`/${this.resource}/${id}`).then(() =>
-                this.$refs.dataTable.fetchData()
+                this.$eventHub.$emit("reloadData")
             );
         },
         closeDialog() {
@@ -180,7 +211,7 @@ export default {
             this.recordId = null;
             this.vehiculoPreseleccionado = null;
             this.$nextTick(() => {
-                this.$refs.dataTable.fetchData();
+                this.$eventHub.$emit("reloadData");
             });
         },
         createContratoFromVehicle(vehiculoId) {
@@ -191,8 +222,18 @@ export default {
                 .then(response => {
                     if (response.data.success) {
                         this.vehiculoPreseleccionado = response.data.vehiculo;
+                        console.log(
+                            "Vehículo preseleccionado recibido:",
+                            this.vehiculoPreseleccionado
+                        );
+
                         this.recordId = null;
                         this.showDialog = true;
+                    } else {
+                        this.$message.error(
+                            response.data.message ||
+                                "Error al obtener datos del vehículo"
+                        );
                     }
                 })
                 .catch(error => {
@@ -201,6 +242,60 @@ export default {
                         error
                     );
                     this.$message.error("Error al obtener datos del vehículo");
+                });
+        },
+        handleCommand(command) {
+            switch (command.action) {
+                case "edit":
+                    this.clickEdit(command.id);
+                    break;
+                case "delete":
+                    this.clickDelete(command.id);
+                    break;
+                case "changeStatus":
+                    this.changeStatus(command.id, command.currentStatus);
+                    break;
+            }
+        },
+        changeStatus(contratoId, currentStatus) {
+            const newStatus =
+                currentStatus === "activo" ? "cancelado" : "activo";
+            const actionText = newStatus === "activo" ? "activar" : "cancelar";
+
+            this.$confirm(
+                `¿Está seguro que desea ${actionText} este contrato?`,
+                "Confirmar acción",
+                {
+                    confirmButtonText: "Sí, continuar",
+                    cancelButtonText: "Cancelar",
+                    type: "warning"
+                }
+            )
+                .then(() => {
+                    this.$http
+                        .post(`/contratos/${contratoId}/change-status`, {
+                            status: newStatus
+                        })
+                        .then(response => {
+                            if (response.data.success) {
+                                this.$message.success(response.data.message);
+                                this.$eventHub.$emit("reloadData");
+                            } else {
+                                this.$message.error(
+                                    response.data.message ||
+                                        "Error al cambiar el estado"
+                                );
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error al cambiar estado:", error);
+                            this.$message.error(
+                                "Error al cambiar el estado del contrato"
+                            );
+                        });
+                })
+                .catch(() => {
+                    // Usuario canceló la acción
                 });
         },
         downloadPdf(contratoId) {
@@ -302,5 +397,24 @@ export default {
 .btn-info:hover {
     background-color: #138496;
     border-color: #117a8b;
+}
+
+/* Estilos para el dropdown */
+.el-dropdown-menu {
+    padding: 8px 0;
+}
+
+.el-dropdown-menu__item {
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+.el-dropdown-menu__item:hover {
+    background-color: #f5f7fa;
+}
+
+.el-dropdown-menu__item i {
+    width: 16px;
+    margin-right: 8px;
 }
 </style>

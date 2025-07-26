@@ -445,6 +445,7 @@ if ($hostname) {
             Route::get('contratos/tables', 'Tenant\ContratosController@tables');
             Route::post('contratos', 'Tenant\ContratosController@store');
             Route::delete('contratos/{contrato}', 'Tenant\ContratosController@destroy');
+            Route::post('contratos/{contrato}/change-status', 'Tenant\ContratosController@changeStatus');
             Route::post('contratos/create-from-vehicle', 'Tenant\ContratosController@createFromVehicle');
             Route::post('contratos/search-vehiculos', 'Tenant\ContratosController@searchVehiculos');
 

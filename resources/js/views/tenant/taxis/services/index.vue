@@ -61,7 +61,7 @@
                     </tr>
                     <tr slot-scope="{ row }">
                         <td>{{ row.vehiculo_placa }}</td>
-                        <td>{{ row.name }}</td>
+                        <td>{{ row.name_formatted }}</td>
                         <td>{{ row.expires_date }}</td>
                         <td>
                             <span

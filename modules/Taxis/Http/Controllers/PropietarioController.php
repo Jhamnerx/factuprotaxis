@@ -23,6 +23,35 @@ use App\Models\Tenant\Taxis\Conductor;
 class PropietarioController extends Controller
 {
     /**
+     * Formatear nombres de servicios para mostrar
+     */
+    private function formatearNombreServicio($nombre)
+    {
+        // Mapeo de nombres comunes de servicios
+        $serviciosFormateados = [
+            'soat' => 'SOAT',
+            'afocat' => 'AFOCAT',
+            'revision_tecnica' => 'Revisión Técnica',
+            'mantenimiento' => 'Mantenimiento',
+            'poliza_seguro' => 'Póliza de Seguro',
+            'licencia_conductor' => 'Licencia de Conductor',
+            'citv' => 'CITV',
+            'inspeccion_tecnica' => 'Inspección Técnica',
+            'seguro_obligatorio' => 'Seguro Obligatorio',
+            'tarjeta_propiedad' => 'Tarjeta de Propiedad',
+        ];
+
+        $nombreLower = strtolower(trim($nombre));
+
+        // Si existe en el mapeo, usar el formato correcto
+        if (isset($serviciosFormateados[$nombreLower])) {
+            return $serviciosFormateados[$nombreLower];
+        }
+
+        // Si no existe en el mapeo, aplicar formato general
+        return ucwords(str_replace(['_', '-'], ' ', $nombreLower));
+    }
+    /**
      * Dashboard del propietario
      */
     public function dashboard()
@@ -62,10 +91,54 @@ class PropietarioController extends Controller
     /**
      * Ver vehículos del propietario
      */
-    public function vehiculos()
+    public function vehiculos(Request $request)
     {
         $propietario = session('taxis_user');
-        return view('taxis::propietario.vehiculos.index', compact('propietario'));
+
+        // Query base
+        $query = Vehiculos::where('propietario_id', $propietario['id'])
+            ->with(['marca', 'modelo', 'conductor']);
+
+        // Aplicar filtros
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        if ($request->filled('marca_id')) {
+            $query->where('marca_id', $request->marca_id);
+        }
+
+        if ($request->filled('conductor')) {
+            if ($request->conductor === 'sin_conductor') {
+                $query->whereNull('conductor_id');
+            } else {
+                $query->where('conductor_id', $request->conductor);
+            }
+        }
+
+        // Obtener vehículos con paginación y mantener parámetros de filtro
+        $vehiculos = $query->orderBy('created_at', 'desc')->paginate(12)->appends($request->query());
+
+        // Obtener datos para los filtros - Solo marcas y conductores que están en uso por este propietario
+        $marcasIds = Vehiculos::where('propietario_id', $propietario['id'])
+            ->whereNotNull('marca_id')
+            ->distinct()
+            ->pluck('marca_id');
+
+        $marcas = \App\Models\Tenant\Taxis\Marca::whereIn('id', $marcasIds)
+            ->orderBy('nombre')
+            ->get();
+
+        $conductoresIds = Vehiculos::where('propietario_id', $propietario['id'])
+            ->whereNotNull('conductor_id')
+            ->distinct()
+            ->pluck('conductor_id');
+
+        $conductores = \App\Models\Tenant\Taxis\Conductor::whereIn('id', $conductoresIds)
+            ->orderBy('name')
+            ->get();
+
+        return view('taxis::propietario.vehiculos.index', compact('propietario', 'vehiculos', 'marcas', 'conductores'));
     }
 
     /**
@@ -90,10 +163,42 @@ class PropietarioController extends Controller
     /**
      * Ver conductores asociados a los vehículos del propietario
      */
-    public function conductores()
+    public function conductores(Request $request)
     {
         $propietario = session('taxis_user');
-        return view('taxis::propietario.conductores.index', compact('propietario'));
+
+        // Query base para conductores con vehículos del propietario
+        $query = Conductor::whereHas('vehiculo', function ($q) use ($propietario) {
+            $q->where('propietario_id', $propietario['id']);
+        })->with(['vehiculo' => function ($q) use ($propietario) {
+            $q->where('propietario_id', $propietario['id'])
+                ->with(['marca', 'modelo']);
+        }]);
+
+        // Aplicar filtros
+        if ($request->filled('estado')) {
+            if ($request->estado === 'sin_vehiculo') {
+                $query->whereDoesntHave('vehiculo');
+            } else {
+                $query->whereHas('vehiculo', function ($q) use ($request) {
+                    $q->where('estado', $request->estado);
+                });
+            }
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('telefono', 'like', "%{$search}%")
+                    ->orWhere('numero_documento', 'like', "%{$search}%");
+            });
+        }
+
+        // Obtener conductores con paginación
+        $conductores = $query->orderBy('name')->paginate(12)->appends($request->query());
+
+        return view('taxis::propietario.conductores.index', compact('propietario', 'conductores'));
     }
 
     /**
@@ -103,7 +208,7 @@ class PropietarioController extends Controller
     {
         $propietario = session('taxis_user');
 
-        $records = Conductores::whereHas('vehiculos', function ($q) use ($propietario) {
+        $records = Conductor::whereHas('vehiculos', function ($q) use ($propietario) {
             $q->where('propietario_id', $propietario['id']);
         })->with(['vehiculos' => function ($q) use ($propietario) {
             $q->where('propietario_id', $propietario['id']);
@@ -115,10 +220,43 @@ class PropietarioController extends Controller
     /**
      * Ver contratos del propietario
      */
-    public function contratos()
+    public function contratos(Request $request)
     {
         $propietario = session('taxis_user');
-        return view('taxis::propietario.contratos.index', compact('propietario'));
+
+        // Query base para contratos del propietario
+        $query = Contratos::where('propietario_id', $propietario['id'])
+            ->with(['vehiculo.marca', 'vehiculo.modelo']);
+
+        // Aplicar filtros
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        if ($request->filled('vehiculo_id')) {
+            $query->where('vehiculo_id', $request->vehiculo_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('vehiculo', function ($vq) use ($search) {
+                    $vq->where('placa', 'like', "%{$search}%")
+                        ->orWhere('numero_interno', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        // Obtener contratos con paginación
+        $contratos = $query->orderBy('created_at', 'desc')->paginate(12)->appends($request->query());
+
+        // Obtener vehículos para el filtro
+        $vehiculos = Vehiculos::where('propietario_id', $propietario['id'])
+            ->with(['marca', 'modelo'])
+            ->orderBy('placa')
+            ->get();
+
+        return view('taxis::propietario.contratos.index', compact('propietario', 'contratos', 'vehiculos'));
     }
 
     /**
@@ -138,10 +276,58 @@ class PropietarioController extends Controller
     /**
      * Ver solicitudes del propietario
      */
-    public function solicitudes()
+    public function solicitudes(Request $request)
     {
         $propietario = session('taxis_user');
-        return view('taxis::propietario.solicitudes.index', compact('propietario'));
+
+        // Primero obtenemos los IDs de los vehículos del propietario
+        $vehiculosIds = Vehiculos::where('propietario_id', $propietario['id'])
+            ->pluck('id')
+            ->toArray();
+
+        // Query base para solicitudes del propietario
+        $query = Solicitud::whereHas('detalle', function ($q) use ($vehiculosIds) {
+            $q->whereIn('vehiculo_id', $vehiculosIds);
+        })->with(['detalle.infoVehiculo.marca', 'detalle.infoVehiculo.modelo', 'creator']);
+
+        // Aplicar filtros
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        if ($request->filled('tipo')) {
+            $query->where('tipo', $request->tipo);
+        }
+
+        if ($request->filled('vehiculo_id')) {
+            $query->whereHas('detalle', function ($q) use ($request) {
+                $q->where('vehiculo_id', $request->vehiculo_id);
+            });
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('descripcion', 'like', "%{$search}%")
+                    ->orWhere('motivo', 'like', "%{$search}%")
+                    ->orWhere('observaciones', 'like', "%{$search}%")
+                    ->orWhereHas('detalle.infoVehiculo', function ($vq) use ($search) {
+                        $vq->where('placa', 'like', "%{$search}%")
+                            ->orWhere('numero_interno', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Obtener solicitudes con paginación
+        $solicitudes = $query->orderBy('created_at', 'desc')->paginate(12)->appends($request->query());
+
+        // Obtener vehículos para el filtro
+        $vehiculos = Vehiculos::where('propietario_id', $propietario['id'])
+            ->with(['marca', 'modelo'])
+            ->orderBy('placa')
+            ->get();
+
+        return view('taxis::propietario.solicitudes.index', compact('propietario', 'solicitudes', 'vehiculos'));
     }
 
     /**
@@ -168,10 +354,46 @@ class PropietarioController extends Controller
     /**
      * Ver constancias del propietario
      */
-    public function constancias()
+    public function constancias(Request $request)
     {
         $propietario = session('taxis_user');
-        return view('taxis::propietario.constancias.index', compact('propietario'));
+
+        // Query base para constancias del propietario
+        $query = \App\Models\Tenant\Taxis\ConstanciaBaja::whereHas('datosVehiculo', function ($q) use ($propietario) {
+            $q->where('propietario_id', $propietario['id']);
+        })->with(['datosVehiculo.marca', 'datosVehiculo.modelo', 'creator']);
+
+        // Aplicar filtros
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        if ($request->filled('vehiculo_id')) {
+            $query->where('vehiculo_id', $request->vehiculo_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('numero', 'like', "%{$search}%")
+                    ->orWhere('observaciones', 'like', "%{$search}%")
+                    ->orWhereHas('datosVehiculo', function ($vq) use ($search) {
+                        $vq->where('placa', 'like', "%{$search}%")
+                            ->orWhere('numero_interno', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Obtener constancias con paginación
+        $constancias = $query->orderBy('created_at', 'desc')->paginate(12)->appends($request->query());
+
+        // Obtener vehículos para el filtro
+        $vehiculos = Vehiculos::where('propietario_id', $propietario['id'])
+            ->with(['marca', 'modelo'])
+            ->orderBy('placa')
+            ->get();
+
+        return view('taxis::propietario.constancias.index', compact('propietario', 'constancias', 'vehiculos'));
     }
 
     /**
@@ -214,10 +436,47 @@ class PropietarioController extends Controller
     /**
      * Ver permisos de todos los vehículos del propietario
      */
-    public function permisos()
+    public function permisos(Request $request)
     {
         $propietario = session('taxis_user');
-        return view('taxis::propietario.permisos.index', compact('propietario'));
+
+        // Query base para permisos del propietario
+        $query = PermisoUnidad::whereHas('datosVehiculo', function ($q) use ($propietario) {
+            $q->where('propietario_id', $propietario['id']);
+        })->with(['datosVehiculo.marca', 'datosVehiculo.modelo', 'creator']);
+
+        // Aplicar filtros
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        if ($request->filled('tipo_permiso')) {
+            $query->where('tipo_permiso', 'like', '%' . $request->tipo_permiso . '%');
+        }
+
+        if ($request->filled('vehiculo_id')) {
+            $query->where('vehiculo_id', $request->vehiculo_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('motivo', 'like', "%{$search}%")
+                    ->orWhere('tipo_permiso', 'like', "%{$search}%")
+                    ->orWhere('observaciones', 'like', "%{$search}%");
+            });
+        }
+
+        // Obtener permisos con paginación
+        $permisos = $query->orderBy('created_at', 'desc')->paginate(12)->appends($request->query());
+
+        // Obtener vehículos para el filtro
+        $vehiculos = Vehiculos::where('propietario_id', $propietario['id'])
+            ->with(['marca', 'modelo'])
+            ->orderBy('placa')
+            ->get();
+
+        return view('taxis::propietario.permisos.index', compact('propietario', 'permisos', 'vehiculos'));
     }
 
     /**
@@ -237,10 +496,65 @@ class PropietarioController extends Controller
     /**
      * Ver servicios de todos los vehículos del propietario
      */
-    public function servicios()
+    public function servicios(Request $request)
     {
         $propietario = session('taxis_user');
-        return view('taxis::propietario.servicios.index', compact('propietario'));
+
+        // Query base para servicios del propietario
+        $query = \App\Models\Tenant\VehicleService::whereHas('vehiculo', function ($q) use ($propietario) {
+            $q->where('propietario_id', $propietario['id']);
+        })->with(['vehiculo.marca', 'vehiculo.modelo']);
+
+        // Aplicar filtros
+        if ($request->filled('estado')) {
+            if ($request->estado === 'vencido') {
+                $query->where('expires_date', '<', now());
+            } elseif ($request->estado === 'proximo_vencer') {
+                $query->whereBetween('expires_date', [now(), now()->addDays(30)]);
+            } elseif ($request->estado === 'vigente') {
+                $query->where('expires_date', '>', now()->addDays(30));
+            }
+        }
+
+        if ($request->filled('tipo_servicio')) {
+            $query->where('name', 'like', '%' . $request->tipo_servicio . '%');
+        }
+
+        if ($request->filled('vehiculo_id')) {
+            $query->where('device_id', $request->vehiculo_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%')
+                    ->orWhereHas('vehiculo', function ($vehicleQuery) use ($search) {
+                        $vehicleQuery->where('placa', 'like', '%' . $search . '%');
+                    });
+            });
+        }
+
+        // Obtener servicios con paginación
+        $servicios = $query->orderBy('expires_date', 'asc')->paginate(12)->appends($request->query());
+
+        // Obtener vehículos para el filtro
+        $vehiculos = Vehiculos::where('propietario_id', $propietario['id'])
+            ->with(['marca', 'modelo'])
+            ->orderBy('placa')
+            ->get();
+
+        // Obtener tipos de servicios únicos para filtro
+        $tiposServiciosRaw = \App\Models\Tenant\VehicleService::whereHas('vehiculo', function ($q) use ($propietario) {
+            $q->where('propietario_id', $propietario['id']);
+        })->distinct()->pluck('name')->filter()->sort()->values();
+
+        // Formatear los tipos de servicios para el filtro
+        $tiposServicios = $tiposServiciosRaw->mapWithKeys(function ($tipo) {
+            return [$tipo => $this->formatearNombreServicio($tipo)];
+        });
+
+        return view('taxis::propietario.servicios.index', compact('propietario', 'servicios', 'vehiculos', 'tiposServicios'));
     }
 
     /**
@@ -251,7 +565,7 @@ class PropietarioController extends Controller
         $propietario = session('taxis_user');
 
         // Obtener servicios a través de los vehículos del propietario
-        $records = \App\Models\Tenant\Taxis\Servicios::whereHas('vehiculo', function ($q) use ($propietario) {
+        $records = \App\Models\Tenant\VehicleService::whereHas('vehiculo', function ($q) use ($propietario) {
             $q->where('propietario_id', $propietario['id']);
         })->with(['vehiculo'])->orderBy('id', 'desc');
 
@@ -310,5 +624,74 @@ class PropietarioController extends Controller
             ->firstOrFail();
 
         return view('taxis::propietario.vehiculos.show', compact('vehiculo'));
+    }
+
+    /**
+     * Descargar PDF de contrato (solo para vehículos del propietario)
+     */
+    public function descargarContrato($vehiculoId)
+    {
+        $propietario = session('taxis_user');
+
+        // Verificar que el vehículo pertenece al propietario
+        $vehiculo = Vehiculos::where('id', $vehiculoId)
+            ->where('propietario_id', $propietario['id'])
+            ->firstOrFail();
+
+        // Redirigir a la ruta principal de PDF del sistema
+        return redirect()->route('tenant.pdf.contrato', ['vehiculo' => $vehiculo]);
+    }
+
+    /**
+     * Descargar PDF de solicitud (solo para solicitudes relacionadas a vehículos del propietario)
+     */
+    public function descargarSolicitud($solicitudId)
+    {
+        $propietario = session('taxis_user');
+
+        // Obtener los IDs de vehículos del propietario
+        $vehiculosIds = Vehiculos::where('propietario_id', $propietario['id'])
+            ->pluck('id')
+            ->toArray();
+
+        // Verificar que la solicitud tiene vehículos del propietario autenticado
+        $solicitud = Solicitud::whereHas('detalle', function ($q) use ($vehiculosIds) {
+            $q->whereIn('vehiculo_id', $vehiculosIds);
+        })->findOrFail($solicitudId);
+
+        // Redirigir a la ruta principal de PDF del sistema
+        return redirect()->route('tenant.pdf.solicitud', ['solicitud' => $solicitud]);
+    }
+
+    /**
+     * Descargar PDF de constancia (solo para constancias relacionadas a vehículos del propietario)
+     */
+    public function descargarConstancia($constanciaId)
+    {
+        $propietario = session('taxis_user');
+
+        // Verificar que la constancia pertenece a un vehículo del propietario autenticado
+        $constancia = \App\Models\Tenant\Taxis\ConstanciaBaja::whereHas('datosVehiculo', function ($q) use ($propietario) {
+            $q->where('propietario_id', $propietario['id']);
+        })->findOrFail($constanciaId);
+
+        // Redirigir a la ruta principal de PDF del sistema
+        return redirect()->route('tenant.pdf.constancia', ['constancia' => $constancia]);
+    }
+
+    /**
+     * Descargar PDF de permiso (solo para permisos de vehículos del propietario)
+     */
+    public function descargarPermiso($permisoId)
+    {
+        $propietario = session('taxis_user');
+
+        // Verificar que el permiso pertenece a un vehículo del propietario
+        $permiso = PermisoUnidad::whereHas('datosVehiculo', function ($q) use ($propietario) {
+            $q->where('propietario_id', $propietario['id']);
+        })->findOrFail($permisoId);
+
+        // Redirigir a la ruta principal de PDF del sistema
+        return redirect()->route('tenant.pdf.permiso-viaje', ['permiso' => $permiso]);
     }
 }

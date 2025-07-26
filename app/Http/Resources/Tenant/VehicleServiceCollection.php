@@ -26,6 +26,7 @@ class VehicleServiceCollection extends ResourceCollection
                 'vehiculo_numero_interno' => $service->vehiculo->numero_interno ?? '',
                 'name' => $service->name,
                 'custom_name' => $service->custom_name,
+                'name_formatted' => $this->formatearNombreServicio($service->name),
                 'expires_date' => $service->expires_date ? $service->expires_date->format('d/m/Y') : '',
                 'dias_restantes' => $diasRestantes,
                 'dias_restantes_badge' => $vehicleServiceController->getDiasRestantesBadge($diasRestantes),
@@ -41,5 +42,32 @@ class VehicleServiceCollection extends ResourceCollection
                 'updated_at' => $service->updated_at->format('Y-m-d H:i:s'),
             ];
         });
+    }
+
+    private function formatearNombreServicio($nombre)
+    {
+        // Mapeo de nombres comunes de servicios
+        $serviciosFormateados = [
+            'soat' => 'SOAT',
+            'afocat' => 'AFOCAT',
+            'revision_tecnica' => 'Revisión Técnica',
+            'mantenimiento' => 'Mantenimiento',
+            'poliza_seguro' => 'Póliza de Seguro',
+            'licencia_conductor' => 'Licencia de Conductor',
+            'citv' => 'CITV',
+            'inspeccion_tecnica' => 'Inspección Técnica',
+            'seguro_obligatorio' => 'Seguro Obligatorio',
+            'tarjeta_propiedad' => 'Tarjeta de Propiedad',
+        ];
+
+        $nombreLower = strtolower(trim($nombre));
+
+        // Si existe en el mapeo, usar el formato correcto
+        if (isset($serviciosFormateados[$nombreLower])) {
+            return $serviciosFormateados[$nombreLower];
+        }
+
+        // Si no existe en el mapeo, aplicar formato general
+        return ucwords(str_replace(['_', '-'], ' ', $nombreLower));
     }
 }

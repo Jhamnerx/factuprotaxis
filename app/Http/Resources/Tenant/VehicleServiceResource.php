@@ -21,6 +21,7 @@ class VehicleServiceResource extends JsonResource
             'device_id' => $this->device_id,
             'name' => $this->name,
             'custom_name' => $this->custom_name,
+            'name_formatted' => $this->formatearNombreServicio($this->name),
             'trigger_event_left' => $this->trigger_event_left,
             'renew_after_expiration' => $this->renew_after_expiration,
             'expires_date' => $this->expires_date ? $this->expires_date->format('Y-m-d') : null,
@@ -51,5 +52,32 @@ class VehicleServiceResource extends JsonResource
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];
+    }
+
+    private function formatearNombreServicio($nombre)
+    {
+        // Mapeo de nombres comunes de servicios
+        $serviciosFormateados = [
+            'soat' => 'SOAT',
+            'afocat' => 'AFOCAT',
+            'revision_tecnica' => 'Revisión Técnica',
+            'mantenimiento' => 'Mantenimiento',
+            'poliza_seguro' => 'Póliza de Seguro',
+            'licencia_conductor' => 'Licencia de Conductor',
+            'citv' => 'CITV',
+            'inspeccion_tecnica' => 'Inspección Técnica',
+            'seguro_obligatorio' => 'Seguro Obligatorio',
+            'tarjeta_propiedad' => 'Tarjeta de Propiedad',
+        ];
+
+        $nombreLower = strtolower(trim($nombre));
+
+        // Si existe en el mapeo, usar el formato correcto
+        if (isset($serviciosFormateados[$nombreLower])) {
+            return $serviciosFormateados[$nombreLower];
+        }
+
+        // Si no existe en el mapeo, aplicar formato general
+        return ucwords(str_replace(['_', '-'], ' ', $nombreLower));
     }
 }

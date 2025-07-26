@@ -118,10 +118,8 @@ class Solicitud extends ModelTenant
     {
         $estados = [
             'pendiente' => 'Pendiente',
-            'aprobado' => 'Aprobado',
-            'rechazado' => 'Rechazado',
-            'en_proceso' => 'En Proceso',
-            'completado' => 'Completado',
+            'aceptada' => 'Aceptada',
+            'rechazada' => 'Rechazada'
         ];
 
         return $estados[$estado] ?? $estado;

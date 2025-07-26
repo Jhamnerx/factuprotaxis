@@ -42,9 +42,10 @@ class ContratosController extends Controller
     public function tables()
     {
         $propietarios = $this->table('propietarios');
-        $vehiculos = Vehiculos::where('estado', 'activo')
+        $vehiculos = Vehiculos::with('propietario', 'marca', 'modelo')
+            ->where('estado', 'activo')
             ->orderBy('numero_interno')
-            ->take(20)
+            ->take(100) // Aumentamos el límite a 100 vehículos
             ->get()->transform(function ($row) {
                 /** @var Vehiculos $row */
                 return $row->getCollectionData();
@@ -177,11 +178,53 @@ class ContratosController extends Controller
     }
 
     /**
+     * Cambiar estado del contrato
+     */
+    public function changeStatus(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'status' => 'required|in:activo,cancelado'
+            ]);
+
+            $contrato = Contratos::findOrFail($id);
+
+            // No permitir cambios si el contrato está finalizado
+            if ($contrato->estado === 'finalizado') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se puede cambiar el estado de un contrato finalizado'
+                ], 400);
+            }
+
+            $estadoAnterior = $contrato->estado;
+            $contrato->estado = $request->status;
+            $contrato->save();
+
+            $mensaje = $request->status === 'activo'
+                ? 'Contrato activado correctamente'
+                : 'Contrato cancelado correctamente';
+
+            return response()->json([
+                'success' => true,
+                'message' => $mensaje,
+                'previous_status' => $estadoAnterior,
+                'new_status' => $request->status
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cambiar el estado: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Crear contrato desde un vehículo específico
      */
     public function createFromVehicle(Request $request)
     {
-        $vehiculo = Vehiculos::with('propietario')->find($request->vehiculo_id);
+        $vehiculo = Vehiculos::with(['propietario', 'marca', 'modelo'])->find($request->vehiculo_id);
 
         if (!$vehiculo) {
             return response()->json([
@@ -190,13 +233,25 @@ class ContratosController extends Controller
             ], 404);
         }
 
+        $propietarioData = null;
+        if ($vehiculo->propietario) {
+            $propietarioData = [
+                'id' => $vehiculo->propietario->id,
+                'name' => $vehiculo->propietario->name,
+                'number' => $vehiculo->propietario->number
+            ];
+        }
+
         return response()->json([
             'success' => true,
             'vehiculo' => [
                 'id' => $vehiculo->id,
                 'placa' => $vehiculo->placa,
+                'numero_interno' => $vehiculo->numero_interno,
                 'propietario_id' => $vehiculo->propietario_id,
-                'propietario_nombre' => $vehiculo->propietario ? $vehiculo->propietario->nombre_completo : null
+                'propietario' => $propietarioData,
+                'marca' => $vehiculo->marca ? $vehiculo->marca->nombre : null,
+                'modelo' => $vehiculo->modelo ? $vehiculo->modelo->nombre : null
             ]
         ]);
     }

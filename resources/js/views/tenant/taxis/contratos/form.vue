@@ -248,12 +248,55 @@ export default {
                 );
                 const data = response.data;
                 this.vehiculos = data.vehiculos || [];
+
+                console.log(
+                    "Vehículos cargados inicialmente:",
+                    this.vehiculos.length
+                );
             } catch (error) {
                 console.error("Error al cargar tablas:", error);
                 this.$message.error("Error al cargar datos de referencia");
             }
         },
+
+        async searchRemoteVehicles(search) {
+            if (search !== "") {
+                try {
+                    const response = await this.$http.post(
+                        "/contratos/search-vehiculos",
+                        { search: search }
+                    );
+
+                    console.log(
+                        "Búsqueda remota de vehículos:",
+                        response.data.length
+                    );
+
+                    // Añadir vehículos encontrados a la lista sin duplicar
+                    response.data.forEach(vehiculo => {
+                        const exists = this.vehiculos.find(
+                            v => v.id === vehiculo.id
+                        );
+                        if (!exists) {
+                            this.vehiculos.push(vehiculo);
+                        }
+                    });
+                } catch (error) {
+                    console.error(
+                        "Error en búsqueda remota de vehículos:",
+                        error
+                    );
+                }
+            }
+        },
         async create() {
+            console.log("=== MÉTODO CREATE EJECUTADO ===");
+            console.log(
+                "vehiculoPreseleccionado:",
+                this.vehiculoPreseleccionado
+            );
+            console.log("recordId:", this.recordId);
+
             this.titleDialog = this.recordId
                 ? "Editar Contrato"
                 : "Nuevo Contrato";
@@ -269,11 +312,42 @@ export default {
                 estado: "activo",
                 observaciones: ""
             };
+            console.log("Formulario inicializado:", this.form);
 
             // Si hay vehículo preseleccionado
             if (this.vehiculoPreseleccionado) {
+                // Primero agregar el vehículo preseleccionado al array de vehículos disponibles
+                const vehiculoExists = this.vehiculos.find(
+                    v => v.id === this.vehiculoPreseleccionado.id
+                );
+                if (!vehiculoExists) {
+                    this.vehiculos.push(this.vehiculoPreseleccionado);
+                    console.log(
+                        "Vehículo preseleccionado agregado al array:",
+                        this.vehiculoPreseleccionado
+                    );
+                }
+
+                // Luego asignar los valores al formulario
                 this.form.vehiculo_id = this.vehiculoPreseleccionado.id;
                 this.form.propietario_id = this.vehiculoPreseleccionado.propietario_id;
+
+                // Actualizar el propietario mostrado
+                if (this.vehiculoPreseleccionado.propietario) {
+                    this.selectedVehiculePropietario = this.vehiculoPreseleccionado.propietario.name;
+                }
+
+                console.log("Vehículo preseleccionado aplicado:", {
+                    vehiculo_id: this.form.vehiculo_id,
+                    propietario_id: this.form.propietario_id,
+                    propietario_nombre: this.selectedVehiculePropietario,
+                    vehiculos_disponibles: this.vehiculos.length
+                });
+
+                // Asegurar que se actualice el propietario
+                this.$nextTick(() => {
+                    this.onVehiculoChange();
+                });
             }
 
             // Si estamos editando, cargar datos
@@ -326,7 +400,17 @@ export default {
             return dateString;
         },
         onVehiculoChange() {
-            if (!this.vehiculoPreseleccionado && this.form.vehiculo_id) {
+            // Si es un vehículo preseleccionado, usar esos datos
+            if (
+                this.vehiculoPreseleccionado &&
+                this.form.vehiculo_id === this.vehiculoPreseleccionado.id
+            ) {
+                this.form.propietario_id = this.vehiculoPreseleccionado.propietario_id;
+                this.selectedVehiculePropietario = this.vehiculoPreseleccionado
+                    .propietario
+                    ? this.vehiculoPreseleccionado.propietario.name
+                    : null;
+            } else if (this.form.vehiculo_id) {
                 // Buscar si el vehículo tiene propietario asociado
                 const vehiculoSeleccionado = this.vehiculos.find(
                     v => v.id === this.form.vehiculo_id
@@ -343,25 +427,10 @@ export default {
                         ? vehiculoSeleccionado.propietario.name
                         : null;
                 }
-            }
-        },
-        searchRemoteVehicles(input) {
-            if (input.length > 0) {
-                this.loading_search = true;
-                this.$http
-                    .post(`/${this.resource}/search-vehiculos`, { input })
-                    .then(response => {
-                        this.vehiculos = response.data.vehiculos || [];
-                    })
-                    .catch(error => {
-                        console.error("Error al buscar vehículos:", error);
-                        this.$message.error("Error al buscar vehículos");
-                    })
-                    .finally(() => {
-                        this.loading_search = false;
-                    });
             } else {
-                this.vehiculos = [];
+                // Limpiar propietario si no hay vehículo seleccionado
+                this.form.propietario_id = null;
+                this.selectedVehiculePropietario = null;
             }
         },
         validateFechas() {
@@ -396,6 +465,8 @@ export default {
                 }
             }
 
+            console.log("Datos del formulario antes de enviar:", this.form);
+
             const formData = { ...this.form };
             if (this.recordId) {
                 formData.id = this.recordId;
@@ -415,10 +486,10 @@ export default {
                     this.$message.error("Error al guardar el contrato");
                 }
             } catch (error) {
-                if (error.response && error.response.data.errors) {
-                    this.errors = error.response.data.errors;
+                if (error.response.status === 422) {
+                    this.errors = error.response.data;
                 } else {
-                    this.$message.error("Error al procesar la solicitud");
+                    console.log(error);
                 }
                 console.error("Error:", error);
             } finally {
