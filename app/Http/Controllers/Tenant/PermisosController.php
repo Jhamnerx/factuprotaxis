@@ -171,4 +171,24 @@ class PermisosController extends Controller
         $pdf = PDF::loadView('tenant.taxis.permisos.pdf', compact('permiso'));
         return $pdf->download('permiso_unidad_' . $permiso->id . '.pdf');
     }
+
+    public function cambiarEstado(Request $request, $id)
+    {
+        $permiso = PermisoUnidad::findOrFail($id);
+        $nuevoEstado = $request->input('estado');
+        $estadosValidos = ['pendiente', 'aceptado', 'anulado'];
+        if (!in_array($nuevoEstado, $estadosValidos)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Estado no válido.'
+            ], 422);
+        }
+        $permiso->estado = $nuevoEstado;
+        $permiso->save();
+        return response()->json([
+            'success' => true,
+            'message' => 'Estado actualizado correctamente.',
+            'estado' => $permiso->estado
+        ]);
+    }
 }

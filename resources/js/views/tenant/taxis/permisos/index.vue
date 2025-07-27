@@ -174,6 +174,25 @@
                                     >
                                         Eliminar
                                     </button>
+                                    <div class="dropdown-divider"></div>
+                                    <button
+                                        class="dropdown-item"
+                                        @click.prevent="
+                                            changeEstado(row.id, 'aceptado')
+                                        "
+                                        v-if="row.estado !== 'aceptado'"
+                                    >
+                                        Marcar como Aceptado
+                                    </button>
+                                    <button
+                                        class="dropdown-item"
+                                        @click.prevent="
+                                            changeEstado(row.id, 'anulado')
+                                        "
+                                        v-if="row.estado !== 'anulado'"
+                                    >
+                                        Marcar como Anulado
+                                    </button>
                                 </div>
                             </div>
                         </td>
@@ -215,6 +234,24 @@ export default {
         };
     },
     methods: {
+        async changeEstado(id, estado) {
+            try {
+                const { data } = await this.$http.post(
+                    `/${this.resource}/${id}/estado`,
+                    { estado }
+                );
+                if (data.success) {
+                    this.$message.success(data.message || "Estado actualizado");
+                    this.$eventHub.$emit("reloadData");
+                } else {
+                    this.$message.error(
+                        data.message || "No se pudo actualizar el estado"
+                    );
+                }
+            } catch (e) {
+                this.$message.error("Error al actualizar el estado" + e);
+            }
+        },
         clickCreate(recordId = null) {
             this.recordId = recordId;
             this.showDialog = true;

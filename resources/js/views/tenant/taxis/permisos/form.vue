@@ -65,18 +65,31 @@
                             }"
                             class="form-group"
                         >
-                            <label class="control-label"
-                                >Tipo Permiso
+                            <label class="control-label">
+                                Tipo Permiso
                                 <el-tooltip
                                     class="item"
-                                    content="Tipo de permiso otorgado al vehiculo"
+                                    content="Tipo de permiso otorgado al vehículo"
                                     effect="dark"
                                     placement="top-end"
                                 >
                                     <i class="fa fa-info-circle"></i>
                                 </el-tooltip>
                             </label>
-                            <el-input v-model="form.tipo_permiso"></el-input>
+                            <el-select
+                                v-model="form.tipo_permiso"
+                                placeholder="Seleccione tipo de permiso"
+                                @change="onTipoPermisoChange"
+                            >
+                                <el-option
+                                    label="VIAJE"
+                                    value="VIAJE"
+                                ></el-option>
+                                <el-option
+                                    label="OTRO"
+                                    value="OTRO"
+                                ></el-option>
+                            </el-select>
                             <small
                                 v-if="errors.tipo_permiso"
                                 class="form-control-feedback"
@@ -141,12 +154,29 @@
                         }"
                         class="form-group col-md-12"
                     >
-                        <label class="control-label"
-                            >Motivo <span class="text-danger">*</span></label
-                        >
+                        <label class="control-label">
+                            <template
+                                v-if="
+                                    form.tipo_permiso === 'VIAJE' ||
+                                        !form.tipo_permiso
+                                "
+                            >
+                                Destino Ciudad:
+                            </template>
+                            <template v-else>
+                                Motivo:
+                            </template>
+                            <span class="text-danger">*</span>
+                        </label>
                         <el-input
                             type="textarea"
                             v-model="form.motivo"
+                            :placeholder="
+                                form.tipo_permiso === 'VIAJE' ||
+                                !form.tipo_permiso
+                                    ? 'Ingrese la ciudad de destino'
+                                    : 'Especifique el motivo del permiso'
+                            "
                         ></el-input>
                         <small
                             v-if="errors.motivo"
@@ -422,6 +452,9 @@ export default {
         ...mapState(["config"])
     },
     methods: {
+        onTipoPermisoChange() {
+            this.form.motivo = "";
+        },
         ...mapActions(["loadConfiguration"]),
         initForm() {
             this.errors = {};

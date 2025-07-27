@@ -161,14 +161,6 @@ class Vehiculos extends ModelTenant
     }
 
     /**
-     * @return string
-     */
-    public function getDownloadContratoAttribute()
-    {
-        return route('tenant.pdf.contrato', ['vehiculo' => $this]);
-    }
-
-    /**
      * Retorna un standar de nomenclatura para el modelo
      *
      * @param bool $withFullAddress
@@ -241,7 +233,6 @@ class Vehiculos extends ModelTenant
             'plan_id' => $this->plan_id,
             'subscription_id' => $this->subscription_id,
             'subscription' => $this->subscription ? $this->subscription->getCollectionData() : null,
-            'download_contrato' => $this->download_contrato,
             'user_id' => $this->user_id,
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,

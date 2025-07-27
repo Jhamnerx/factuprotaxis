@@ -217,6 +217,30 @@
 </head>
 
 <body>
+    {{-- Marca de agua para estado ANULADA --}}
+    @php
+        $estado_constancia = isset($constancia->estado) ? strtoupper(trim($constancia->estado)) : '';
+    @endphp
+    @if ($estado_constancia === 'ANULADA')
+        <div
+            style="
+            position: fixed;
+            top: 35%;
+            left: 0;
+            width: 100vw;
+            text-align: center;
+            z-index: 9999;
+            opacity: 0.18;
+            font-size: 7em;
+            color: #d32f2f;
+            font-weight: bold;
+            transform: rotate(-20deg);
+            pointer-events: none;
+            user-select: none;
+        ">
+            ANULADA
+        </div>
+    @endif
     <header>
         <div class="logo">
             @if ($company->logo)
@@ -366,14 +390,15 @@
                     <li>Copia de Tarjeta de propiedad</li>
                 </ul>
             </div>
+            <div style="width: 10%; display: table-cell;"></div> <!-- Separación lateral -->
             <div class="firma">
                 @if ($company->img_firm)
                     <img src="data:{{ mime_content_type(public_path("{$img_firm}")) }};base64, {{ base64_encode(file_get_contents(public_path("{$img_firm}"))) }}"
                         style="max-width: 180px; margin: 10px auto;">
                 @else
-                    <img src="https://placehold.co/150x50" alt="IMAGEN DE FIRMA">
+                    <img src="https://placehold.co/150x50" alt="IMAGEN DE FIRMA"
+                        style="max-width: 180px; margin: 10px auto;">
                 @endif
-
             </div>
         </div>
 

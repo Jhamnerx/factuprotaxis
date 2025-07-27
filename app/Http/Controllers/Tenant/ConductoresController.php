@@ -75,8 +75,8 @@ class ConductoresController extends Controller
             if (!$id && $conductor->telephone_1) {
                 // Buscar si el conductor tiene vehículo asignado para incluir datos del vehículo
                 $vehicleData = null;
-                if (method_exists($conductor, 'vehiculos') && $conductor->vehiculos()->exists()) {
-                    $vehiculo = $conductor->vehiculos()->first();
+                if (method_exists($conductor, 'vehiculo') && $conductor->vehiculo()->exists()) {
+                    $vehiculo = $conductor->vehiculo()->first();
                     $vehicleData = [
                         'numero_interno' => $vehiculo->numero_interno,
                         'placa' => $vehiculo->placa

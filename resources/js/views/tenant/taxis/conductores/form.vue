@@ -172,16 +172,28 @@
                                                         >Fecha de
                                                         Expedición</label
                                                     >
-                                                    <el-input
+                                                    <el-date-picker
                                                         v-model="
                                                             form.licencia
                                                                 .fecha_expedicion
                                                         "
-                                                        placeholder="Ej: 21/03/2017"
+                                                        type="date"
+                                                        placeholder="Seleccionar fecha de expedición"
+                                                        format="dd/MM/yyyy"
+                                                        value-format="yyyy-MM-dd"
                                                         :disabled="
                                                             loading_submit
                                                         "
-                                                    ></el-input>
+                                                        style="width: 100%"
+                                                        :picker-options="{
+                                                            disabledDate(time) {
+                                                                return (
+                                                                    time.getTime() >
+                                                                    Date.now()
+                                                                );
+                                                            }
+                                                        }"
+                                                    ></el-date-picker>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -190,16 +202,20 @@
                                                         >Fecha de
                                                         Vencimiento</label
                                                     >
-                                                    <el-input
+                                                    <el-date-picker
                                                         v-model="
                                                             form.licencia
                                                                 .fecha_vencimiento
                                                         "
-                                                        placeholder="Ej: 06/03/2027"
+                                                        type="date"
+                                                        placeholder="Seleccionar fecha de vencimiento"
+                                                        format="dd/MM/yyyy"
+                                                        value-format="yyyy-MM-dd"
                                                         :disabled="
                                                             loading_submit
                                                         "
-                                                    ></el-input>
+                                                        style="width: 100%"
+                                                    ></el-date-picker>
                                                 </div>
                                             </div>
                                         </div>
@@ -456,7 +472,7 @@ export default {
                     .get(`/${this.resource}/record/${this.recordId}`)
                     .then(response => {
                         // Preparar licencia para la edición
-                        let licencia = response.data.licencia || {};
+                        let licencia = response.data.data.licencia || {};
                         if (licencia.numero) {
                             licencia = {
                                 numero: licencia.numero || "",
@@ -480,17 +496,17 @@ export default {
                         }
 
                         this.form = {
-                            id: response.data.id,
-                            name: response.data.name,
-                            number: response.data.number,
+                            id: response.data.data.id,
+                            name: response.data.data.name,
+                            number: response.data.data.number,
                             fecha_nacimiento:
-                                response.data.fecha_nacimiento || null,
+                                response.data.data.fecha_nacimiento || null,
                             licencia: licencia,
-                            address: response.data.address,
-                            telephone_1: response.data.telephone_1,
-                            telephone_2: response.data.telephone_2,
-                            telephone_3: response.data.telephone_3,
-                            enabled: response.data.enabled
+                            address: response.data.data.address,
+                            telephone_1: response.data.data.telephone_1,
+                            telephone_2: response.data.data.telephone_2,
+                            telephone_3: response.data.data.telephone_3,
+                            enabled: response.data.data.enabled
                         };
                     })
                     .catch(error => {
@@ -522,7 +538,8 @@ export default {
                 })
                 .catch(error => {
                     if (error.response && error.response.status === 422) {
-                        this.errors = error.response.data.errors;
+                        this.errors = error.response.data;
+                        this.loading_submit = false;
                     } else {
                         this.$message.error(
                             "Error inesperado al guardar el conductor"

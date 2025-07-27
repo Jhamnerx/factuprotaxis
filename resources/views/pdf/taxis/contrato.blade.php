@@ -4,13 +4,11 @@
     $logo = "storage/uploads/logos/{$company->logo}";
     $img_firm = "storage/uploads/firms/{$company->img_firm}";
 
-    $propietario = $vehiculo->propietario;
-
 @endphp
 
 <head>
     <meta charset="UTF-8">
-    <title>Contrato de Sesión de Uso - {{ $vehiculo->placa }}</title>
+    <title>Contrato de Sesión de Uso - {{ $vehiculo['placa'] }}</title>
     <style>
         {{ $stylesheet }} @page {
             margin-top: 0.5cm;
@@ -176,6 +174,28 @@
         </div>
     </header>
 
+    {{-- Marca de agua CANCELADO --}}
+    @if (isset($contrato) && $contrato->estado === 'cancelado')
+        <div
+            style="
+            position: fixed;
+            top: 35%;
+            left: 0;
+            width: 100vw;
+            text-align: center;
+            z-index: 1000;
+            opacity: 0.18;
+            font-size: 7em;
+            color: #d32f2f;
+            font-weight: bold;
+            transform: rotate(-25deg);
+            pointer-events: none;
+            user-select: none;
+        ">
+            CANCELADO
+        </div>
+    @endif
+
     <footer>
         <div>
             RUC: {{ $company->number }} | {{ $establishment->address }} | {{ $establishment->email }}
@@ -199,12 +219,13 @@
             identificado
             con DNI. N° {{ $company->representante_legal_dni }} a quien
             en
-            adelante se le denominará <b>LA EMPRESA</b>; y de la otra parte, Don (ña) {{ $propietario->name }} con
-            {{ $propietario->identity_document_type->description }}. Nº
-            {{ $propietario->number }} con domicilio en {{ $propietario->address }}, Distrito de
-            {{ $propietario->district ? $propietario->district->description : '' }}, Provincia
+            adelante se le denominará <b>LA EMPRESA</b>; y de la otra parte, Don (ña) {{ $propietario['name'] }} con
+            {{ \App\Models\Tenant\Catalogs\IdentityDocumentType::find($propietario['identity_document_type_id'])->description }}.
+            Nº
+            {{ $propietario['number'] }} con domicilio en {{ $propietario['address'] }}, Distrito de
+            {{ $propietario['district'] ? $propietario['district']['description'] : '' }}, Provincia
             de
-            {{ $propietario->province ? $propietario->province->description : '' }}, a quien se
+            {{ $propietario['province'] ? $propietario['province']['description'] : '' }}, a quien se
             le
             denominará <b>EL PROPIETARIO</b>, quienes acuerdan en los términos y condiciones siguientes:
         </p>
@@ -223,12 +244,12 @@
             conservación como para prestar el servicio de transporte público urbano de pasajeros (Taxi), con las
             siguientes
             características:
-            Nº Interno: {{ $vehiculo->numero_interno }}, Placa de Rodaje N° {{ $vehiculo->placa }}, Categoría:
-            {{ $vehiculo->categoria }}, Marca: {{ $vehiculo->marca ? $vehiculo->marca->nombre : '' }}, Año:
-            {{ $vehiculo->year }}, Modelo:
-            {{ $vehiculo->modelo ? $vehiculo->modelo->nombre : '' }}, Motor N°: {{ $vehiculo->numero_motor }},
+            Nº Interno: {{ $vehiculo['numero_interno'] }}, Placa de Rodaje N° {{ $vehiculo['placa'] }}, Categoría:
+            {{ $vehiculo['categoria'] }}, Marca: {{ $vehiculo['marca'] ? $vehiculo['marca']['nombre'] : '' }}, Año:
+            {{ $vehiculo['year'] }}, Modelo:
+            {{ $vehiculo['modelo'] ? $vehiculo['modelo']['nombre'] : '' }}, Motor N°: {{ $vehiculo['numero_motor'] }},
             Color:
-            {{ $vehiculo->color }}.
+            {{ $vehiculo['color'] }}.
         </p>
         <p><strong>TERCERO.</strong> - <b>LA EMPRESA</b> requiere unidades para la conformación de la Flota Vehicular,
             para el
@@ -399,10 +420,13 @@
                     </div>
                     <div style="text-align: center; margin-top: 2rem;">
                         <div style="border-top: 1px solid #000; width: 70%; margin: 0 auto;"></div>
-                        <div style="margin-top: 0.3rem;">{{ $propietario->name }}</div>
-                        <div>{{ $propietario->identity_document_type->description }} N° {{ $propietario->number }}
+                        <div style="margin-top: 0.3rem;">{{ $propietario['name'] }}</div>
+                        <div>
+                            {{ \App\Models\Tenant\Catalogs\IdentityDocumentType::find($propietario['identity_document_type_id'])->description }}
+                            N°
+                            {{ $propietario['number'] }}
                         </div>
-                        <div>PLACA: {{ $vehiculo->placa }}</div>
+                        <div>PLACA: {{ $vehiculo['placa'] }}</div>
                     </div>
                 </td>
             </tr>

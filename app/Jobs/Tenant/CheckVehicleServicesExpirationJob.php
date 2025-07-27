@@ -2,20 +2,21 @@
 
 namespace App\Jobs\Tenant;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Log;
+use App\Models\Tenant\VehicleService;
+use Hyn\Tenancy\Queue\TenantAwareJob;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Tenant\PlantillaMensaje;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Modules\WhatsAppApi\Services\WhatsAppService;
-use App\Models\Tenant\PlantillaMensaje;
-use App\Models\Tenant\VehicleService;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class CheckVehicleServicesExpirationJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, TenantAwareJob;
 
     protected $diasAnticipacion;
 
@@ -48,6 +49,7 @@ class CheckVehicleServicesExpirationJob implements ShouldQueue
 
             Log::info('Job de verificación de servicios vehiculares completado');
         } catch (\Exception $e) {
+
             Log::error("Error en CheckVehicleServicesExpirationJob", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -61,6 +63,7 @@ class CheckVehicleServicesExpirationJob implements ShouldQueue
     private function checkSOATExpiration($whatsappService)
     {
         $plantilla = PlantillaMensaje::obtenerPorTipo('vencimiento_soat');
+
         if (!$plantilla) {
             Log::warning('No se encontró plantilla de vencimiento SOAT');
             return;

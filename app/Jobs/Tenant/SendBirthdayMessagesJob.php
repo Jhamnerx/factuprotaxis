@@ -56,6 +56,7 @@ class SendBirthdayMessagesJob implements ShouldQueue
     private function sendBirthdayMessagesToOwners($today, $whatsappService)
     {
         $plantilla = PlantillaMensaje::obtenerPorTipo('cumpleanos_propietario');
+
         if (!$plantilla) {
             Log::warning('No se encontró plantilla de cumpleaños para propietarios');
             return;

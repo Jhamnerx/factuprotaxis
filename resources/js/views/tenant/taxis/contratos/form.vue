@@ -302,6 +302,10 @@ export default {
                 : "Nuevo Contrato";
             this.errors = {};
 
+            // Limpiar completamente el estado del formulario
+            this.selectedVehiculePropietario = null;
+            this.fechaFinError = null;
+
             // Resetear formulario
             this.form = {
                 vehiculo_id: null,
@@ -361,7 +365,7 @@ export default {
                 const response = await this.$http.get(
                     `/${this.resource}/record/${this.recordId}`
                 );
-                const data = response.data;
+                const data = response.data.data;
 
                 this.form = {
                     vehiculo_id: data.vehiculo_id,
@@ -376,6 +380,33 @@ export default {
                     estado: data.estado,
                     observaciones: data.observaciones || ""
                 };
+
+                // Cargar el propietario para mostrar en la interfaz
+                if (data.vehiculo_id) {
+                    // Buscar el vehículo en la lista cargada
+                    let vehiculoSeleccionado = this.vehiculos.find(
+                        v => v.id === data.vehiculo_id
+                    );
+
+                    // Si no está en la lista, buscarlo remotamente
+                    if (!vehiculoSeleccionado && data.vehiculo) {
+                        // Si tenemos datos del vehículo en el contrato, agregarlos
+                        vehiculoSeleccionado = data.vehiculo;
+                        this.vehiculos.push(vehiculoSeleccionado);
+                    }
+
+                    // Actualizar el propietario mostrado
+                    if (
+                        vehiculoSeleccionado &&
+                        vehiculoSeleccionado.propietario
+                    ) {
+                        this.selectedVehiculePropietario =
+                            vehiculoSeleccionado.propietario.name;
+                    } else if (data.propietario && data.propietario.name) {
+                        this.selectedVehiculePropietario =
+                            data.propietario.name;
+                    }
+                }
             } catch (error) {
                 console.error("Error al cargar contrato:", error);
                 this.$message.error("Error al cargar datos del contrato");
@@ -481,6 +512,19 @@ export default {
                 if (response.data.success) {
                     this.$message.success(response.data.message);
                     this.$eventHub.$emit("reloadData");
+
+                    // Si hay vehículo preseleccionado (viene de URL), redirigir sin parámetros
+                    if (this.vehiculoPreseleccionado) {
+                        // Limpiar parámetros de la URL
+                        const currentUrl = new URL(window.location);
+                        currentUrl.searchParams.delete("vehiculo_id");
+                        window.history.replaceState(
+                            {},
+                            "",
+                            currentUrl.toString()
+                        );
+                    }
+
                     this.close();
                 } else {
                     this.$message.error("Error al guardar el contrato");
@@ -497,6 +541,18 @@ export default {
             }
         },
         close() {
+            // Limpiar completamente el estado del formulario
+            this.selectedVehiculePropietario = null;
+            this.fechaFinError = null;
+            this.errors = {};
+
+            // Si hay vehículo preseleccionado (viene de URL), limpiar parámetros al cerrar
+            if (this.vehiculoPreseleccionado) {
+                const currentUrl = new URL(window.location);
+                currentUrl.searchParams.delete("vehiculo_id");
+                window.history.replaceState({}, "", currentUrl.toString());
+            }
+
             this.$emit("update:showDialog", false);
             this.$emit("close");
         }

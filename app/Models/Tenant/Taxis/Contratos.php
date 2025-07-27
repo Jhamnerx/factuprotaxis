@@ -34,16 +34,6 @@ class Contratos extends ModelTenant
         'propietario' => 'array',
     ];
 
-    public function vehiculo()
-    {
-        return $this->belongsTo(Vehiculos::class);
-    }
-
-    public function propietario()
-    {
-        return $this->belongsTo(Propietarios::class);
-    }
-
     public function user()
     {
         return $this->belongsTo(\App\Models\Tenant\User::class);

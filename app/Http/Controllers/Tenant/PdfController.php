@@ -15,20 +15,21 @@ class PdfController extends Controller
 {
     public function contrato($id)
     {
-        $vehiculo = Vehiculos::findOrFail($id);
+        $contrato = \App\Models\Tenant\Taxis\Contratos::findOrFail($id);
+        $vehiculo = $contrato->vehiculo;
+        $propietario = $contrato->propietario;
         $company = Company::active();
         $establishment = auth()->user()->establishment;
         $path_css = resource_path('views/pdf/style.css');
         $stylesheet = file_get_contents($path_css);
-
         // Generar el PDF directamente sin usar PdfService
         $pdf = PDF::loadView(
             'pdf.taxis.contrato',
-            compact('vehiculo', 'company', 'stylesheet', 'establishment')
+            compact('contrato', 'vehiculo', 'propietario', 'company', 'stylesheet', 'establishment')
         );
         $pdf->setPaper('A4', 'portrait');
 
-        return $pdf->stream('contrato_' . $vehiculo->placa . '.pdf');
+        return $pdf->stream('contrato_' . $vehiculo['placa'] . '.pdf');
     }
 
 

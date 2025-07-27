@@ -138,6 +138,19 @@
                                     >
                                         Eliminar
                                     </button>
+                                    <button
+                                        class="dropdown-item"
+                                        @click.prevent="
+                                            cambiarEstado(row, 'ANULADA')
+                                        "
+                                        v-if="
+                                            row.estado &&
+                                                row.estado.toUpperCase() !==
+                                                    'ANULADA'
+                                        "
+                                    >
+                                        Anular
+                                    </button>
                                 </div>
                             </div>
                         </td>
@@ -189,15 +202,36 @@ export default {
         },
         clickDelete(id) {
             this.destroy(`/${this.resource}/${id}`).then(() => {
-                this.$refs.dataTable.fetchData();
+                this.$eventHub.$emit("reloadData");
             });
         },
         closeDialog() {
             this.showDialog = false;
             this.recordId = null;
             this.$nextTick(() => {
-                this.$refs.dataTable.fetchData();
+                this.$eventHub.$emit("reloadData");
             });
+        },
+        async cambiarEstado(row, nuevoEstado) {
+            try {
+                const res = await this.$http.post(
+                    `/constancias/cambiar-estado`,
+                    {
+                        id: row.id,
+                        estado: nuevoEstado
+                    }
+                );
+                if (res.data.success) {
+                    this.$message.success("Estado actualizado");
+                    this.$eventHub.$emit("reloadData");
+                } else {
+                    this.$message.error(
+                        res.data.message || "Error al actualizar estado"
+                    );
+                }
+            } catch (e) {
+                this.$message.error("Error al actualizar estado");
+            }
         },
         getColumnsToShow(updated) {
             this.$http

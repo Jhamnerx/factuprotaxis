@@ -260,6 +260,88 @@
 </head>
 
 <body>
+    {{-- Marca de agua para estado ANULADO o información para PENDIENTE --}}
+    @if (isset($permiso->estado) && $permiso->estado === 'ANULADO')
+        <div
+            style="
+            position: fixed;
+            top: 35%;
+            left: 0;
+            width: 100vw;
+            text-align: center;
+            z-index: 9999;
+            opacity: 0.18;
+            font-size: 7em;
+            color: #d32f2f;
+            font-weight: bold;
+            transform: rotate(-20deg);
+            pointer-events: none;
+            user-select: none;
+        ">
+            ANULADO
+        </div>
+    @elseif (isset($permiso->estado) && $permiso->estado === 'PENDIENTE')
+        <div
+            style="
+            position: fixed;
+            top: 40%;
+            left: 0;
+            width: 100vw;
+            text-align: center;
+            z-index: 9999;
+            opacity: 0.13;
+            font-size: 5em;
+            color: #1976d2;
+            font-weight: bold;
+            transform: rotate(-10deg);
+            pointer-events: none;
+            user-select: none;
+        ">
+            EN REVISIÓN
+        </div>
+    @endif
+    @php
+        $estado_permiso = isset($permiso->estado) ? strtoupper(trim($permiso->estado)) : '';
+    @endphp
+    @if ($estado_permiso === 'ANULADO')
+        <div
+            style="
+            position: fixed;
+            top: 35%;
+            left: 0;
+            width: 100vw;
+            text-align: center;
+            z-index: 9999;
+            opacity: 0.18;
+            font-size: 7em;
+            color: #d32f2f;
+            font-weight: bold;
+            transform: rotate(-20deg);
+            pointer-events: none;
+            user-select: none;
+        ">
+            ANULADO
+        </div>
+    @elseif ($estado_permiso === 'PENDIENTE')
+        <div
+            style="
+            position: fixed;
+            top: 40%;
+            left: 0;
+            width: 100vw;
+            text-align: center;
+            z-index: 9999;
+            opacity: 0.13;
+            font-size: 5em;
+            color: #1976d2;
+            font-weight: bold;
+            transform: rotate(-10deg);
+            pointer-events: none;
+            user-select: none;
+        ">
+            EN REVISIÓN
+        </div>
+    @endif
     <header>
         <div class="logo">
             @if ($company->logo)
@@ -307,7 +389,12 @@
                     {{ $permiso->datosVehiculo->propietario->name ?? 'N/A' }}
                 @endif
             </span>
-            a realizar el viaje a la ciudad de {{ $permiso->motivo }}, con familiares:
+            @if (isset($permiso->tipo_permiso) && $permiso->tipo_permiso === 'OTRO')
+                para el siguiente motivo: <span class="destacado">{{ $permiso->motivo }}</span>, con familiares:
+            @else
+                a realizar el viaje a la ciudad de <span class="destacado">{{ $permiso->motivo }}</span>, con
+                familiares:
+            @endif
         </div>
 
         <table class="family-table">
@@ -354,6 +441,13 @@
         <div class="footer-date">
             {{ $establishment->district->description }},
             {{ \App\Helpers\DateHelper::formatoEspanol($permiso->fecha_inicio) }}
+        </div>
+
+        @if (!empty($permiso->observaciones))
+            <div class="paragraph" style="margin-top: 20px;">
+                <span class="bold">Observaciones:</span> {{ $permiso->observaciones }}
+            </div>
+        @endif
         </div>
 
         <div class="signature-section">

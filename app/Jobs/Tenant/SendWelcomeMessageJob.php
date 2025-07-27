@@ -3,17 +3,18 @@
 namespace App\Jobs\Tenant;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Log;
+use Hyn\Tenancy\Queue\TenantAwareJob;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Tenant\PlantillaMensaje;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Modules\WhatsAppApi\Services\WhatsAppService;
-use App\Models\Tenant\PlantillaMensaje;
-use Illuminate\Support\Facades\Log;
 
 class SendWelcomeMessageJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, TenantAwareJob;
 
     protected $userType;
     protected $userData;

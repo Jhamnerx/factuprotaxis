@@ -2,20 +2,21 @@
 
 namespace App\Jobs\Tenant;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Log;
+use Hyn\Tenancy\Queue\TenantAwareJob;
+use App\Models\Tenant\Taxis\Conductor;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Tenant\PlantillaMensaje;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Modules\WhatsAppApi\Services\WhatsAppService;
-use App\Models\Tenant\PlantillaMensaje;
-use App\Models\Tenant\Taxis\Conductor;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class CheckDriverLicenseExpirationJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, TenantAwareJob;
 
     protected $diasAnticipacion;
 

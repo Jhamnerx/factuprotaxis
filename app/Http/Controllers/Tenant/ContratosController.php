@@ -77,19 +77,15 @@ class ContratosController extends Controller
 
     public function getRecords(Request $request)
     {
-        $records = Contratos::with(['vehiculo', 'propietario']);
+        $records = Contratos::query();
 
         if ($request->column) {
             switch ($request->column) {
                 case 'vehiculo':
-                    $records->whereHas('vehiculo', function ($query) use ($request) {
-                        $query->where('placa', 'like', "%{$request->value}%");
-                    });
+                    $records->where('vehiculo->placa', 'like', "%{$request->value}%");
                     break;
                 case 'propietario':
-                    $records->whereHas('propietario', function ($query) use ($request) {
-                        $query->where('nombre_completo', 'like', "%{$request->value}%");
-                    });
+                    $records->where('propietario->name', 'like', "%{$request->value}%");
                     break;
                 case 'estado':
                     $records->where('estado', 'like', "%{$request->value}%");

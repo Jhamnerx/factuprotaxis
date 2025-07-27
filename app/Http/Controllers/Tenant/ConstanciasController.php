@@ -92,6 +92,18 @@ class ConstanciasController extends Controller
         $constancia->delete();
         return response()->json(['success' => true, 'message' => 'Constancia eliminada correctamente']);
     }
+    public function cambiarEstado(Request $request)
+    {
+        $id = $request->input('id');
+        $estado = $request->input('estado');
+        $constancia = ConstanciaBaja::find($id);
+        if (!$constancia) {
+            return response()->json(['success' => false, 'message' => 'Constancia no encontrada'], 404);
+        }
+        $constancia->estado = $estado;
+        $constancia->save();
+        return response()->json(['success' => true, 'message' => 'Estado actualizado']);
+    }
     /**
      * Busca constancias por número o fecha de emisión y filtra por vehículo ID
      * 

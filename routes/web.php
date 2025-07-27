@@ -540,6 +540,7 @@ if ($hostname) {
             Route::delete('permisos/{permiso}', 'Tenant\PermisosController@destroy');
             Route::get('permisos/tables', 'Tenant\PermisosController@tables');
             Route::get('permisos/search/vehiculos', 'Tenant\PermisosController@searchVehiculos');
+            Route::post('permisos/{id}/estado', 'Tenant\PermisosController@cambiarEstado');
 
 
             Route::get('hoja-ruta', 'Tenant\HojaRutaController@index')->name('tenant.taxi.hoja_ruta.index');
@@ -556,7 +557,7 @@ if ($hostname) {
             Route::get('constancias/tables', 'Tenant\ConstanciasController@tables');
             Route::get('constancias/search/vehiculos', 'Tenant\ConstanciasController@searchVehiculos');
             Route::get('constancias/search', 'Tenant\ConstanciasController@searchConstancias');
-
+            Route::post('constancias/cambiar-estado', 'Tenant\\ConstanciasController@cambiarEstado');
 
             Route::get('declaraciones', 'Tenant\DeclaracionesController@index')->name('tenant.taxi.declaraciones.index');
             Route::get('declaraciones/columns', 'Tenant\DeclaracionesController@columns');

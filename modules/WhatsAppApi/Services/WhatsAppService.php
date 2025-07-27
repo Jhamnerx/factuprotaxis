@@ -29,9 +29,11 @@ class WhatsAppService
      */
     public function sendMessage($params_data)
     {
+
         // Intentar primero con API no oficial
         if ($this->hasUnofficialApiConfig()) {
             $result = $this->unofficial_api->sendMessage($params_data);
+
             if ($result['success']) {
                 return $result;
             }
