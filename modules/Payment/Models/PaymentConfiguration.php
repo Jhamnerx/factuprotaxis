@@ -31,7 +31,7 @@ class PaymentConfiguration extends ModelTenant
 
     public function getImageUrlYapeAttribute()
     {
-        return $this->qrcode_yape ? asset('storage'.DIRECTORY_SEPARATOR.'uploads'.DIRECTORY_SEPARATOR.'payment_configurations'.DIRECTORY_SEPARATOR.$this->qrcode_yape) : null;
+        return $this->qrcode_yape ? asset('storage' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'payment_configurations' . DIRECTORY_SEPARATOR . $this->qrcode_yape) : null;
     }
 
     public function getRowResource()
@@ -59,7 +59,6 @@ class PaymentConfiguration extends ModelTenant
             'telephone_yape' => $record->telephone_yape,
             'image_url_yape' => $record->image_url_yape,
         ];
-
     }
 
     public static function getPaymentPermissions()
@@ -74,7 +73,6 @@ class PaymentConfiguration extends ModelTenant
             'name_yape' => $record->enabled_yape ? $record->name_yape : '',
             'telephone_yape' => $record->enabled_yape ? $record->telephone_yape : '',
         ];
-
     }
 
 
@@ -97,5 +95,4 @@ class PaymentConfiguration extends ModelTenant
     {
         return PaymentConfiguration::select('access_token_mp')->firstOrFail()->access_token_mp;
     }
-
 }

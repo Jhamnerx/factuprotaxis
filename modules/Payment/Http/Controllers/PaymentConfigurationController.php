@@ -45,8 +45,7 @@ class PaymentConfigurationController extends Controller
         $type = $request->type;
         $record = PaymentConfiguration::firstOrFail();
 
-        switch ($type)
-        {
+        switch ($type) {
             case '01': //yape
                 $this->setDataYape($record, $request);
                 break;
@@ -75,8 +74,7 @@ class PaymentConfigurationController extends Controller
         $record->enabled_mp = $request->enabled_mp;
         $record->public_key_mp = $request->public_key_mp;
 
-        if($request->access_token_mp)
-        {
+        if ($request->access_token_mp) {
             $record->access_token_mp = $request->access_token_mp;
         }
     }
@@ -94,8 +92,7 @@ class PaymentConfigurationController extends Controller
         $record->name_yape = $request->name_yape;
         $record->telephone_yape = $request->telephone_yape;
 
-        if($request->qrcode_yape && $request->temp_path_yape)
-        {
+        if ($request->qrcode_yape && $request->temp_path_yape) {
             $filename = UploadFileHelper::uploadFileFromTempFile('payment_configurations', $request->qrcode_yape, $request->temp_path_yape, $record->id, 'qr_yape');
             $record->qrcode_yape = $filename;
         }
@@ -112,10 +109,9 @@ class PaymentConfigurationController extends Controller
     {
 
         $validate_upload = UploadFileHelper::validateUploadFile($request, 'file', 'jpg,jpeg,png,svg');
-        if(!$validate_upload['success']) return $validate_upload;
+        if (!$validate_upload['success']) return $validate_upload;
 
-        if ($request->hasFile('file'))
-        {
+        if ($request->hasFile('file')) {
             $new_request = [
                 'file' => $request->file('file'),
                 'type' => $request->input('type'),
@@ -129,6 +125,4 @@ class PaymentConfigurationController extends Controller
             'message' =>  __('app.actions.upload.error'),
         ];
     }
-
-
 }

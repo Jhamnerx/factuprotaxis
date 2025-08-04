@@ -84,6 +84,15 @@ Route::middleware(['check.permission', 'locked.tenant'])->prefix('taxis')->group
             // Pagos del propietario
             Route::get('pagos', [PropietarioController::class, 'pagos'])->name('taxis.propietario.pagos');
             Route::get('pagos/records', [PropietarioController::class, 'pagosRecords'])->name('taxis.propietario.pagos.records');
+            Route::post('pagos/registrar', [PropietarioController::class, 'registrarPago'])->name('taxis.propietario.pagos.registrar');
+
+            // Nuevas rutas para pagos con Yape
+            Route::get('payment-configuration', [PropietarioController::class, 'getPaymentConfiguration'])->name('taxis.propietario.payment.configuration');
+            Route::post('verificar-yape', [PropietarioController::class, 'verificarYape'])->name('taxis.propietario.verificar.yape');
+            Route::post('confirmar-pago-yape', [PropietarioController::class, 'confirmarPagoYape'])->name('taxis.propietario.confirmar.pago.yape');
+
+            // Ruta de prueba
+            Route::get('test/vehiculos', [PropietarioController::class, 'testVehiculos'])->name('taxis.propietario.test.vehiculos');
 
             // Permisos del propietario
             Route::get('permisos', [PropietarioController::class, 'permisos'])->name('taxis.propietario.permisos');

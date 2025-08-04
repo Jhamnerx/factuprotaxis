@@ -10,6 +10,7 @@ use App\Models\Tenant\Taxis\Solicitud;
 use App\Models\Tenant\Taxis\Conductores;
 use App\Models\Tenant\Taxis\PermisoUnidad;
 use App\Models\Tenant\Taxis\ConstanciaBaja;
+use Modules\Payment\Models\PaymentColor;
 use Modules\Payment\Models\SubscriptionInvoice;
 use App\Http\Resources\Tenant\VehiculoCollection;
 use App\Http\Resources\Tenant\ContratoCollection;
@@ -358,10 +359,12 @@ class PropietarioController extends Controller
     {
         $propietario = session('taxis_user');
 
-        // Query base para constancias del propietario
-        $query = \App\Models\Tenant\Taxis\ConstanciaBaja::whereHas('datosVehiculo', function ($q) use ($propietario) {
-            $q->where('propietario_id', $propietario['id']);
-        })->with(['datosVehiculo.marca', 'datosVehiculo.modelo', 'creator']);
+        // Obtener IDs de vehículos del propietario
+        $vehiculosIds = Vehiculos::where('propietario_id', $propietario['id'])->pluck('id')->toArray();
+
+        // Query base para constancias usando los IDs de vehículos
+        $query = \App\Models\Tenant\Taxis\ConstanciaBaja::whereIn('vehiculo_id', $vehiculosIds)
+            ->with(['datosVehiculo.marca', 'datosVehiculo.modelo', 'creator']);
 
         // Aplicar filtros
         if ($request->filled('estado')) {
@@ -403,9 +406,12 @@ class PropietarioController extends Controller
     {
         $propietario = session('taxis_user');
 
-        $records = ConstanciaBaja::whereHas('datosVehiculo', function ($q) use ($propietario) {
-            $q->where('propietario_id', $propietario['id']);
-        })->orderBy('id', 'desc');
+        // Obtener IDs de vehículos del propietario
+        $vehiculosIds = Vehiculos::where('propietario_id', $propietario['id'])->pluck('id')->toArray();
+
+        // Query usando los IDs de vehículos
+        $records = ConstanciaBaja::whereIn('vehiculo_id', $vehiculosIds)
+            ->orderBy('id', 'desc');
 
         return new ConstanciaBajaCollection($records->paginate(config('tenant.items_per_page')));
     }
@@ -428,9 +434,74 @@ class PropietarioController extends Controller
 
         $records = SubscriptionInvoice::whereHas('vehiculo', function ($q) use ($propietario) {
             $q->where('propietario_id', $propietario['id']);
-        })->with(['vehiculo'])->orderBy('id', 'desc');
+        })->with(['vehiculo']);
+
+        // Filtrar por vehículo específico si se proporciona
+        if ($request->filled('vehiculo_id')) {
+            $records->where('vehiculo_id', $request->vehiculo_id);
+        }
+
+        $records->orderBy('year', 'desc')->orderBy('mes', 'desc');
 
         return new SubscriptionCollection($records->paginate(config('tenant.items_per_page')));
+    }
+
+    /**
+     * API: Registrar nuevo pago
+     */
+    public function registrarPago(Request $request)
+    {
+        $propietario = session('taxis_user');
+
+        $validated = $request->validate([
+            'vehiculo_id' => 'required|exists:taxis_vehiculos,id',
+            'mes' => 'required|integer|between:1,12',
+            'year' => 'required|integer|min:2020',
+            'monto' => 'required|numeric|min:0',
+            'metodo_pago' => 'required|string',
+            'estado' => 'string'
+        ]);
+
+        // Verificar que el vehículo pertenece al propietario
+        $vehiculo = Vehiculos::where('id', $validated['vehiculo_id'])
+            ->where('propietario_id', $propietario['id'])
+            ->firstOrFail();
+
+        $pago = SubscriptionInvoice::create([
+            'vehiculo_id' => $validated['vehiculo_id'],
+            'mes' => $validated['mes'],
+            'year' => $validated['year'],
+            'monto' => $validated['monto'],
+            'metodo_pago' => $validated['metodo_pago'],
+            'estado' => $validated['estado'] ?? 'pagado',
+            'fecha_cobro' => now(),
+            'tipo' => 'mensual'
+        ]);
+
+        return response()->json(['data' => $pago, 'message' => 'Pago registrado correctamente']);
+    }
+
+    /**
+     * Método de prueba para verificar datos
+     */
+    public function testVehiculos()
+    {
+        $propietario = session('taxis_user');
+        if (!$propietario) {
+            return response()->json(['error' => 'No hay propietario en sesión']);
+        }
+
+        $vehiculos = Vehiculos::where('propietario_id', $propietario['id'])
+            ->with(['marca', 'modelo', 'conductor'])
+            ->get();
+
+        return response()->json([
+            'propietario' => $propietario,
+            'total_vehiculos' => $vehiculos->count(),
+            'vehiculos' => $vehiculos->map(function ($v) {
+                return $v->getCollectionData();
+            })
+        ]);
     }
 
     /**
@@ -578,7 +649,41 @@ class PropietarioController extends Controller
     public function perfil()
     {
         $propietario = session('taxis_user');
-        return view('taxis::propietario.perfil.show', compact('propietario'));
+
+        // Obtener el modelo completo del propietario con relaciones
+        $propietarioModel = \App\Models\Tenant\Taxis\Propietarios::with([
+            'identity_document_type',
+            'country',
+            'department',
+            'province',
+            'district'
+        ])->find($propietario['id']);
+
+        // Obtener catálogos para los select
+        $identity_document_types = \App\Models\Tenant\Catalogs\IdentityDocumentType::where('active', true)->get();
+        $countries = \App\Models\Tenant\Catalogs\Country::where('active', true)->get();
+        $departments = \App\Models\Tenant\Catalogs\Department::where('active', true)->get();
+        $provinces = [];
+        $districts = [];
+
+        if ($propietarioModel->department_id) {
+            $provinces = \App\Models\Tenant\Catalogs\Province::where('department_id', $propietarioModel->department_id)
+                ->where('active', true)->get();
+        }
+
+        if ($propietarioModel->province_id) {
+            $districts = \App\Models\Tenant\Catalogs\District::where('province_id', $propietarioModel->province_id)
+                ->where('active', true)->get();
+        }
+
+        return view('taxis::propietario.perfil.show', compact(
+            'propietarioModel',
+            'identity_document_types',
+            'countries',
+            'departments',
+            'provinces',
+            'districts'
+        ));
     }
 
     /**
@@ -587,9 +692,20 @@ class PropietarioController extends Controller
     public function actualizarPerfil(Request $request)
     {
         $request->validate([
-            'telefono' => 'nullable|string|max:20',
-            'direccion' => 'nullable|string|max:255',
-            'fecha_nacimiento' => 'nullable|date'
+            'name' => 'required|string|max:255',
+            'number' => 'required|string|max:20',
+            'identity_document_type_id' => 'required|exists:identity_document_types,id',
+            'fecha_nacimiento' => 'nullable|date|before:today',
+            'telephone_1' => 'nullable|string|max:20',
+            'telephone_2' => 'nullable|string|max:20',
+            'telephone_3' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:255',
+            'country_id' => 'required|exists:countries,id',
+            'department_id' => 'required|exists:departments,id',
+            'province_id' => 'required|exists:provinces,id',
+            'district_id' => 'required|exists:districts,id',
+            'password' => 'nullable|string|min:6|confirmed',
         ]);
 
         $propietario = session('taxis_user');
@@ -597,14 +713,32 @@ class PropietarioController extends Controller
         // Actualizar información del propietario
         $propietarioModel = \App\Models\Tenant\Taxis\Propietarios::find($propietario['id']);
         if ($propietarioModel) {
-            $propietarioModel->update($request->only([
-                'telefono',
-                'direccion',
-                'fecha_nacimiento'
-            ]));
+            $dataToUpdate = $request->only([
+                'name',
+                'number',
+                'identity_document_type_id',
+                'fecha_nacimiento',
+                'telephone_1',
+                'telephone_2',
+                'telephone_3',
+                'email',
+                'address',
+                'country_id',
+                'department_id',
+                'province_id',
+                'district_id'
+            ]);
 
-            // Actualizar sesión
-            session(['taxis_user' => $propietarioModel->toArray()]);
+            // Solo actualizar contraseña si se proporcionó
+            if ($request->filled('password')) {
+                $dataToUpdate['password'] = $request->password;
+            }
+
+            $propietarioModel->update($dataToUpdate);
+
+            // Actualizar sesión con datos frescos
+            $propietarioFresh = $propietarioModel->fresh();
+            session(['taxis_user' => $propietarioFresh->getCollectionData()]);
         }
 
         return redirect()->route('taxis.propietario.perfil')
@@ -693,5 +827,239 @@ class PropietarioController extends Controller
 
         // Redirigir a la ruta principal de PDF del sistema
         return redirect()->route('tenant.pdf.permiso-viaje', ['permiso' => $permiso]);
+    }
+
+    /**
+     * Obtener configuración de pago Yape
+     */
+    public function getPaymentConfiguration()
+    {
+        try {
+            $config = \Modules\Payment\Models\PaymentConfiguration::first();
+
+            if (!$config || !$config->enabled_yape) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El pago por Yape no está habilitado'
+                ], 400);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'name_yape' => $config->name_yape,
+                    'telephone_yape' => $config->telephone_yape,
+                    'image_url_yape' => $config->getImageUrlYapeAttribute(),
+                    'enabled_yape' => $config->enabled_yape
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener configuración de pago'
+            ], 500);
+        }
+    }
+
+    /**
+     * Verificar pago Yape
+     */
+    public function verificarYape(Request $request)
+    {
+        try {
+            // Validación condicional para código de seguridad
+            $rules = [
+                'titular_yape' => 'required|string|max:255',
+                'vehiculo_id' => 'required|integer',
+                'mes' => 'required|integer|between:1,12',
+                'year' => 'required|integer|min:2020',
+                'monto' => 'required|numeric|min:0',
+                'desde_yape' => 'boolean'
+            ];
+
+            // Si desde_yape es true, el código de seguridad es requerido
+            if ($request->input('desde_yape', false)) {
+                $rules['codigo_seguridad'] = 'required|string|max:50';
+            } else {
+                $rules['codigo_seguridad'] = 'nullable|string|max:50';
+            }
+
+            $validated = $request->validate($rules);
+
+            $propietario = session('taxis_user');
+
+            // Verificar que el vehículo pertenece al propietario
+            $vehiculo = Vehiculos::where('id', $validated['vehiculo_id'])
+                ->where('propietario_id', $propietario['id'])
+                ->first();
+
+            if (!$vehiculo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vehículo no encontrado o no autorizado'
+                ], 404);
+            }
+
+            // Buscar notificación de Yape por titular
+            $notification = \App\Models\Tenant\YapeNotification::where('sender', 'like', '%' . $validated['titular_yape'] . '%')
+                ->where('amount', $validated['monto'])
+                ->orderBy('notification_date', 'desc')
+                ->first();
+
+            if (!$notification) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró ningún pago con ese titular y monto. Verifica los datos ingresados.'
+                ], 404);
+            }
+
+            // Si se proporciona código de seguridad, verificarlo
+            if (!empty($validated['codigo_seguridad'])) {
+                $hasSecurityCode = \App\Models\Tenant\YapeNotification::where('sender', 'like', '%' . $validated['titular_yape'] . '%')
+                    ->where('amount', $validated['monto'])
+                    ->where('raw_notification', 'like', '%' . $validated['codigo_seguridad'] . '%')
+                    ->exists();
+
+                if (!$hasSecurityCode) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'El código de seguridad no coincide con el pago encontrado.'
+                    ], 400);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pago verificado correctamente',
+                'data' => [
+                    'notification_id' => $notification->id,
+                    'sender' => $notification->sender,
+                    'amount' => $notification->amount,
+                    'date' => $notification->notification_date->format('d/m/Y H:i')
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Datos inválidos',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al verificar el pago: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Confirmar y registrar pago después de verificación
+     */
+    public function confirmarPagoYape(Request $request)
+    {
+
+        try {
+            $validated = $request->validate([
+                'vehiculoId' => 'required|integer',
+                'mes' => 'required|integer|between:1,12',
+                'year' => 'required|integer|min:2020',
+                'monto' => 'required|numeric|min:0',
+                'fecha' => 'required|date',
+                'descuento' => 'nullable|numeric|min:0',
+                'moneda' => 'required|string|size:3',
+                'tipo' => 'required|string',
+                'color' => 'required|string',
+                'metodo_pago' => 'required|string',
+                'notification_id' => 'required|integer',
+                'titular_yape' => 'required|string|max:255'
+            ]);
+
+            $propietario = session('taxis_user');
+
+            // Verificar que el vehículo pertenece al propietario
+            $vehiculo = Vehiculos::where('id', $validated['vehiculoId'])
+                ->where('propietario_id', $propietario['id'])
+                ->first();
+
+            if (!$vehiculo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vehículo no encontrado o no autorizado'
+                ], 404);
+            }
+
+            // Verificar que no exista ya un pago para ese mes/año
+            $pagoExistente = SubscriptionInvoice::where('vehiculo_id', $validated['vehiculoId'])
+                ->where('mes', $validated['mes'])
+                ->where('year', $validated['year'])
+                ->first();
+
+            if ($pagoExistente) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ya existe un pago registrado para este mes y año'
+                ], 400);
+            }
+
+            // Verificar que la notificación existe
+            $notification = \App\Models\Tenant\YapeNotification::find($validated['notification_id']);
+            if (!$notification) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Notificación de pago no encontrada'
+                ], 404);
+            }
+
+            // Crear el registro de pago usando solo campos que existen en la tabla
+            $invoice = SubscriptionInvoice::create([
+                'vehiculo_id' => $validated['vehiculoId'],
+                'subscription_id' => $vehiculo->subscription_id,
+                'year' => $validated['year'],
+                'mes' => $validated['mes'],
+                'monto' => $validated['monto'],
+                'fecha_cobro' => $validated['fecha'],
+                'descuento' => $validated['descuento'] ?? 0,
+                'moneda' => $validated['moneda'],
+                'tipo' => $validated['tipo'],
+                'metodo_pago' => $validated['metodo_pago'],
+                'estado' => 'pagado',
+                'payed_total' => true,
+            ]);
+
+            // Registrar el color del pago
+            PaymentColor::updateOrCreate(
+                [
+                    'colorable_id' => $validated['vehiculoId'],
+                    'colorable_type' => get_class($vehiculo),
+                    'year' => $validated['year'],
+                    'month' => $validated['mes'],
+                ],
+                ['color' => $validated['color']]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pago registrado correctamente',
+                'data' => [
+                    'id' => $invoice->id,
+                    'monto' => $invoice->monto,
+                    'fecha' => $invoice->fecha_cobro,
+                    'estado' => $invoice->estado,
+                    'mes' => $invoice->mes,
+                    'year' => $invoice->year
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Datos inválidos',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar el pago: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

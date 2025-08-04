@@ -32,6 +32,8 @@ class SubscriptionInvoice extends Model
         'grupo_pago_id',
         'cantidad_meses',
         'payment_details',
+        'mes',
+        'year',
     ];
 
     protected $casts = [

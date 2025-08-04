@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Module Taxis</title>
 
     {{-- Laravel Mix - CSS File --}}
@@ -147,7 +148,9 @@
     </div>
 
 
-    <script src="{{ asset('tenant-taxis/js/vendors/alpinejs.min.js') }}" defer></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
 
     <script src="{{ asset('tenant-taxis/js/main.js') }}"></script>
     <script src="{{ asset('tenant-taxis/js/vendors/chart.js') }}"></script>
