@@ -439,7 +439,7 @@
                 }
             `;
             document.head.appendChild(swalStyle);
-            
+
             function pagosManager() {
                 return {
                     // Estados reactivos
@@ -531,7 +531,7 @@
                         } catch (error) {
                             console.error('Error al cargar vehículos:', error);
                             this.vehiculosLoaded = true;
-                            
+
                             // Usar SweetAlert2 para mostrar error de carga
                             Swal.fire({
                                 icon: 'error',
@@ -539,7 +539,8 @@
                                 text: 'No se pudieron cargar los vehículos. Por favor, verifique su conexión e intente nuevamente.',
                                 confirmButtonText: 'Reintentar',
                                 confirmButtonColor: '#dc2626',
-                                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                background: document.documentElement.classList.contains('dark') ? '#1f2937' :
+                                    '#ffffff',
                                 color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
                             }).then((result) => {
                                 if (result.isConfirmed) {
@@ -668,7 +669,7 @@
                             this.renderizarHistorial();
                         } catch (error) {
                             console.error('Error al cargar pagos:', error);
-                            
+
                             // Usar SweetAlert2 para mostrar error de carga de pagos
                             Swal.fire({
                                 icon: 'error',
@@ -676,7 +677,8 @@
                                 text: 'No se pudieron cargar los pagos del vehículo. Los datos mostrados pueden no estar actualizados.',
                                 confirmButtonText: 'Continuar',
                                 confirmButtonColor: '#dc2626',
-                                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                background: document.documentElement.classList.contains('dark') ? '#1f2937' :
+                                    '#ffffff',
                                 color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
                             });
                         }
@@ -1033,7 +1035,7 @@
                                 this.pagoVerificado = true;
                                 this.notificacionId = data.data.notification_id; // Capturar desde data.data
                                 this.errorVerificacion = null;
-                                
+
                                 // Cerrar loading y mostrar éxito
                                 Swal.fire({
                                     icon: 'success',
@@ -1041,8 +1043,10 @@
                                     text: 'Su pago ha sido verificado correctamente. Ahora puede confirmar el pago.',
                                     confirmButtonText: 'Continuar',
                                     confirmButtonColor: '#059669',
-                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
+                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' :
+                                        '#ffffff',
+                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' :
+                                        '#111827'
                                 });
                             } else {
                                 // Manejar errores de validación
@@ -1054,7 +1058,7 @@
                                     this.errorVerificacion = data.message || 'No se pudo verificar el pago';
                                 }
                                 this.pagoVerificado = false;
-                                
+
                                 // Cerrar loading y mostrar error
                                 Swal.fire({
                                     icon: 'error',
@@ -1062,15 +1066,17 @@
                                     text: this.errorVerificacion,
                                     confirmButtonText: 'Reintentar',
                                     confirmButtonColor: '#dc2626',
-                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
+                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' :
+                                        '#ffffff',
+                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' :
+                                        '#111827'
                                 });
                             }
                         } catch (error) {
                             console.error('Error al verificar pago:', error);
                             this.errorVerificacion = 'Error de conexión al verificar el pago';
                             this.pagoVerificado = false;
-                            
+
                             // Cerrar loading y mostrar error de conexión
                             Swal.fire({
                                 icon: 'error',
@@ -1078,7 +1084,8 @@
                                 text: 'No se pudo conectar con el servidor. Por favor, verifique su conexión e intente nuevamente.',
                                 confirmButtonText: 'Reintentar',
                                 confirmButtonColor: '#dc2626',
-                                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                background: document.documentElement.classList.contains('dark') ? '#1f2937' :
+                                    '#ffffff',
                                 color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
                             });
                         } finally {
@@ -1145,7 +1152,7 @@
 
                                 // Renderizar el calendario actualizado
                                 this.renderizarCalendario();
-                                
+
                                 // Mostrar éxito con SweetAlert2
                                 Swal.fire({
                                     icon: 'success',
@@ -1160,8 +1167,10 @@
                                     confirmButtonColor: '#059669',
                                     timer: 4000,
                                     timerProgressBar: true,
-                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
+                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' :
+                                        '#ffffff',
+                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' :
+                                        '#111827'
                                 });
                             } else {
                                 // Manejar errores de validación
@@ -1171,7 +1180,7 @@
                                 } else {
                                     this.errorVerificacion = data.message || 'Error al confirmar el pago';
                                 }
-                                
+
                                 // Mostrar error con SweetAlert2
                                 Swal.fire({
                                     icon: 'error',
@@ -1179,14 +1188,16 @@
                                     text: this.errorVerificacion,
                                     confirmButtonText: 'Reintentar',
                                     confirmButtonColor: '#dc2626',
-                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
+                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' :
+                                        '#ffffff',
+                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' :
+                                        '#111827'
                                 });
                             }
                         } catch (error) {
                             console.error('Error al confirmar pago:', error);
                             this.errorVerificacion = 'Error de conexión al confirmar el pago';
-                            
+
                             // Mostrar error de conexión con SweetAlert2
                             Swal.fire({
                                 icon: 'error',
@@ -1194,7 +1205,8 @@
                                 text: 'No se pudo conectar con el servidor para confirmar el pago. Por favor, intente nuevamente.',
                                 confirmButtonText: 'Reintentar',
                                 confirmButtonColor: '#dc2626',
-                                background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                background: document.documentElement.classList.contains('dark') ? '#1f2937' :
+                                    '#ffffff',
                                 color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
                             });
                         } finally {
@@ -1260,7 +1272,7 @@
                             background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
                             color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
                         });
-                        
+
                         // También asignar al estado para mostrar en el modal si está abierto
                         this.errorVerificacion = mensaje;
                     },
