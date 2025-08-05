@@ -21,8 +21,8 @@
         </div>
 
         <!-- Filtros -->
-        <div class="yape-custom-card yape-custom-mb-3">
-            <div class="yape-custom-card-body">
+        <div class="card mb-3">
+            <div class="card-body">
                 <el-form :model="filters" label-width="120px">
                     <el-row :gutter="20">
                         <el-col :span="6">
@@ -94,52 +94,52 @@
         <!-- Estadísticas -->
         <div v-if="statistics" class="yape-stats-container">
             <div class="yape-stats-grid">
-                <div class="yape-stat-card yape-card-primary">
-                    <div class="yape-card-content">
-                        <h4 class="yape-stat-number">
+                <div class="yape-custom-card yape-custom-primary">
+                    <div class="yape-custom-content">
+                        <h4 class="yape-custom-number">
                             {{ statistics.total_notifications || 0 }}
                         </h4>
-                        <small class="yape-stat-label">Total</small>
+                        <small class="yape-custom-label">Total</small>
                     </div>
                 </div>
-                <div class="yape-stat-card yape-card-success">
-                    <div class="yape-card-content">
-                        <h4 class="yape-stat-number">
+                <div class="yape-custom-card yape-custom-success">
+                    <div class="yape-custom-content">
+                        <h4 class="yape-custom-number">
                             {{ statistics.unused_notifications || 0 }}
                         </h4>
-                        <small class="yape-stat-label">Disponibles</small>
+                        <small class="yape-custom-label">Disponibles</small>
                     </div>
                 </div>
-                <div class="yape-stat-card yape-card-danger">
-                    <div class="yape-card-content">
-                        <h4 class="yape-stat-number">
+                <div class="yape-custom-card yape-custom-danger">
+                    <div class="yape-custom-content">
+                        <h4 class="yape-custom-number">
                             {{ statistics.used_notifications || 0 }}
                         </h4>
-                        <small class="yape-stat-label">Usadas</small>
+                        <small class="yape-custom-label">Usadas</small>
                     </div>
                 </div>
-                <div class="yape-stat-card yape-card-info">
-                    <div class="yape-card-content">
-                        <h4 class="yape-stat-number">
+                <div class="yape-custom-card yape-custom-info">
+                    <div class="yape-custom-content">
+                        <h4 class="yape-custom-number">
                             S/ {{ formatNumber(statistics.total_amount || 0) }}
                         </h4>
-                        <small class="yape-stat-label">Monto Total</small>
+                        <small class="yape-custom-label">Monto Total</small>
                     </div>
                 </div>
-                <div class="yape-stat-card yape-card-warning">
-                    <div class="yape-card-content">
-                        <h4 class="yape-stat-number">
+                <div class="yape-custom-card yape-custom-warning">
+                    <div class="yape-custom-content">
+                        <h4 class="yape-custom-number">
                             S/ {{ formatNumber(statistics.unused_amount || 0) }}
                         </h4>
-                        <small class="yape-stat-label">Disponible</small>
+                        <small class="yape-custom-label">Disponible</small>
                     </div>
                 </div>
-                <div class="yape-stat-card yape-card-secondary">
-                    <div class="yape-card-content">
-                        <h4 class="yape-stat-number">
+                <div class="yape-custom-card yape-custom-secondary">
+                    <div class="yape-custom-content">
+                        <h4 class="yape-custom-number">
                             S/ {{ formatNumber(statistics.used_amount || 0) }}
                         </h4>
-                        <small class="yape-stat-label">Usado</small>
+                        <small class="yape-custom-label">Usado</small>
                     </div>
                 </div>
             </div>
@@ -153,54 +153,40 @@
                     :columns="columns"
                     :filters="tableFilters"
                 >
-                    <tr slot="heading">
-                        <th>ID</th>
-                        <th>Remitente</th>
-                        <th>Monto</th>
-                        <th>Fecha Notificación</th>
-                        <th>Estado</th>
-                        <th>Fecha Uso</th>
-                        <th class="text-right">Acciones</th>
-                    </tr>
-                    <tr slot-scope="{ row }">
-                        <td>{{ row.id }}</td>
-                        <td>
-                            <strong>{{ row.sender }}</strong>
-                        </td>
-                        <td>
-                            <span
-                                class="yape-custom-badge yape-custom-badge-info"
-                            >
-                                S/ {{ formatNumber(row.amount) }}
-                            </span>
-                        </td>
-                        <td>{{ formatDate(row.notification_date) }}</td>
-                        <td>
-                            <span
-                                v-if="row.is_used"
-                                class="yape-custom-badge yape-custom-badge-danger"
-                                >Usado</span
-                            >
-                            <span
-                                v-else
-                                class="yape-custom-badge yape-custom-badge-success"
-                                >Disponible</span
-                            >
-                        </td>
-                        <td>
-                            {{ row.used_at ? formatDate(row.used_at) : "-" }}
-                        </td>
-                        <td class="text-right">
-                            <button
-                                v-if="!row.is_used"
-                                @click="markAsUsed(row.id)"
-                                class="btn btn-sm btn-success"
-                                title="Marcar como usado"
-                            >
-                                <i class="fa fa-check"></i>
-                            </button>
-                        </td>
-                    </tr>
+                    <template slot="sender" slot-scope="{ row }">
+                        <strong>{{ row.sender }}</strong>
+                    </template>
+                    <template slot="amount" slot-scope="{ row }">
+                        <span class="badge badge-info">{{
+                            row.formatted_amount
+                        }}</span>
+                    </template>
+                    <template slot="notification_date" slot-scope="{ row }">
+                        {{ row.notification_date_formatted }}
+                    </template>
+                    <template slot="is_used" slot-scope="{ row }">
+                        <span :class="'badge ' + row.status_class">{{
+                            row.status_text
+                        }}</span>
+                    </template>
+                    <template slot="used_at" slot-scope="{ row }">
+                        {{ row.used_at_formatted || "-" }}
+                    </template>
+                    <template slot="actions" slot-scope="{ row }">
+                        <el-button
+                            v-if="!row.is_used"
+                            size="mini"
+                            type="success"
+                            icon="el-icon-check"
+                            @click="markAsUsed(row)"
+                            title="Marcar como usado"
+                        >
+                            Marcar como usado
+                        </el-button>
+                        <span v-else class="text-muted">
+                            Ya utilizada
+                        </span>
+                    </template>
                 </data-table>
             </div>
         </div>
@@ -294,7 +280,7 @@ export default {
                     };
                 });
         },
-        markAsUsed(notificationId) {
+        markAsUsed(notification) {
             this.$confirm(
                 "¿Está seguro de marcar esta notificación como usada?",
                 "Confirmar",
@@ -307,7 +293,7 @@ export default {
                 .then(() => {
                     this.$http
                         .post(
-                            `/${this.resource}/${notificationId}/mark-as-used`
+                            `/${this.resource}/${notification.id}/mark-as-used`
                         )
                         .then(response => {
                             if (response.data.success) {
@@ -335,203 +321,192 @@ export default {
                 maximumFractionDigits: decimals,
                 minimumFractionDigits: decimals
             });
-        },
-        formatDate(date) {
-            if (!date) return "-";
-            return new Date(date).toLocaleDateString("es-ES");
         }
     }
 };
 </script>
 
 <style scoped>
-/* Estilos personalizados para evitar conflictos */
+/* ===== ESTILOS PERSONALIZADOS PARA EVITAR CONFLICTOS ===== */
 
-/* Cards personalizadas */
-.yape-custom-card {
-    background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.125);
-    border-radius: 0.25rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    transition: all 0.15s ease-in-out;
-}
-
-.yape-custom-card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.yape-custom-card-body {
-    padding: 1.25rem;
-}
-
-.yape-custom-mb-3 {
-    margin-bottom: 1rem !important;
-}
-
-/* Badges personalizados */
-.yape-custom-badge {
-    display: inline-block;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    line-height: 1;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: baseline;
-    border-radius: 0.25rem;
-}
-
-.yape-custom-badge-success {
-    color: #fff;
-    background-color: #28a745;
-}
-
-.yape-custom-badge-danger {
-    color: #fff;
-    background-color: #dc3545;
-}
-
-.yape-custom-badge-info {
-    color: #fff;
-    background-color: #17a2b8;
-}
-
-.yape-custom-badge-warning {
-    color: #212529;
-    background-color: #ffc107;
-}
-
-.yape-custom-badge-primary {
-    color: #fff;
-    background-color: #007bff;
-}
-
-.yape-custom-badge-secondary {
-    color: #fff;
-    background-color: #6c757d;
-}
-
-/* Estadísticas */
+/* Contenedor principal de estadísticas */
 .yape-stats-container {
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
 }
 
+/* Grid de estadísticas */
 .yape-stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 15px;
+    margin-bottom: 20px;
 }
 
-.yape-stat-card {
-    background: #fff;
+/* Tarjetas personalizadas */
+.yape-custom-card {
+    background: #ffffff;
     border: 1px solid #e9ecef;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+    min-height: 100px;
 }
 
-.yape-stat-card:hover {
+.yape-custom-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.yape-card-content {
+/* Contenido de las tarjetas */
+.yape-custom-content {
+    padding: 20px;
+    text-align: center;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
     height: 100%;
 }
 
-.yape-stat-number {
-    font-size: 2rem;
+/* Números de estadísticas */
+.yape-custom-number {
+    font-size: 24px;
     font-weight: 700;
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 8px 0;
     line-height: 1.2;
+    color: #ffffff;
 }
 
-.yape-stat-label {
-    font-size: 0.875rem;
+/* Etiquetas de estadísticas */
+.yape-custom-label {
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin: 0;
-    opacity: 0.8;
+    color: rgba(255, 255, 255, 0.9);
 }
 
-/* Colores para las tarjetas de estadísticas */
-.yape-card-primary {
-    border-left: 4px solid #007bff;
+/* Colores específicos para cada tipo de tarjeta */
+.yape-custom-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border-color: #007bff;
 }
 
-.yape-card-primary .yape-stat-number {
-    color: #007bff;
+.yape-custom-success {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    border-color: #28a745;
 }
 
-.yape-card-success {
-    border-left: 4px solid #28a745;
+.yape-custom-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+    border-color: #dc3545;
 }
 
-.yape-card-success .yape-stat-number {
-    color: #28a745;
+.yape-custom-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%);
+    border-color: #17a2b8;
 }
 
-.yape-card-danger {
-    border-left: 4px solid #dc3545;
+.yape-custom-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    border-color: #ffc107;
 }
 
-.yape-card-danger .yape-stat-number {
-    color: #dc3545;
+.yape-custom-warning .yape-custom-number,
+.yape-custom-warning .yape-custom-label {
+    color: #212529;
 }
 
-.yape-card-info {
-    border-left: 4px solid #17a2b8;
+.yape-custom-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    border-color: #6c757d;
 }
 
-.yape-card-info .yape-stat-number {
-    color: #17a2b8;
+/* Badges personalizados */
+.yape-notifications .badge {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
 }
 
-.yape-card-warning {
-    border-left: 4px solid #ffc107;
+.badge-success {
+    background-color: #28a745;
+    color: #ffffff;
 }
 
-.yape-card-warning .yape-stat-number {
-    color: #e0a800;
+.badge-danger {
+    background-color: #dc3545;
+    color: #ffffff;
 }
 
-.yape-card-secondary {
-    border-left: 4px solid #6c757d;
+.badge-info {
+    background-color: #17a2b8;
+    color: #ffffff;
 }
 
-.yape-card-secondary .yape-stat-number {
-    color: #6c757d;
+/* Mejoras para tarjetas normales */
+.card {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .yape-stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .yape-stat-card {
-        padding: 1rem;
-    }
-
-    .yape-stat-number {
-        font-size: 1.5rem;
-    }
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Utilidades */
-.text-muted {
+.card-body {
+    padding: 1.25rem;
+}
+
+/* Botones personalizados */
+.el-button--mini {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    border-radius: 4px;
+}
+
+/* Utilidades de espaciado */
+.yape-mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.yape-text-center {
+    text-align: center !important;
+}
+
+.yape-text-muted {
     color: #6c757d !important;
 }
 
-.text-right {
-    text-align: right !important;
+/* Responsive design */
+@media (max-width: 768px) {
+    .yape-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .yape-custom-content {
+        padding: 15px;
+    }
+
+    .yape-custom-number {
+        font-size: 20px;
+    }
+
+    .yape-custom-label {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .yape-stats-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
