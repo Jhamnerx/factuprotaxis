@@ -1383,6 +1383,11 @@ Vue.component(
     require("./views/tenant/taxis/contratos/form.vue")
 );
 
+Vue.component(
+    "tenant-taxis-yape-notifications-index",
+    require("./views/tenant/taxis/yape_notifications/index.vue")
+);
+
 import VueClipboard from "vue-clipboard2";
 Vue.use(VueClipboard);
 

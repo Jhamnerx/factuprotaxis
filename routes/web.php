@@ -439,6 +439,13 @@ if ($hostname) {
             Route::post('unidades/vincular-conductor', 'Tenant\UnidadesController@vincularConductor');
             Route::get('unidades/conductores-disponibles', 'Tenant\UnidadesController@getConductoresDisponibles');
 
+            // Rutas de notificaciones Yape
+            Route::get('yape-notifications', 'Tenant\YapeNotificationController@index')->name('tenant.taxi.yape_notifications.index');
+            Route::get('yape-notifications/columns', 'Tenant\YapeNotificationController@columns');
+            Route::get('yape-notifications/records', 'Tenant\YapeNotificationController@records');
+            Route::post('yape-notifications/{id}/mark-as-used', 'Tenant\YapeNotificationController@markAsUsed');
+            Route::get('yape-notifications/statistics', 'Tenant\YapeNotificationController@statistics');
+
             // Rutas de contratos
             Route::get('contratos', 'Tenant\ContratosController@index')->name('tenant.taxi.contratos.index');
             Route::get('contratos/columns', 'Tenant\ContratosController@columns');

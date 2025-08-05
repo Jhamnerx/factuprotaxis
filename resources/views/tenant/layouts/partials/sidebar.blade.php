@@ -527,6 +527,12 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                                                     <a class="nav-link"
                                                         href="{{ route('tenant.taxi.pagos.index') }}">Listado</a>
                                                 </li>
+                                                <li
+                                                    class="{{ $firstLevel === 'yape-notifications' ? 'nav-active' : '' }}">
+                                                    <a class="nav-link"
+                                                        href="{{ route('tenant.taxi.yape_notifications.index') }}">Notificaciones
+                                                        Yape</a>
+                                                </li>
                                             </ul>
                                         </li>
                                     @endif
