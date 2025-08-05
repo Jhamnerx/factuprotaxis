@@ -46,6 +46,10 @@ Route::middleware(['check.permission', 'locked.tenant'])->prefix('taxis')->group
             // Pagos del conductor
             Route::get('pagos', [ConductorController::class, 'pagos'])->name('taxis.conductor.pagos');
             Route::get('pagos/records', [ConductorController::class, 'pagosRecords'])->name('taxis.conductor.pagos.records');
+            Route::post('pagos/registrar', [ConductorController::class, 'registrarPago'])->name('taxis.conductor.pagos.registrar');
+            Route::get('pagos/configuration', [ConductorController::class, 'getPaymentConfiguration'])->name('taxis.conductor.pagos.configuration');
+            Route::post('pagos/verificar-yape', [ConductorController::class, 'verificarYape'])->name('taxis.conductor.pagos.verificar-yape');
+            Route::post('pagos/confirmar-yape', [ConductorController::class, 'confirmarPagoYape'])->name('taxis.conductor.pagos.confirmar-yape');
 
             // Servicios del conductor
             Route::get('servicios', [ConductorController::class, 'servicios'])->name('taxis.conductor.servicios');
@@ -54,6 +58,12 @@ Route::middleware(['check.permission', 'locked.tenant'])->prefix('taxis')->group
             // Perfil del conductor
             Route::get('perfil', [ConductorController::class, 'perfil'])->name('taxis.conductor.perfil');
             Route::post('perfil', [ConductorController::class, 'actualizarPerfil'])->name('taxis.conductor.perfil.update');
+
+            // PDF Downloads para conductores
+            Route::get('pdf/permiso/{permiso}', [ConductorController::class, 'descargarPermiso'])->name('taxis.conductor.pdf.permiso');
+            Route::get('pdf/contrato/{vehiculo}', [ConductorController::class, 'descargarContrato'])->name('taxis.conductor.pdf.contrato');
+            Route::get('pdf/solicitud/{solicitud}', [ConductorController::class, 'descargarSolicitud'])->name('taxis.conductor.pdf.solicitud');
+            Route::get('pdf/constancia/{constancia}', [ConductorController::class, 'descargarConstancia'])->name('taxis.conductor.pdf.constancia');
         });
 
         // Rutas para PROPIETARIOS
@@ -107,7 +117,7 @@ Route::middleware(['check.permission', 'locked.tenant'])->prefix('taxis')->group
             Route::post('perfil', [PropietarioController::class, 'actualizarPerfil'])->name('taxis.propietario.perfil.update');
 
             // PDF Downloads
-            Route::get('pdf/contrato/{vehiculo}', [PropietarioController::class, 'descargarContrato'])->name('taxis.propietario.pdf.contrato');
+            Route::get('pdf/contrato/{contrato}', [PropietarioController::class, 'descargarContrato'])->name('taxis.propietario.pdf.contrato');
             Route::get('pdf/solicitud/{solicitud}', [PropietarioController::class, 'descargarSolicitud'])->name('taxis.propietario.pdf.solicitud');
             Route::get('pdf/constancia/{constancia}', [PropietarioController::class, 'descargarConstancia'])->name('taxis.propietario.pdf.constancia');
             Route::get('pdf/permiso/{permiso}', [PropietarioController::class, 'descargarPermiso'])->name('taxis.propietario.pdf.permiso');

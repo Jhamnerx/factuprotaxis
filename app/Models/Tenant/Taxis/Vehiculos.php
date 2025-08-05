@@ -203,6 +203,22 @@ class Vehiculos extends ModelTenant
                 ];
             }
         }
+
+        $conductor = null;
+        if (!empty($this->conductor_id)) {
+            $conductorModel = $this->conductor()->first();
+            if ($conductorModel) {
+                $conductor = [
+                    'id' => $conductorModel->id,
+                    'name' => $conductorModel->name,
+                    'number' => $conductorModel->number,
+                    'telephone_1' => $conductorModel->telephone_1,
+                    'licencia' => $conductorModel->licencia,
+                    'enabled' => $conductorModel->enabled
+                ];
+            }
+        }
+
         $data = [
             'id' => $this->id,
             'numero_interno' => $this->numero_interno,
@@ -230,6 +246,8 @@ class Vehiculos extends ModelTenant
             'estado' => $this->estado,
             'propietario_id' => $this->propietario_id,
             'propietario' => $propietario,
+            'conductor_id' => $this->conductor_id,
+            'conductor' => $conductor,
             'plan_id' => $this->plan_id,
             'subscription_id' => $this->subscription_id,
             'subscription' => $this->subscription ? $this->subscription->getCollectionData() : null,

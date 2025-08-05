@@ -138,8 +138,7 @@ class Conductor extends Authenticatable
      */
     public function hasVehiclesAssigned()
     {
-        // Implementar lógica para verificar vehículos asignados
-        return false;
+        return $this->vehiculo()->exists();
     }
 
     /**

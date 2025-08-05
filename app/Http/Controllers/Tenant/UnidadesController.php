@@ -464,4 +464,106 @@ class UnidadesController extends Controller
             'message' => 'Color de pago actualizado correctamente'
         ]);
     }
+
+    /**
+     * Vincular conductor a vehículo
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function vincularConductor(Request $request)
+    {
+        try {
+            $request->validate([
+                'vehiculo_id' => 'required|exists:tenant.vehiculos,id',
+                'conductor_id' => 'nullable|exists:tenant.conductores,id'
+            ]);
+
+            $vehiculo = Vehiculos::findOrFail($request->vehiculo_id);
+
+            // Si se está asignando un conductor nuevo, verificar que no esté ya asignado a otro vehículo
+            if ($request->conductor_id) {
+                $conductorYaAsignado = Vehiculos::where('conductor_id', $request->conductor_id)
+                    ->where('id', '!=', $vehiculo->id)
+                    ->first();
+
+                if ($conductorYaAsignado) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'El conductor ya está asignado a otro vehículo (Placa: ' . $conductorYaAsignado->placa . ')'
+                    ], 400);
+                }
+            }
+
+            // Actualizar el conductor del vehículo
+            $vehiculo->update(['conductor_id' => $request->conductor_id]);
+
+            // Obtener información del conductor para la respuesta
+            $conductor = null;
+            if ($request->conductor_id) {
+                $conductor = \App\Models\Tenant\Taxis\Conductor::find($request->conductor_id);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $request->conductor_id ? 'Conductor vinculado correctamente' : 'Conductor desvinculado correctamente',
+                'data' => [
+                    'vehiculo_id' => $vehiculo->id,
+                    'conductor_id' => $request->conductor_id,
+                    'conductor' => $conductor ? $conductor->getCollectionData() : null
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Datos inválidos',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al vincular conductor: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener conductores disponibles para asignar
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getConductoresDisponibles(Request $request)
+    {
+        try {
+            $vehiculoId = $request->input('vehiculo_id');
+
+            // Obtener conductores habilitados que no estén asignados a ningún vehículo
+            // excepto al vehículo actual (para permitir reasignación)
+            $conductores = \App\Models\Tenant\Taxis\Conductor::whereEnabled()
+                ->where(function ($query) use ($vehiculoId) {
+                    $query->whereDoesntHave('vehiculo')
+                        ->orWhereHas('vehiculo', function ($q) use ($vehiculoId) {
+                            if ($vehiculoId) {
+                                $q->where('id', $vehiculoId);
+                            }
+                        });
+                })
+                ->orderBy('name')
+                ->get()
+                ->map(function ($conductor) {
+                    return $conductor->getCollectionData();
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $conductores
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener conductores: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

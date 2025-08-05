@@ -436,6 +436,8 @@ if ($hostname) {
             Route::get('unidades/subscription-invoices/{id}', 'Tenant\UnidadesController@subscriptionInvoices');
             Route::get('unidades/payment-colors/{id}', 'Tenant\UnidadesController@paymentColors');
             Route::post('unidades/update-payment-color', 'Tenant\UnidadesController@updatePaymentColor');
+            Route::post('unidades/vincular-conductor', 'Tenant\UnidadesController@vincularConductor');
+            Route::get('unidades/conductores-disponibles', 'Tenant\UnidadesController@getConductoresDisponibles');
 
             // Rutas de contratos
             Route::get('contratos', 'Tenant\ContratosController@index')->name('tenant.taxi.contratos.index');

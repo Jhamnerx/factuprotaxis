@@ -10,6 +10,7 @@ use App\Models\Tenant\Taxis\Solicitud;
 use App\Models\Tenant\Taxis\Vehiculos;
 use App\Models\Tenant\Taxis\Declaracion;
 use App\Models\Tenant\Taxis\ConstanciaBaja;
+use App\Models\Tenant\User;
 
 class PdfController extends Controller
 {
@@ -19,7 +20,7 @@ class PdfController extends Controller
         $vehiculo = $contrato->vehiculo;
         $propietario = $contrato->propietario;
         $company = Company::active();
-        $establishment = auth()->user()->establishment;
+        $establishment = User::firstOrFail()->establishment;
         $path_css = resource_path('views/pdf/style.css');
         $stylesheet = file_get_contents($path_css);
         // Generar el PDF directamente sin usar PdfService
@@ -37,7 +38,7 @@ class PdfController extends Controller
     {
         $constancia = ConstanciaBaja::findOrFail($id);
         $company = Company::active();
-        $establishment = auth()->user()->establishment;
+        $establishment = User::firstOrFail()->establishment;
         $path_css = resource_path('views/pdf/style.css');
         $stylesheet = file_get_contents($path_css);        // Generar el PDF directamente sin usar PdfService
         $pdf = PDF::loadView(
@@ -60,7 +61,7 @@ class PdfController extends Controller
     {
         $solicitud = Solicitud::findOrFail($id);
         $company = Company::active();
-        $establishment = auth()->user()->establishment;
+        $establishment = User::firstOrFail()->establishment;
         $path_css = resource_path('views/pdf/style.css');
         $stylesheet = file_get_contents($path_css);
 
@@ -137,7 +138,8 @@ class PdfController extends Controller
 
             // Generar constancia de baja
             $company = Company::active();
-            $establishment = auth()->user()->establishment;
+            $establishment = User::firstOrFail()->establishment;
+            ent;
             $path_css = resource_path('views/pdf/style.css');
             $stylesheet = file_get_contents($path_css);
 
@@ -231,7 +233,7 @@ class PdfController extends Controller
         }
 
         $company = Company::active();
-        $establishment = auth()->user()->establishment;
+        $establishment = User::firstOrFail()->establishment;
         $path_css = resource_path('views/pdf/style.css');
         $stylesheet = file_get_contents($path_css);
 
@@ -269,7 +271,7 @@ class PdfController extends Controller
     {
         $permiso = \App\Models\Tenant\Taxis\PermisoUnidad::findOrFail($id);
         $company = Company::active();
-        $establishment = auth()->user()->establishment;
+        $establishment = User::firstOrFail()->establishment;
         $path_css = resource_path('views/pdf/style.css');
         $stylesheet = file_get_contents($path_css);
 

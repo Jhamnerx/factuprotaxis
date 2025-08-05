@@ -4,22 +4,24 @@ namespace Modules\Taxis\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use App\Models\Tenant\Taxis\Vehiculos;
+use App\Models\Tenant\Taxis\Conductor;
 use App\Models\Tenant\Taxis\Contratos;
 use App\Models\Tenant\Taxis\Solicitud;
+use App\Models\Tenant\Taxis\Vehiculos;
+use App\Models\Tenant\YapeNotification;
 use App\Models\Tenant\Taxis\Conductores;
+use Modules\Payment\Models\PaymentColor;
 use App\Models\Tenant\Taxis\PermisoUnidad;
 use App\Models\Tenant\Taxis\ConstanciaBaja;
-use Modules\Payment\Models\PaymentColor;
+use App\Http\Controllers\Tenant\PdfController;
 use Modules\Payment\Models\SubscriptionInvoice;
-use App\Http\Resources\Tenant\VehiculoCollection;
 use App\Http\Resources\Tenant\ContratoCollection;
-use App\Http\Resources\Tenant\SolicitudCollection;
+use App\Http\Resources\Tenant\VehiculoCollection;
 use App\Http\Resources\Tenant\ConductorCollection;
+use App\Http\Resources\Tenant\SolicitudCollection;
+use App\Http\Resources\Tenant\SubscriptionCollection;
 use App\Http\Resources\Tenant\PermisoUnidadCollection;
 use App\Http\Resources\Tenant\ConstanciaBajaCollection;
-use App\Http\Resources\Tenant\SubscriptionCollection;
-use App\Models\Tenant\Taxis\Conductor;
 
 class PropietarioController extends Controller
 {
@@ -226,8 +228,7 @@ class PropietarioController extends Controller
         $propietario = session('taxis_user');
 
         // Query base para contratos del propietario
-        $query = Contratos::where('propietario_id', $propietario['id'])
-            ->with(['vehiculo.marca', 'vehiculo.modelo']);
+        $query = Contratos::where('propietario_id', $propietario['id']);
 
         // Aplicar filtros
         if ($request->filled('estado')) {
@@ -241,10 +242,8 @@ class PropietarioController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->whereHas('vehiculo', function ($vq) use ($search) {
-                    $vq->where('placa', 'like', "%{$search}%")
-                        ->orWhere('numero_interno', 'like', "%{$search}%");
-                });
+                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(vehiculo, '$.placa')) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(vehiculo, '$.numero_interno')) LIKE ?", ["%{$search}%"]);
             });
         }
 
@@ -259,7 +258,22 @@ class PropietarioController extends Controller
 
         return view('taxis::propietario.contratos.index', compact('propietario', 'contratos', 'vehiculos'));
     }
+    /**
+     * Descargar PDF de contrato (solo para vehículos del propietario)
+     */
+    public function descargarContrato($contratoId)
+    {
+        $propietario = session('taxis_user');
 
+        // Verificar que el contrato pertenece al propietario
+        $contrato = Contratos::where('id', $contratoId)
+            ->where('propietario_id', $propietario['id'])
+            ->firstOrFail();
+
+
+        $pdfController = new PdfController();
+        return $pdfController->contrato($contrato->id);
+    }
     /**
      * API: Obtener contratos del propietario
      */
@@ -330,7 +344,18 @@ class PropietarioController extends Controller
 
         return view('taxis::propietario.solicitudes.index', compact('propietario', 'solicitudes', 'vehiculos'));
     }
+    /**
+     * Descargar PDF de solicitud (solo para solicitudes relacionadas a vehículos del propietario)
+     */
+    public function descargarSolicitud($solicitudId)
+    {
+        $propietario = session('taxis_user');
 
+        // Verificar que la solicitud tiene vehículos del propietario autenticado
+        $solicitud = Solicitud::findOrFail($solicitudId);
+        $pdfController = new PdfController();
+        return $pdfController->solicitud($solicitud->id);
+    }
     /**
      * API: Obtener solicitudes del propietario
      */
@@ -397,6 +422,19 @@ class PropietarioController extends Controller
             ->get();
 
         return view('taxis::propietario.constancias.index', compact('propietario', 'constancias', 'vehiculos'));
+    }
+    /**
+     * Descargar PDF de constancia (solo para constancias relacionadas a vehículos del propietario)
+     */
+    public function descargarConstancia($constanciaId)
+    {
+        $propietario = session('taxis_user');
+
+        // Verificar que la constancia pertenece a un vehículo del propietario autenticado
+        $constancia = \App\Models\Tenant\Taxis\ConstanciaBaja::findOrFail($constanciaId);
+
+        $pdfController = new PdfController();
+        return $pdfController->constancias($constancia->id);
     }
 
     /**
@@ -534,7 +572,9 @@ class PropietarioController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('motivo', 'like', "%{$search}%")
                     ->orWhere('tipo_permiso', 'like', "%{$search}%")
-                    ->orWhere('observaciones', 'like', "%{$search}%");
+                    ->orWhere('observaciones', 'like', "%{$search}%")
+                    ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(vehiculo, '$.placa')) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(vehiculo, '$.numero_interno')) LIKE ?", ["%{$search}%"]);
             });
         }
 
@@ -626,21 +666,6 @@ class PropietarioController extends Controller
         });
 
         return view('taxis::propietario.servicios.index', compact('propietario', 'servicios', 'vehiculos', 'tiposServicios'));
-    }
-
-    /**
-     * API: Obtener servicios del propietario
-     */
-    public function serviciosRecords(Request $request)
-    {
-        $propietario = session('taxis_user');
-
-        // Obtener servicios a través de los vehículos del propietario
-        $records = \App\Models\Tenant\VehicleService::whereHas('vehiculo', function ($q) use ($propietario) {
-            $q->where('propietario_id', $propietario['id']);
-        })->with(['vehiculo'])->orderBy('id', 'desc');
-
-        return new \App\Http\Resources\Tenant\ServicioCollection($records->paginate(config('tenant.items_per_page')));
     }
 
     /**
@@ -760,58 +785,10 @@ class PropietarioController extends Controller
         return view('taxis::propietario.vehiculos.show', compact('vehiculo'));
     }
 
-    /**
-     * Descargar PDF de contrato (solo para vehículos del propietario)
-     */
-    public function descargarContrato($vehiculoId)
-    {
-        $propietario = session('taxis_user');
 
-        // Verificar que el vehículo pertenece al propietario
-        $vehiculo = Vehiculos::where('id', $vehiculoId)
-            ->where('propietario_id', $propietario['id'])
-            ->firstOrFail();
 
-        // Redirigir a la ruta principal de PDF del sistema
-        return redirect()->route('tenant.pdf.contrato', ['vehiculo' => $vehiculo]);
-    }
 
-    /**
-     * Descargar PDF de solicitud (solo para solicitudes relacionadas a vehículos del propietario)
-     */
-    public function descargarSolicitud($solicitudId)
-    {
-        $propietario = session('taxis_user');
 
-        // Obtener los IDs de vehículos del propietario
-        $vehiculosIds = Vehiculos::where('propietario_id', $propietario['id'])
-            ->pluck('id')
-            ->toArray();
-
-        // Verificar que la solicitud tiene vehículos del propietario autenticado
-        $solicitud = Solicitud::whereHas('detalle', function ($q) use ($vehiculosIds) {
-            $q->whereIn('vehiculo_id', $vehiculosIds);
-        })->findOrFail($solicitudId);
-
-        // Redirigir a la ruta principal de PDF del sistema
-        return redirect()->route('tenant.pdf.solicitud', ['solicitud' => $solicitud]);
-    }
-
-    /**
-     * Descargar PDF de constancia (solo para constancias relacionadas a vehículos del propietario)
-     */
-    public function descargarConstancia($constanciaId)
-    {
-        $propietario = session('taxis_user');
-
-        // Verificar que la constancia pertenece a un vehículo del propietario autenticado
-        $constancia = \App\Models\Tenant\Taxis\ConstanciaBaja::whereHas('datosVehiculo', function ($q) use ($propietario) {
-            $q->where('propietario_id', $propietario['id']);
-        })->findOrFail($constanciaId);
-
-        // Redirigir a la ruta principal de PDF del sistema
-        return redirect()->route('tenant.pdf.constancia', ['constancia' => $constancia]);
-    }
 
     /**
      * Descargar PDF de permiso (solo para permisos de vehículos del propietario)
@@ -825,8 +802,8 @@ class PropietarioController extends Controller
             $q->where('propietario_id', $propietario['id']);
         })->findOrFail($permisoId);
 
-        // Redirigir a la ruta principal de PDF del sistema
-        return redirect()->route('tenant.pdf.permiso-viaje', ['permiso' => $permiso]);
+        $pdfController = new PdfController();
+        return $pdfController->permisoViaje($permiso->id);
     }
 
     /**
@@ -874,7 +851,9 @@ class PropietarioController extends Controller
                 'mes' => 'required|integer|between:1,12',
                 'year' => 'required|integer|min:2020',
                 'monto' => 'required|numeric|min:0',
-                'desde_yape' => 'boolean'
+                'desde_yape' => 'boolean',
+                'fecha_pago' => 'nullable|date',
+                'busqueda_flexible' => 'boolean'
             ];
 
             // Si desde_yape es true, el código de seguridad es requerido
@@ -900,32 +879,54 @@ class PropietarioController extends Controller
                 ], 404);
             }
 
-            // Buscar notificación de Yape por titular
-            $notification = \App\Models\Tenant\YapeNotification::where('sender', 'like', '%' . $validated['titular_yape'] . '%')
-                ->where('amount', $validated['monto'])
-                ->orderBy('notification_date', 'desc')
-                ->first();
+            // Determinar la fecha del pago
+            $fechaPago = $validated['fecha_pago'] ?? now()->format('Y-m-d');
 
-            if (!$notification) {
+            // Determinar si se debe incluir código de seguridad en la búsqueda
+            $codigoSeguridad = null;
+            if ($validated['desde_yape'] && !empty($validated['codigo_seguridad'])) {
+                $codigoSeguridad = $validated['codigo_seguridad'];
+            }
+
+            // Usar el modelo YapeNotification con búsqueda flexible y código de seguridad
+            $notifications = YapeNotification::findCompatibleNotifications(
+                $validated['titular_yape'],
+                $validated['monto'],
+                $fechaPago,
+                $validated['busqueda_flexible'] ?? true,
+                $codigoSeguridad
+            );
+
+            if ($notifications->isEmpty()) {
+                $mensaje = 'No se encontró ningún pago disponible con ese titular, monto y fecha.';
+                if ($validated['desde_yape'] && !empty($validated['codigo_seguridad'])) {
+                    $mensaje .= ' Verifica que el código de seguridad sea correcto.';
+                }
+                $mensaje .= ' Verifica los datos ingresados o contacta por WhatsApp si ya realizaste el pago.';
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'No se encontró ningún pago con ese titular y monto. Verifica los datos ingresados.'
+                    'message' => $mensaje
                 ], 404);
             }
 
-            // Si se proporciona código de seguridad, verificarlo
-            if (!empty($validated['codigo_seguridad'])) {
-                $hasSecurityCode = \App\Models\Tenant\YapeNotification::where('sender', 'like', '%' . $validated['titular_yape'] . '%')
-                    ->where('amount', $validated['monto'])
-                    ->where('raw_notification', 'like', '%' . $validated['codigo_seguridad'] . '%')
-                    ->exists();
+            // Tomar la primera notificación (más reciente)
+            $notification = $notifications->first();
+
+            // Si NO se usó desde_yape pero se proporciona código de seguridad, verificarlo manualmente
+            if (!$validated['desde_yape'] && !empty($validated['codigo_seguridad'])) {
+                $hasSecurityCode = collect($notifications)->filter(function ($notif) use ($validated) {
+                    return stripos(json_encode($notif->raw_notification), $validated['codigo_seguridad']) !== false;
+                })->first();
 
                 if (!$hasSecurityCode) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'El código de seguridad no coincide con el pago encontrado.'
+                        'message' => 'El código de seguridad no coincide con ningún pago encontrado.'
                     ], 400);
                 }
+
+                $notification = $hasSecurityCode;
             }
 
             return response()->json([
@@ -935,7 +936,9 @@ class PropietarioController extends Controller
                     'notification_id' => $notification->id,
                     'sender' => $notification->sender,
                     'amount' => $notification->amount,
-                    'date' => $notification->notification_date->format('d/m/Y H:i')
+                    'date' => $notification->notification_date->format('d/m/Y H:i'),
+                    'is_used' => $notification->is_used,
+                    'used_for_invoice' => $notification->subscription_invoice_id
                 ]
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -944,11 +947,6 @@ class PropietarioController extends Controller
                 'message' => 'Datos inválidos',
                 'errors' => $e->errors()
             ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al verificar el pago: ' . $e->getMessage()
-            ], 500);
         }
     }
 
@@ -1001,13 +999,21 @@ class PropietarioController extends Controller
                 ], 400);
             }
 
-            // Verificar que la notificación existe
-            $notification = \App\Models\Tenant\YapeNotification::find($validated['notification_id']);
+            // Verificar que la notificación existe y no ha sido utilizada
+            $notification = YapeNotification::find($validated['notification_id']);
             if (!$notification) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Notificación de pago no encontrada'
                 ], 404);
+            }
+
+            // Verificar si la notificación ya fue utilizada
+            if ($notification->is_used) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta notificación de pago ya ha sido utilizada para otro registro. No se puede usar el mismo pago para múltiples facturas.'
+                ], 400);
             }
 
             // Crear el registro de pago usando solo campos que existen en la tabla
@@ -1025,6 +1031,9 @@ class PropietarioController extends Controller
                 'estado' => 'pagado',
                 'payed_total' => true,
             ]);
+
+            // Marcar la notificación como utilizada y asociarla con la factura
+            $notification->markAsUsed($invoice->id);
 
             // Registrar el color del pago
             PaymentColor::updateOrCreate(

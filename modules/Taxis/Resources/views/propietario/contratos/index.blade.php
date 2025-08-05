@@ -292,8 +292,7 @@
                         <!-- Actions -->
                         <div class="flex space-x-2">
                             @if ($contrato->vehiculo)
-                                <a href="{{ route('taxis.propietario.pdf.contrato', $contrato->vehiculo_id) }}"
-                                    target="_blank"
+                                <a href="{{ route('taxis.propietario.pdf.contrato', $contrato) }}" target="_blank"
                                     class="flex-1 btn-sm bg-violet-500 hover:bg-violet-600 text-white text-center">
                                     <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">

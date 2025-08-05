@@ -73,6 +73,9 @@
                         <th v-if="columns.propietario.visible">
                             Propietario
                         </th>
+                        <th v-if="columns.conductor.visible">
+                            Conductor
+                        </th>
                         <th v-if="columns.marca.visible">Marca</th>
                         <th v-if="columns.modelo.visible">Modelo</th>
                         <th v-if="columns.year.visible">Año</th>
@@ -108,6 +111,16 @@
                         </td>
                         <td v-if="columns.propietario.visible">
                             {{ row.propietario.name }}
+                        </td>
+                        <td v-if="columns.conductor.visible">
+                            <span v-if="row.conductor" class="conductor-info">
+                                <i class="fas fa-user text-green-600"></i>
+                                {{ row.conductor.name }}
+                            </span>
+                            <span v-else class="text-gray-400">
+                                <i class="fas fa-user-slash"></i>
+                                Sin asignar
+                            </span>
                         </td>
                         <td v-if="columns.marca.visible">
                             {{ row.marca.nombre }}
@@ -420,6 +433,17 @@
                                     </button>
                                     <button
                                         class="dropdown-item"
+                                        @click.prevent="openConductorModal(row)"
+                                    >
+                                        <i class="fas fa-user"></i>
+                                        {{
+                                            row.conductor
+                                                ? "Cambiar conductor"
+                                                : "Asignar conductor"
+                                        }}
+                                    </button>
+                                    <button
+                                        class="dropdown-item"
                                         @click.prevent="viewServices(row)"
                                     >
                                         <i class="fas fa-tools"></i> Ver
@@ -450,6 +474,13 @@
                 :vehiculo="selectedVehiculo"
                 :type="subscriptionType"
                 @saved="onSubscriptionSaved"
+            />
+
+            <!-- Modal de Conductor -->
+            <conductor-modal
+                :showDialog.sync="showConductorModal"
+                :vehiculo="selectedVehiculoForConductor"
+                @conductor-vinculado="onConductorVinculado"
             />
 
             <!-- Modal de Servicios -->
@@ -614,6 +645,7 @@ import DataTable from "../../../../components/DataTable.vue";
 import UnidadesForm from "./form.vue";
 
 import SubscriptionModal from "./subscription-modal.vue";
+import ConductorModal from "./conductor-modal.vue";
 import { deletable } from "../../../../mixins/deletable";
 
 export default {
@@ -623,7 +655,8 @@ export default {
     components: {
         DataTable,
         UnidadesForm,
-        SubscriptionModal
+        SubscriptionModal,
+        ConductorModal
     },
     created() {
         this.getColumnsToShow();
@@ -640,6 +673,8 @@ export default {
             selectedVehicleForServices: null,
             vehicleServices: [],
             loadingServices: false,
+            showConductorModal: false,
+            selectedVehiculoForConductor: null,
             estadosTuc: [
                 "TUC",
                 "RECIBO",
@@ -665,6 +700,11 @@ export default {
                 propietario: {
                     title: "Propietario",
                     label: "Propietario",
+                    visible: true
+                },
+                conductor: {
+                    title: "Conductor",
+                    label: "Conductor",
                     visible: true
                 },
                 marca: { title: "Marca", label: "Marca", visible: true },
@@ -1034,6 +1074,18 @@ export default {
         crearContrato(vehiculo) {
             const url = `/contratos?vehiculo_id=${vehiculo.id}`;
             window.open(url, "_blank");
+        },
+
+        // Métodos para modal de conductor
+        openConductorModal(vehiculo) {
+            this.selectedVehiculoForConductor = vehiculo;
+            this.showConductorModal = true;
+        },
+
+        onConductorVinculado(data) {
+            // Recargar los datos de la tabla para mostrar el conductor actualizado
+            this.$refs.dataTable.fetchData();
+            this.$message.success("Conductor vinculado correctamente");
         }
     }
 };
@@ -1248,5 +1300,24 @@ button.btn-danger {
 
 .dialog-footer {
     text-align: right;
+}
+
+/* Estilos para conductor */
+.conductor-info {
+    color: #67c23a;
+    font-weight: 500;
+}
+
+.conductor-info i {
+    margin-right: 5px;
+}
+
+.text-gray-400 {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.text-green-600 {
+    color: #059669;
 }
 </style>

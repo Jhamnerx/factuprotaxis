@@ -183,8 +183,7 @@
             x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in-out duration-200" x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 translate-y-4" style="display: none;">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-auto max-w-2xl w-full max-h-full"
-                @click.outside="modalOpen = false" @keydown.escape.window="modalOpen = false">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-auto max-w-2xl w-full max-h-full">
 
                 <!-- Paso 1: Información de Yape -->
                 <div x-show="pasoActual === 1">
@@ -306,9 +305,9 @@
                     <header class="px-5 py-3 border-b border-gray-200 dark:border-gray-700/60">
                         <div class="flex justify-between items-center">
                             <h2 class="font-semibold text-gray-800 dark:text-gray-100">Verificar Pago</h2>
-                            <button @click="cerrarModal"
+                            <button @click="pasoAnterior"
                                 class="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400">
-                                <span class="sr-only">Cerrar</span>
+                                <span class="sr-only">Volver</span>
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -365,6 +364,30 @@
                                         :required="formVerificacion.desde_yape">
                                 </div>
 
+                                <!-- Checkbox para pago en días anteriores -->
+                                <div>
+                                    <label class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                                        <input type="checkbox" x-model="formVerificacion.pago_dias_anteriores"
+                                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                        <span class="ml-2">Realicé el pago en días anteriores (no hoy)</span>
+                                    </label>
+                                </div>
+
+                                <!-- Campo de fecha cuando marcó pago anterior -->
+                                <div x-show="formVerificacion.pago_dias_anteriores" x-transition>
+                                    <label for="fecha-pago"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Fecha en que realizó el pago <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="date" x-model="formVerificacion.fecha_pago" id="fecha-pago"
+                                        :max="new Date().toISOString().split('T')[0]"
+                                        class="appearance-none w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-sm bg-white"
+                                        :required="formVerificacion.pago_dias_anteriores">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        Seleccione la fecha exacta en que realizó el yapeo
+                                    </p>
+                                </div>
+
                                 <!-- Mostrar errores -->
                                 <div x-show="errorVerificacion"
                                     class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 rounded-lg p-3">
@@ -386,7 +409,8 @@
                                 </button>
                                 <button type="submit"
                                     :disabled="verificandoPago || !formVerificacion.titular_yape.trim() || (formVerificacion
-                                        .desde_yape && !formVerificacion.codigo_seguridad.trim())"
+                                        .desde_yape && !formVerificacion.codigo_seguridad.trim()) || (
+                                        formVerificacion.pago_dias_anteriores && !formVerificacion.fecha_pago)"
                                     class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors">
                                     <span x-show="!verificandoPago">VERIFICAR YAPEO</span>
                                     <span x-show="verificandoPago">Verificando...</span>
@@ -466,7 +490,9 @@
                     formVerificacion: {
                         titular_yape: '',
                         codigo_seguridad: '',
-                        desde_yape: false
+                        desde_yape: false,
+                        pago_dias_anteriores: false,
+                        fecha_pago: ''
                     },
 
                     // Inicialización
@@ -539,6 +565,8 @@
                                 text: 'No se pudieron cargar los vehículos. Por favor, verifique su conexión e intente nuevamente.',
                                 confirmButtonText: 'Reintentar',
                                 confirmButtonColor: '#dc2626',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
                                 background: document.documentElement.classList.contains('dark') ? '#1f2937' :
                                     '#ffffff',
                                 color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
@@ -677,6 +705,8 @@
                                 text: 'No se pudieron cargar los pagos del vehículo. Los datos mostrados pueden no estar actualizados.',
                                 confirmButtonText: 'Continuar',
                                 confirmButtonColor: '#dc2626',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
                                 background: document.documentElement.classList.contains('dark') ? '#1f2937' :
                                     '#ffffff',
                                 color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
@@ -962,7 +992,9 @@
                         this.formVerificacion = {
                             titular_yape: '',
                             codigo_seguridad: '',
-                            desde_yape: false
+                            desde_yape: false,
+                            pago_dias_anteriores: false,
+                            fecha_pago: ''
                         };
 
                         // Abrir modal
@@ -994,24 +1026,21 @@
                             return;
                         }
 
+                        // Validar fecha si marcó pago en días anteriores
+                        if (this.formVerificacion.pago_dias_anteriores && !this.formVerificacion.fecha_pago) {
+                            this.mostrarError('Por favor seleccione la fecha en que realizó el pago');
+                            return;
+                        }
+
                         this.verificandoPago = true;
                         this.errorVerificacion = null; // Limpiar errores anteriores
 
-                        // Mostrar loading con SweetAlert2
-                        Swal.fire({
-                            title: 'Verificando Pago',
-                            text: 'Por favor espere mientras verificamos su pago con Yape...',
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            showConfirmButton: false,
-                            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-                            color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-
                         try {
+                            // Determinar la fecha del pago
+                            const fechaPago = this.formVerificacion.pago_dias_anteriores ?
+                                this.formVerificacion.fecha_pago :
+                                new Date().toISOString().split('T')[0];
+
                             const response = await fetch(this.API_URLS.verificarYape, {
                                 method: 'POST',
                                 headers: {
@@ -1025,7 +1054,9 @@
                                     mes: this.pagoData.mes,
                                     year: this.pagoData.year,
                                     monto: this.pagoData.monto,
-                                    desde_yape: this.formVerificacion.desde_yape
+                                    desde_yape: this.formVerificacion.desde_yape,
+                                    fecha_pago: fechaPago,
+                                    busqueda_flexible: true // Activar búsqueda flexible
                                 })
                             });
 
@@ -1035,19 +1066,6 @@
                                 this.pagoVerificado = true;
                                 this.notificacionId = data.data.notification_id; // Capturar desde data.data
                                 this.errorVerificacion = null;
-
-                                // Cerrar loading y mostrar éxito
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '¡Pago Verificado!',
-                                    text: 'Su pago ha sido verificado correctamente. Ahora puede confirmar el pago.',
-                                    confirmButtonText: 'Continuar',
-                                    confirmButtonColor: '#059669',
-                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' :
-                                        '#ffffff',
-                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' :
-                                        '#111827'
-                                });
                             } else {
                                 // Manejar errores de validación
                                 if (data.errors) {
@@ -1059,58 +1077,23 @@
                                 }
                                 this.pagoVerificado = false;
 
-                                // Cerrar loading y mostrar error
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error de Verificación',
-                                    text: this.errorVerificacion,
-                                    confirmButtonText: 'Reintentar',
-                                    confirmButtonColor: '#dc2626',
-                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' :
-                                        '#ffffff',
-                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' :
-                                        '#111827'
-                                });
+                                // Mostrar aviso de contacto por WhatsApp cuando falla la validación
+                                this.mostrarAvisoWhatsApp();
                             }
                         } catch (error) {
                             console.error('Error al verificar pago:', error);
                             this.errorVerificacion = 'Error de conexión al verificar el pago';
                             this.pagoVerificado = false;
 
-                            // Cerrar loading y mostrar error de conexión
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error de Conexión',
-                                text: 'No se pudo conectar con el servidor. Por favor, verifique su conexión e intente nuevamente.',
-                                confirmButtonText: 'Reintentar',
-                                confirmButtonColor: '#dc2626',
-                                background: document.documentElement.classList.contains('dark') ? '#1f2937' :
-                                    '#ffffff',
-                                color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
-                            });
+                            // También mostrar aviso de WhatsApp en errores de conexión
+                            this.mostrarAvisoWhatsApp();
                         } finally {
                             this.verificandoPago = false;
                         }
-                    },
-
-                    // Confirmar el pago
+                    }, // Confirmar el pago
                     async confirmarPago() {
                         this.confirmandoPago = true;
                         this.errorVerificacion = null; // Limpiar errores
-
-                        // Mostrar loading con SweetAlert2
-                        Swal.fire({
-                            title: 'Confirmando Pago',
-                            text: 'Por favor espere mientras procesamos su pago...',
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            showConfirmButton: false,
-                            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-                            color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
 
                         try {
                             // Preparar los datos del pago de manera similar a handleSavePago
@@ -1153,7 +1136,7 @@
                                 // Renderizar el calendario actualizado
                                 this.renderizarCalendario();
 
-                                // Mostrar éxito con SweetAlert2
+                                // Mostrar éxito con SweetAlert2 SOLO AL FINALIZAR TODO EL PROCESO
                                 Swal.fire({
                                     icon: 'success',
                                     title: '¡Pago Confirmado!',
@@ -1167,6 +1150,8 @@
                                     confirmButtonColor: '#059669',
                                     timer: 4000,
                                     timerProgressBar: true,
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
                                     background: document.documentElement.classList.contains('dark') ? '#1f2937' :
                                         '#ffffff',
                                     color: document.documentElement.classList.contains('dark') ? '#f9fafb' :
@@ -1180,35 +1165,10 @@
                                 } else {
                                     this.errorVerificacion = data.message || 'Error al confirmar el pago';
                                 }
-
-                                // Mostrar error con SweetAlert2
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error al Confirmar',
-                                    text: this.errorVerificacion,
-                                    confirmButtonText: 'Reintentar',
-                                    confirmButtonColor: '#dc2626',
-                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' :
-                                        '#ffffff',
-                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' :
-                                        '#111827'
-                                });
                             }
                         } catch (error) {
                             console.error('Error al confirmar pago:', error);
                             this.errorVerificacion = 'Error de conexión al confirmar el pago';
-
-                            // Mostrar error de conexión con SweetAlert2
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error de Conexión',
-                                text: 'No se pudo conectar con el servidor para confirmar el pago. Por favor, intente nuevamente.',
-                                confirmButtonText: 'Reintentar',
-                                confirmButtonColor: '#dc2626',
-                                background: document.documentElement.classList.contains('dark') ? '#1f2937' :
-                                    '#ffffff',
-                                color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
-                            });
                         } finally {
                             this.confirmandoPago = false;
                         }
@@ -1226,8 +1186,82 @@
                         this.formVerificacion = {
                             titular_yape: '',
                             codigo_seguridad: '',
-                            desde_yape: false
+                            desde_yape: false,
+                            pago_dias_anteriores: false,
+                            fecha_pago: ''
                         };
+                    },
+
+                    // Mostrar aviso de contacto por WhatsApp
+                    mostrarAvisoWhatsApp() {
+                        // Usar SweetAlert2 para mostrar aviso de WhatsApp cuando falla la validación
+                        Swal.fire({
+                            icon: 'info',
+                            title: '¿Realizaste el pago?',
+                            html: `
+                                <div class="text-left space-y-3">
+                                    <p class="text-gray-700 dark:text-gray-300">
+                                        Si ya realizaste el pago por Yape pero el sistema no lo pudo validar, no te preocupes.
+                                    </p>
+                                    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/50 rounded-lg p-3">
+                                        <p class="text-green-800 dark:text-green-200 font-medium text-sm">
+                                            💬 Contáctanos por WhatsApp y te ayudaremos a validar tu pago manualmente.
+                                        </p>
+                                    </div>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        Ten a la mano el comprobante de tu yapeo para agilizar el proceso.
+                                    </p>
+                                </div>
+                            `,
+                            showCancelButton: true,
+                            confirmButtonText: '📱 Contactar por WhatsApp',
+                            cancelButtonText: 'Reintentar Validación',
+                            confirmButtonColor: '#25D366', // Color verde de WhatsApp
+                            cancelButtonColor: '#6b7280',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                            color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                            customClass: {
+                                popup: 'swal2-popup-custom',
+                                confirmButton: 'hover:bg-green-600',
+                                cancelButton: 'hover:bg-gray-600'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Abrir WhatsApp con mensaje predefinido
+                                this.abrirWhatsApp();
+                            }
+                            // Si cancela, simplemente cierra el aviso y permite reintentar
+                        });
+                    },
+
+                    // Abrir WhatsApp con mensaje predefinido
+                    abrirWhatsApp() {
+                        // Número de WhatsApp de la empresa (debes cambiarlo por el número real)
+                        const numeroWhatsApp = '51987654321'; // Cambiar por el número real de la empresa
+
+                        // Mensaje predefinido
+                        const fechaTexto = this.formVerificacion.pago_dias_anteriores ?
+                            `\nFecha del pago: ${this.formVerificacion.fecha_pago}` :
+                            '\nFecha del pago: Hoy';
+
+                        const mensaje = encodeURIComponent(
+                            `Hola! 👋\n\n` +
+                            `Realicé un pago por Yape para mi vehículo ${this.vehiculoSeleccionado?.placa || ''} ` +
+                            `por el mes de ${this.getMesNombre(this.pagoData.mes)} ${this.pagoData.year}, ` +
+                            `pero el sistema no pudo validarlo automáticamente.\n\n` +
+                            `Monto pagado: S/ ${this.pagoData.monto}\n` +
+                            `Titular del Yape: ${this.formVerificacion.titular_yape}${fechaTexto}\n\n` +
+                            `¿Podrían ayudarme a validar mi pago manualmente? Tengo el comprobante disponible.\n\n` +
+                            `Gracias! 😊`
+                        );
+
+                        // URL de WhatsApp
+                        const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensaje}`;
+
+                        // Abrir WhatsApp en una nueva ventana
+                        window.open(urlWhatsApp, '_blank');
                     },
 
                     // Mostrar error cuando no hay plan
@@ -1244,6 +1278,8 @@
                             `,
                             confirmButtonText: 'Entendido',
                             confirmButtonColor: '#dc2626',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
                             background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
                             color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
                             customClass: {
@@ -1269,6 +1305,8 @@
                             text: mensaje,
                             confirmButtonText: 'Entendido',
                             confirmButtonColor: '#dc2626',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
                             background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
                             color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
                         });
@@ -1288,6 +1326,8 @@
                             confirmButtonColor: '#059669',
                             timer: 3000,
                             timerProgressBar: true,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
                             background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
                             color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
                         });
