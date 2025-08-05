@@ -29,7 +29,7 @@ class CreatePlantillaMensajesTable extends Migration
         // Verificar si ya existen datos antes de insertar
         if (DB::table('plantilla_mensajes')->count() == 0) {
             // Insertar plantillas predeterminadas
-            DB::table('plantilla_mensajes')->insert(
+            DB::table('plantilla_mensajes')->insert([
                 [
                     'tipo' => 'bienvenida',
                     'asunto' => 'Bienvenido a la familia San Pedro',
@@ -154,7 +154,7 @@ Con aprecio, tu equipo San Pedro",
                     'created_at' => now(),
                     'updated_at' => now()
                 ],
-            );
+            ]);
         }
     }
 
