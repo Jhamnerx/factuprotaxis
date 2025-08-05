@@ -1,7 +1,6 @@
 @extends('system.layouts.auth')
 
 @section('content')
-
     <section class="body-sign">
         <div class="center-sign">
             <div class="logo-login">
@@ -14,7 +13,8 @@
                 @if ($logo)
                     <img class="uk-logo-inverse" width="100" height="auto" src="{{ $logo }}" alt="Logo" />
                 @elseif (file_exists(public_path('theme/logo.svg')))
-                    <img class="uk-logo-inverse" width="100" height="auto" src="{{ asset('theme/logo.svg') }}" alt="Logo" />
+                    <img class="uk-logo-inverse" width="100" height="auto" src="{{ asset('theme/logo.svg') }}"
+                        alt="Logo" />
                 @else
                     <i class="fa fa-circle fa-3x"></i>
                 @endif
@@ -64,7 +64,8 @@
                         <div class="row">
                             <div class="col-sm-8">
                                 <div class="checkbox-custom checkbox-default">
-                                    <input name="remember" id="RememberMe" type="checkbox" {{ old('remember') ? 'checked' : '' }}>
+                                    <input name="remember" id="RememberMe" type="checkbox"
+                                        {{ old('remember') ? 'checked' : '' }}>
                                     <label for="RememberMe">Recordarme</label>
                                 </div>
                             </div>
@@ -75,9 +76,9 @@
                     </form>
                 </div>
             </div>
-            <p class="text-center text-muted mt-3 mb-3">{{ config('app.name') }} &copy; Copyright {{ date('Y') }}. Todos los
+            <p class="text-center text-muted mt-3 mb-3">{{ config('app.name') }} &copy; Copyright {{ date('Y') }}. Todos
+                los
                 derechos reservados</p>
         </div>
     </section>
-
 @endsection

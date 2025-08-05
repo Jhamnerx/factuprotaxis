@@ -42,6 +42,18 @@
                 <div class="text-center p-4">
                     <a href="{{ url('password/reset') }}" tabindex="5">¿Has olvidado tu contraseña?</a>
                 </div>
+
+                <!-- Indicación para propietarios y conductores -->
+                <div class="text-center p-3 border-top">
+                    <small class="text-muted d-block mb-2">
+                        <i class="fa fa-info-circle"></i>
+                        <strong>¿Eres propietario o conductor?</strong>
+                    </small>
+                    <a href="{{ route('taxis.login') }}" class="btn btn-outline-info btn-sm">
+                        <i class="fa fa-taxi"></i> Acceso para Propietarios y Conductores
+                    </a>
+                </div>
+
                 @include('tenant.auth.partials.socials')
             </form>
         </article>

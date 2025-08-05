@@ -82,10 +82,12 @@ class ContratosController extends Controller
         if ($request->column) {
             switch ($request->column) {
                 case 'vehiculo':
-                    $records->where('vehiculo->placa', 'like', "%{$request->value}%");
+                    // Usar JSON_EXTRACT para compatibilidad con MariaDB 10.5.6
+                    $records->whereRaw("JSON_EXTRACT(vehiculo, '$.placa') LIKE ?", ["%{$request->value}%"]);
                     break;
                 case 'propietario':
-                    $records->where('propietario->name', 'like', "%{$request->value}%");
+                    // Usar JSON_EXTRACT para compatibilidad con MariaDB 10.5.6
+                    $records->whereRaw("JSON_EXTRACT(propietario, '$.name') LIKE ?", ["%{$request->value}%"]);
                     break;
                 case 'estado':
                     $records->where('estado', 'like', "%{$request->value}%");

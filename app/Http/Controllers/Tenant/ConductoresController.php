@@ -12,6 +12,8 @@ use App\Http\Requests\Tenant\ConductorRequest;
 use App\Http\Resources\Tenant\ConductorResource;
 use App\Http\Resources\Tenant\ConductorCollection;
 use App\Jobs\Tenant\SendWelcomeMessageJob;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class ConductoresController extends Controller
 {
@@ -115,7 +117,21 @@ class ConductoresController extends Controller
                 ];
             }
 
+            // Verificar si el conductor que se va a eliminar es el usuario autenticado
+            $currentUser = Auth::guard('conductores')->user();
+            $shouldLogout = false;
+            if ($currentUser && $currentUser->id == $conductor->id) {
+                $shouldLogout = true;
+            }
+
             $conductor->delete();
+
+            // Si se eliminó el conductor autenticado, cerrar su sesión
+            if ($shouldLogout) {
+                Auth::guard('conductores')->logout();
+                Session::invalidate();
+                Session::regenerateToken();
+            }
 
             return [
                 'success' => true,

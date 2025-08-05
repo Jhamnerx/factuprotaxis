@@ -13,6 +13,8 @@ use App\Models\Tenant\Catalogs\Country;
 use App\Models\Tenant\Taxis\Propietarios;
 use App\Models\Tenant\Catalogs\AttributeType;
 use App\Http\Requests\Tenant\PropietarioRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use App\Http\Resources\Tenant\PropietarioResource;
 use App\Http\Resources\Tenant\PropietarioCollection;
 use App\Models\Tenant\Catalogs\IdentityDocumentType;
@@ -154,17 +156,37 @@ class PropietariosController extends Controller
     public function destroy($id)
     {
         try {
-
             $propietario = Propietarios::findOrFail($id);
+
+            // Verificar si el propietario que se va a eliminar tiene sesión activa
+            $sessionUser = session('taxis_user');
+            $shouldLogout = false;
+            if (
+                $sessionUser &&
+                isset($sessionUser['type']) &&
+                $sessionUser['type'] === 'propietario' &&
+                $sessionUser['id'] == $propietario->id
+            ) {
+                $shouldLogout = true;
+            }
+
             $propietario->delete();
+
+            // Si se eliminó el propietario autenticado, cerrar su sesión
+            if ($shouldLogout) {
+                session()->forget(['taxis_authenticated', 'taxis_user']);
+                session()->invalidate();
+                session()->regenerateToken();
+            }
 
             return [
                 'success' => true,
                 'message' => 'Propietario eliminado con éxito'
             ];
         } catch (Exception $e) {
-            dd($e);
-            return ($e->getCode() == '23000') ? ['success' => false, 'message' => 'El Propietario esta siendo usado por otros registros, no puede eliminar'] : ['success' => false, 'message' => 'Error inesperado, no se pudo eliminar el Propietario'];
+            return ($e->getCode() == '23000') ?
+                ['success' => false, 'message' => 'El Propietario esta siendo usado por otros registros, no puede eliminar'] :
+                ['success' => false, 'message' => 'Error inesperado, no se pudo eliminar el Propietario'];
         }
     }
 
