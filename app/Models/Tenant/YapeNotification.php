@@ -138,4 +138,23 @@ class YapeNotification extends Model
 
         return $query->orderBy('notification_date', 'desc')->get();
     }
+
+    /**
+     * Obtener datos para la colección (DataTable)
+     */
+    public function getCollectionData($withRelations = false)
+    {
+        return [
+            'id' => $this->id,
+            'sender' => $this->sender,
+            'amount' => $this->amount,
+            'notification_date' => $this->notification_date ? $this->notification_date->format('d/m/Y H:i') : null,
+            'message' => $this->message,
+            'codigo_seguridad' => $this->codigo_seguridad,
+            'is_used' => $this->is_used,
+            'used_at' => $this->used_at ? $this->used_at->format('d/m/Y H:i') : null,
+            'created_at' => $this->created_at ? $this->created_at->format('d/m/Y H:i') : null,
+            'updated_at' => $this->updated_at ? $this->updated_at->format('d/m/Y H:i') : null,
+        ];
+    }
 }

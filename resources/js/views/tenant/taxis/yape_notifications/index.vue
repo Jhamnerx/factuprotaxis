@@ -26,24 +26,11 @@
                 <el-form :model="filters" label-width="120px">
                     <el-row :gutter="20">
                         <el-col :span="6">
-                            <el-form-item label="Fecha Inicio">
+                            <el-form-item label="Fecha">
                                 <el-date-picker
-                                    v-model="filters.date_start"
+                                    v-model="filters.notification_date"
                                     type="date"
-                                    placeholder="Fecha inicio"
-                                    format="dd/MM/yyyy"
-                                    value-format="yyyy-MM-dd"
-                                    @change="applyFilters"
-                                >
-                                </el-date-picker>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="6">
-                            <el-form-item label="Fecha Fin">
-                                <el-date-picker
-                                    v-model="filters.date_end"
-                                    type="date"
-                                    placeholder="Fecha fin"
+                                    placeholder="Fecha de notificación"
                                     format="dd/MM/yyyy"
                                     value-format="yyyy-MM-dd"
                                     @change="applyFilters"
@@ -74,6 +61,45 @@
                             </el-form-item>
                         </el-col>
                         <el-col :span="6">
+                            <el-form-item label="Remitente">
+                                <el-input
+                                    v-model="filters.sender"
+                                    placeholder="Buscar por remitente"
+                                    @input="applyFilters"
+                                    clearable
+                                >
+                                </el-input>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="6">
+                            <el-form-item label="Monto">
+                                <el-input-number
+                                    v-model="filters.amount"
+                                    placeholder="Monto exacto"
+                                    :precision="2"
+                                    :step="0.01"
+                                    :min="0"
+                                    @change="applyFilters"
+                                    controls-position="right"
+                                    style="width: 100%"
+                                >
+                                </el-input-number>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-row :gutter="20">
+                        <el-col :span="6">
+                            <el-form-item label="Mensaje">
+                                <el-input
+                                    v-model="filters.message"
+                                    placeholder="Buscar en mensaje"
+                                    @input="applyFilters"
+                                    clearable
+                                >
+                                </el-input>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="6">
                             <el-form-item label="Acciones">
                                 <el-button @click="clearFilters" size="small"
                                     >Limpiar</el-button
@@ -86,6 +112,9 @@
                                 >
                             </el-form-item>
                         </el-col>
+                        <!-- Espacios vacíos para mantener la alineación -->
+                        <el-col :span="6"></el-col>
+                        <el-col :span="6"></el-col>
                     </el-row>
                 </el-form>
             </div>
@@ -150,43 +179,70 @@
                 <data-table
                     ref="dataTable"
                     :resource="resource"
-                    :columns="columns"
                     :filters="tableFilters"
+                    @click-edit="clickEdit"
+                    @click-delete="clickDelete"
                 >
-                    <template slot="sender" slot-scope="{ row }">
-                        <strong>{{ row.sender }}</strong>
-                    </template>
-                    <template slot="amount" slot-scope="{ row }">
-                        <span class="badge badge-info">{{
-                            row.formatted_amount
-                        }}</span>
-                    </template>
-                    <template slot="notification_date" slot-scope="{ row }">
-                        {{ row.notification_date_formatted }}
-                    </template>
-                    <template slot="is_used" slot-scope="{ row }">
-                        <span :class="'badge ' + row.status_class">{{
-                            row.status_text
-                        }}</span>
-                    </template>
-                    <template slot="used_at" slot-scope="{ row }">
-                        {{ row.used_at_formatted || "-" }}
-                    </template>
-                    <template slot="actions" slot-scope="{ row }">
-                        <el-button
-                            v-if="!row.is_used"
-                            size="mini"
-                            type="success"
-                            icon="el-icon-check"
-                            @click="markAsUsed(row)"
-                            title="Marcar como usado"
-                        >
-                            Marcar como usado
-                        </el-button>
-                        <span v-else class="text-muted">
-                            Ya utilizada
-                        </span>
-                    </template>
+                    <tr slot="heading">
+                        <th>ID</th>
+                        <th>Remitente</th>
+                        <th>Monto</th>
+                        <th>Fecha Notificación</th>
+                        <th>Mensaje</th>
+                        <th>Código Seguridad</th>
+                        <th>Estado</th>
+                        <th>Fecha Uso</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                    <tr slot-scope="{ row }">
+                        <td>{{ row.id }}</td>
+                        <td>
+                            <strong>{{ row.sender }}</strong>
+                        </td>
+                        <td>
+                            <span class="badge badge-info">
+                                S/ {{ formatNumber(row.amount || 0) }}
+                            </span>
+                        </td>
+                        <td>{{ formatDate(row.notification_date) }}</td>
+                        <td>
+                            <div
+                                style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                                :title="row.message"
+                            >
+                                {{ row.message }}
+                            </div>
+                        </td>
+                        <td>
+                            <code v-if="row.codigo_seguridad">{{
+                                row.codigo_seguridad
+                            }}</code>
+                            <span v-else class="text-muted">-</span>
+                        </td>
+                        <td>
+                            <span :class="getStatusClass(row.is_used)">
+                                {{ getStatusText(row.is_used) }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ row.used_at ? formatDate(row.used_at) : "-" }}
+                        </td>
+                        <td class="text-right">
+                            <el-button
+                                v-if="!row.is_used"
+                                size="mini"
+                                type="success"
+                                icon="el-icon-check"
+                                @click="markAsUsed(row)"
+                                title="Marcar como usado"
+                            >
+                                Marcar como usado
+                            </el-button>
+                            <span v-else class="text-muted">
+                                Ya utilizada
+                            </span>
+                        </td>
+                    </tr>
                 </data-table>
             </div>
         </div>
@@ -207,23 +263,13 @@ export default {
             resource: "yape-notifications",
             statistics: null,
             filters: {
-                date_start: "",
-                date_end: "",
+                notification_date: "",
                 status: "",
-                min_amount: "",
-                max_amount: ""
+                sender: "",
+                amount: "",
+                message: ""
             },
-            tableFilters: {},
-            columns: {
-                sender: "Remitente",
-                amount: "Monto",
-                notification_date: "Fecha Notificación",
-                message: "Mensaje",
-                codigo_seguridad: "Código Seguridad",
-                is_used: "Estado",
-                used_at: "Fecha Uso",
-                actions: "Acciones"
-            }
+            tableFilters: {}
         };
     },
     created() {
@@ -232,18 +278,18 @@ export default {
     methods: {
         applyFilters() {
             this.tableFilters = { ...this.filters };
-            this.$refs.dataTable.fetchData();
+            this.$eventHub.$emit("reloadData");
         },
         clearFilters() {
             this.filters = {
-                date_start: "",
-                date_end: "",
+                notification_date: "",
                 status: "",
-                min_amount: "",
-                max_amount: ""
+                sender: "",
+                amount: "",
+                message: ""
             };
             this.tableFilters = {};
-            this.$refs.dataTable.fetchData();
+            this.$eventHub.$emit("reloadData");
         },
         getStatistics() {
             this.$http
@@ -298,7 +344,7 @@ export default {
                         .then(response => {
                             if (response.data.success) {
                                 this.$message.success(response.data.message);
-                                this.$refs.dataTable.fetchData();
+                                this.$eventHub.$emit("reloadData");
                                 this.getStatistics();
                             } else {
                                 this.$message.error(response.data.message);
@@ -321,6 +367,46 @@ export default {
                 maximumFractionDigits: decimals,
                 minimumFractionDigits: decimals
             });
+        },
+        formatDate(dateString) {
+            if (!dateString) return "";
+
+            // Si la fecha viene en formato dd/MM/yyyy HH:mm (como "04/09/2025 15:30")
+            if (
+                dateString.includes("/") &&
+                (dateString.length === 10 || dateString.length === 16)
+            ) {
+                return dateString; // Ya está formateada
+            }
+
+            // Fallback para otros formatos
+            const date = new Date(dateString);
+            if (!isNaN(date.getTime())) {
+                return date.toLocaleString("es-ES", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+            }
+
+            // Si no se puede parsear, devolver la fecha original
+            return dateString;
+        },
+        getStatusClass(isUsed) {
+            return isUsed ? "badge badge-danger" : "badge badge-success";
+        },
+        getStatusText(isUsed) {
+            return isUsed ? "Usado" : "Disponible";
+        },
+        clickEdit(recordId) {
+            // Para este módulo no necesitamos editar, pero mantenemos la función
+            console.log("Edit clicked:", recordId);
+        },
+        clickDelete(id) {
+            // Para este módulo no necesitamos eliminar, pero mantenemos la función
+            console.log("Delete clicked:", id);
         }
     }
 };

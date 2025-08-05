@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Tenant;
 
+use App\Models\Tenant\YapeNotification;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class YapeNotificationCollection extends ResourceCollection
@@ -14,8 +15,8 @@ class YapeNotificationCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-        return [
-            'data' => YapeNotificationResource::collection($this->collection),
-        ];
+        return $this->collection->transform(function (YapeNotification $row, $key) {
+            return $row->getCollectionData();
+        });
     }
 }
