@@ -21,7 +21,7 @@
         </div>
 
         <!-- Estadísticas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
             <!-- Total Vehículos -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div class="flex items-center">
@@ -127,27 +127,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Pagos Pendientes -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center">
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Pagos
-                            Pendientes</p>
-                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $stats['pagos_pendientes'] }}
-                        </p>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-                            <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Vehículos Recientes -->
@@ -195,8 +174,8 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span class="text-sm text-gray-900 dark:text-white">
-                                                    {{ $vehiculo->marca->name ?? 'N/A' }} /
-                                                    {{ $vehiculo->modelo->name ?? 'N/A' }}
+                                                    {{ $vehiculo->marca->nombre ?? 'N/A' }} /
+                                                    {{ $vehiculo->modelo->nombre ?? 'N/A' }}
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
@@ -205,7 +184,7 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span
-                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $vehiculo->estado == 'activo' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }}">
+                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $vehiculo->estado == 'ACTIVO' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }}">
                                                     {{ ucfirst($vehiculo->estado) }}
                                                 </span>
                                             </td>

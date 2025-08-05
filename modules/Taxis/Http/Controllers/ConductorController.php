@@ -24,7 +24,7 @@ class ConductorController extends Controller
     {
         $conductor = session('taxis_user');
 
-        // Obtener el vehículo asignado al conductor
+        // Obtener el vehículo asignado al conductor con relaciones
         $vehiculo = Vehiculos::where('conductor_id', $conductor['id'])
             ->where('estado', 'ACTIVO')
             ->with(['propietario', 'marca', 'modelo'])
@@ -34,20 +34,20 @@ class ConductorController extends Controller
         $stats = [
             'vehiculo_asignado' => $vehiculo ? true : false,
             'permisos_vigentes' => 0,
-            'pagos_pendientes' => 0,
             'servicios_programados' => 0
         ];
 
         if ($vehiculo) {
-            // Contar permisos vigentes
+            // Contar permisos vigentes (pendiente, aceptado - excluyendo anulado)
             $stats['permisos_vigentes'] = PermisoUnidad::where('vehiculo_id', $vehiculo->id)
-                ->where('estado', 'vigente')
+                ->whereIn('estado', ['pendiente', 'aceptado'])
                 ->where('fecha_fin', '>=', now())
                 ->count();
 
-            // Contar pagos pendientes
-            $stats['pagos_pendientes'] = SubscriptionInvoice::where('vehiculo_id', $vehiculo->id)
-                ->where('estado', 'pendiente')
+            // Contar servicios programados (próximos a vencer y no vencidos)
+            $stats['servicios_programados'] = \App\Models\Tenant\VehicleService::where('device_id', $vehiculo->id)
+                ->where('expires_date', '>=', now())
+                ->where('expired', false)
                 ->count();
         }
 
