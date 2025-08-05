@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Tenant;
 
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\YapeNotification;
 use App\Http\Resources\Tenant\YapeNotificationResource;
@@ -41,9 +40,6 @@ class YapeNotificationController extends Controller
     {
         $records = YapeNotification::query();
 
-        // Debug: Log de filtros recibidos
-        Log::info('Filtros YapeNotification:', $request->all());
-
         if ($request->column) {
             switch ($request->column) {
                 case 'sender':
@@ -53,7 +49,7 @@ class YapeNotificationController extends Controller
                     $records->where('amount', $request->value);
                     break;
                 case 'notification_date':
-                    $records->whereDate('notification_date', 'like', "%{$request->value}%");
+                    $records->whereDate('notification_date', $request->value);
                     break;
                 case 'message':
                     $records->where('message', 'like', "%{$request->value}%");
@@ -66,33 +62,11 @@ class YapeNotificationController extends Controller
                     $records->where('is_used', $value);
                     break;
                 default:
-                    $records->where($request->column, 'like', "%{$request->value}%");
+                    if ($request->has('column')) {
+                        $records->where($request->column, 'like', "%{$request->value}%");
+                    }
                     break;
             }
-        }
-
-        // Filtros adicionales
-        if ($request->has('notification_date') && $request->notification_date) {
-            $records->whereDate('notification_date', $request->notification_date);
-        }
-
-        if ($request->has('status') && $request->status !== '') {
-            $records->where('is_used', $request->status);
-        }
-
-        if ($request->has('sender') && $request->sender !== '') {
-            $records->where('sender', 'like', '%' . $request->sender . '%');
-        }
-
-        if ($request->has('message') && $request->message !== '') {
-            $records->where('message', 'like', '%' . $request->message . '%');
-        }
-
-        if ($request->has('amount') && $request->amount !== '' && $request->amount !== null) {
-            // Buscar monto exacto con tolerancia para decimales
-            $amount = floatval($request->amount);
-            Log::info('Filtro monto aplicado:', ['amount_input' => $request->amount, 'amount_float' => $amount]);
-            $records->where('amount', $amount);
         }
 
         return $records->orderBy('notification_date', 'desc');
