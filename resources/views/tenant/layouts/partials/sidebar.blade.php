@@ -353,7 +353,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                         @endif
                         @if (in_array('taxis', $vc_modules))
                             <li
-                                class="nav-parent {{ in_array($firstLevel, ['mensajes', 'web-taxis', 'propietarios', 'conductores', 'unidades', 'marcas', 'modelos', 'planes', 'condiciones', 'pagos', 'permisos', 'hoja_ruta', 'manifiesto', 'constancias', 'informes', 'solicitudes', 'contratos', 'declaraciones', 'constancia_trabajo', 'vehicle-services']) ? 'nav-active nav-expanded' : '' }}">
+                                class="nav-parent {{ in_array($firstLevel, ['mensajes', 'web-taxis', 'yape-notifications', 'propietarios', 'conductores', 'unidades', 'marcas', 'modelos', 'planes', 'condiciones', 'pagos', 'permisos', 'hoja_ruta', 'manifiesto', 'constancias', 'informes', 'solicitudes', 'contratos', 'declaraciones', 'constancia_trabajo', 'vehicle-services']) ? 'nav-active nav-expanded' : '' }}">
                                 <a class="nav-link" href="#">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -512,7 +512,7 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
 
                                     @if (in_array('pagos', $vc_module_levels))
                                         <li
-                                            class="nav-parent {{ $firstLevel === 'pagos' ? 'nav-active nav-expanded' : '' }}">
+                                            class="nav-parent {{ $firstLevel === 'pagos' ? 'nav-active nav-expanded' : '' }} {{ $firstLevel === 'yape-notifications' ? 'nav-active nav-expanded' : '' }}">
                                             <a class="nav-link" href="#">
                                                 <span>Pagos</span>
                                             </a>
@@ -522,11 +522,11 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                                                     <a class="nav-link"
                                                         href="{{ route('tenant.taxi.pagos.calendario') }}">Calendario</a>
                                                 </li>
-                                                <li
+                                                {{-- <li
                                                     class="{{ $firstLevel === 'pagos' && $secondLevel === 'listado' ? 'nav-active' : '' }}">
                                                     <a class="nav-link"
                                                         href="{{ route('tenant.taxi.pagos.index') }}">Listado</a>
-                                                </li>
+                                                </li> --}}
                                                 <li
                                                     class="{{ $firstLevel === 'yape-notifications' ? 'nav-active' : '' }}">
                                                     <a class="nav-link"
