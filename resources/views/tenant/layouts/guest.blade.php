@@ -53,7 +53,7 @@
 
         <!-- slider section -->
         @if (request()->routeIs('tenant.web.home'))
-            @include('components.web.slide')
+            @include('components.web.slide', ['web_page' => $web_page ?? null])
         @endif
         <!-- end slider section -->
     </div>

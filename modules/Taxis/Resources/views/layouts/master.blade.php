@@ -159,7 +159,7 @@
     <script src="{{ asset('tenant-taxis/js/dashboard-charts.js') }}"></script>
     <script src="{{ asset('tenant-taxis/js/vendors/flatpickr.js') }}"></script>
     <script src="{{ asset('tenant-taxis/js/flatpickr-init.js') }}"></script>
-
+    @stack('scripts')
     {{-- Laravel Mix - JS File --}}
     {{-- <script src="{{ mix('js/taxis.js') }}"></script> --}}
 </body>

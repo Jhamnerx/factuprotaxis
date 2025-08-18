@@ -367,6 +367,7 @@
                                 Debe asignarle un plan de suscripción antes de
                                 poder gestionar sus pagos.
                             </p>
+                            <!--
                             <button
                                 class="btn btn-primary d-flex align-items-center mx-auto py-2 px-4"
                                 style="font-size: 0.9rem; font-weight: 600;"
@@ -388,6 +389,7 @@
                                 </svg>
                                 Asignar Plan de Suscripción
                             </button>
+                        -->
                         </div>
                     </div>
 
@@ -654,14 +656,19 @@
                                                         getMonthlyPayment(
                                                             year,
                                                             m
-                                                        ) > 0
+                                                        ) > 0,
+                                                    'disabled-cell': !isMonthAllowedForPayment(year, m)
                                                 }"
                                                 :style="{
-                                                    'background-color': getCellColor(
-                                                        year,
-                                                        m
-                                                    ),
-                                                    cursor: 'pointer'
+                                                    'background-color': !isMonthAllowedForPayment(year, m) 
+                                                        ? '#f8f9fa' 
+                                                        : getCellColor(year, m),
+                                                    cursor: !isMonthAllowedForPayment(year, m) 
+                                                        ? 'not-allowed' 
+                                                        : 'pointer',
+                                                    opacity: !isMonthAllowedForPayment(year, m) 
+                                                        ? '0.5' 
+                                                        : '1'
                                                 }"
                                                 :data-year="year"
                                                 :data-month="m"
@@ -818,15 +825,18 @@
                                 </button>
                             </div>
                         </div>
-                        <div v-else class="text-center py-12">
-                            <p class="text-lg text-gray-600 dark:text-gray-300">
-                                Selecciona un dispositivo para ver el calendario
-                                de pagos.
-                            </p>
-                        </div>
+                    </div>
+
+                    <!-- Mensaje cuando no hay vehículo seleccionado -->
+                    <div v-if="!selectedVehicleId" class="text-center py-12">
+                        <p class="text-lg text-gray-600 dark:text-gray-300">
+                            Selecciona un dispositivo para ver el calendario
+                            de pagos.
+                        </p>
                     </div>
                 </div>
             </div>
+        </div>
 
             <!-- Modal de registro de pago -->
             <register-payment-modal
@@ -1219,6 +1229,31 @@
     position: relative;
     border: 2px solid #3b82f6 !important;
     box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+}
+
+/* Estilos para celdas deshabilitadas (anteriores a fecha de ingreso) */
+.disabled-cell {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.5 !important;
+    position: relative;
+}
+
+.disabled-cell::before {
+    content: '🚫';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.disabled-cell:hover {
+    background-color: #e9ecef !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 /* Estilos para el contenido de las celdas */
@@ -2494,6 +2529,21 @@ export default {
             const yearNum = parseInt(year);
             const monthNum = parseInt(month);
 
+            // Verificar si el mes está antes de la fecha de ingreso del vehículo
+            if (!this.isMonthAllowedForPayment(yearNum, monthNum)) {
+                const vehicleEntry = this.selectedVehicle && this.selectedVehicle.fecha_ingreso;
+                const entryDate = vehicleEntry ? new Date(vehicleEntry) : null;
+                const entryDateStr = entryDate ? 
+                    `${String(entryDate.getMonth() + 1).padStart(2, '0')}/${entryDate.getFullYear()}` : 
+                    'fecha de ingreso';
+
+                this.notifyError(
+                    "Período no válido",
+                    `No se puede pagar un mes anterior a la fecha de ingreso del vehículo (${entryDateStr}).`
+                );
+                return;
+            }
+
             // Verificar si este mes ya tiene un pago registrado
             const paymentInfo = this.getPaymentInfo(yearNum, monthNum);
 
@@ -2543,8 +2593,45 @@ export default {
                 this.paymentDetails[yearNum][monthNum].payedTotal === true
             );
         },
+        // Función para verificar si un mes está permitido para pago (no anterior a la fecha de ingreso)
+        isMonthAllowedForPayment(year, month) {
+            // Si no hay vehículo seleccionado, no permitir
+            if (!this.selectedVehicle) {
+                return false;
+            }
+
+            // Si no hay fecha de ingreso, permitir cualquier mes
+            if (!this.selectedVehicle.fecha_ingreso) {
+                return true;
+            }
+
+            // Crear fecha del mes que se quiere pagar (primer día del mes)
+            const paymentDate = new Date(year, month - 1, 1);
+            
+            // Crear fecha de ingreso del vehículo (primer día del mes de ingreso)
+            const entryDate = new Date(this.selectedVehicle.fecha_ingreso);
+            const entryFirstDay = new Date(entryDate.getFullYear(), entryDate.getMonth(), 1);
+
+            // Permitir pago si la fecha del mes es mayor o igual a la fecha de ingreso
+            return paymentDate >= entryFirstDay;
+        },
         handleMultipleSelection(year, month) {
             const cellId = `${year}-${month}`;
+
+            // Verificar si el mes está antes de la fecha de ingreso del vehículo
+            if (!this.isMonthAllowedForPayment(year, month)) {
+                const vehicleEntry = this.selectedVehicle && this.selectedVehicle.fecha_ingreso;
+                const entryDate = vehicleEntry ? new Date(vehicleEntry) : null;
+                const entryDateStr = entryDate ? 
+                    `${String(entryDate.getMonth() + 1).padStart(2, '0')}/${entryDate.getFullYear()}` : 
+                    'fecha de ingreso';
+
+                this.notifyError(
+                    "Período no válido",
+                    `No se puede pagar un mes anterior a la fecha de ingreso del vehículo (${entryDateStr}).`
+                );
+                return;
+            }
 
             // Validar que el mes no tenga pago registrado
             if (this.getMonthlyPayment(year, month) > 0) {

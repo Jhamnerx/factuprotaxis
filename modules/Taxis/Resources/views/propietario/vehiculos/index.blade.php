@@ -2,6 +2,8 @@
 
 @section('title', 'Mis Vehículos - Propietario')
 
+
+
 @section('content')
     <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
 
@@ -269,13 +271,35 @@
                                 class="flex-1 btn-sm bg-violet-500 hover:bg-violet-600 text-white text-center">
                                 Ver Detalles
                             </a>
-                            <button
-                                class="btn-sm border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 dark:text-gray-300">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                                </svg>
-                            </button>
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" @click.away="open = false"
+                                    class="btn-sm border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 dark:text-gray-300">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                    </svg>
+                                </button>
+                                <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="transform opacity-0 scale-95"
+                                    x-transition:enter-end="transform opacity-100 scale-100"
+                                    x-transition:leave="transition ease-in duration-75"
+                                    x-transition:leave-start="transform opacity-100 scale-100"
+                                    x-transition:leave-end="transform opacity-0 scale-95"
+                                    class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
+                                    <div class="py-1">
+                                        <button @click="open = false" onclick="openConductorModal({{ $vehiculo->id }})"
+                                            class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-gray-700 dark:text-gray-200">
+                                            Cambiar conductor
+                                        </button>
+                                        @if ($vehiculo->conductor_id)
+                                            <button @click="open = false" onclick="quitarConductor({{ $vehiculo->id }})"
+                                                class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-red-600 dark:text-red-400">
+                                                Quitar conductor
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
@@ -337,4 +361,184 @@
         @endif
 
     </div>
+
+    <!-- Modal para cambiar conductor -->
+    <div id="modal-cambiar-conductor"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/30 hidden transition-opacity">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md relative">
+            <button
+                class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl font-bold w-8 h-8 flex items-center justify-center cursor-pointer transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                onclick="closeConductorModal()">&times;</button>
+            <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-gray-100">Cambiar Conductor</h3>
+            <form id="form-cambiar-conductor">
+                <input type="hidden" id="vehiculo_id_modal" name="vehiculo_id">
+                <div class="mb-4">
+                    <label for="dni_conductor" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">DNI
+                        del conductor</label>
+                    <input type="text" id="dni_conductor" name="dni_conductor" maxlength="15"
+                        placeholder="Ingrese el DNI del conductor"
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:bg-gray-700 dark:text-gray-100"
+                        required>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ingrese el DNI y presione Tab o haga clic
+                        fuera del campo para buscar</p>
+                </div>
+                <div id="conductor-info" class="mb-4 text-sm min-h-[24px]"></div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button"
+                        class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded transition-colors cursor-pointer"
+                        onclick="closeConductorModal()">Cancelar</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-violet-500 hover:bg-violet-600 text-white rounded transition-colors cursor-pointer">Guardar
+                        Cambio</button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
+
+@push('scripts')
+    <script>
+        // Definir funciones globales para los modales
+        window.openConductorModal = function(vehiculoId) {
+            document.getElementById('vehiculo_id_modal').value = vehiculoId;
+            document.getElementById('dni_conductor').value = '';
+            document.getElementById('conductor-info').innerHTML = '';
+            document.getElementById('modal-cambiar-conductor').classList.remove('hidden');
+        }
+
+        window.closeConductorModal = function() {
+            document.getElementById('modal-cambiar-conductor').classList.add('hidden');
+        }
+
+        // Función para quitar conductor
+        window.quitarConductor = function(vehiculoId) {
+            if (typeof Swal === 'undefined') {
+                alert('Por favor espere a que la página termine de cargar');
+                return;
+            }
+
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: 'Se quitará el conductor asignado a este vehículo',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, quitar conductor',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch('/taxis/propietario/quitar-conductor', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                vehiculo_id: vehiculoId
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('¡Removido!', data.message, 'success').then(() => window.location
+                                    .reload());
+                            } else {
+                                Swal.fire('Error', data.message, 'error');
+                            }
+                        })
+                        .catch(err => {
+                            Swal.fire('Error', 'Error al comunicarse con el servidor', 'error');
+                        });
+                }
+            });
+        }
+
+        // Buscar conductor al ingresar DNI
+        window.addEventListener('DOMContentLoaded', function() {
+            const dniInput = document.getElementById('dni_conductor');
+            if (dniInput) {
+                dniInput.addEventListener('blur', function() {
+                    const dni = this.value.trim();
+                    if (dni.length >= 6) {
+                        fetch(`/taxis/propietario/buscar-conductor/${dni}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    let info =
+                                        `<span class='text-green-600'>${data.conductor.name} (${data.conductor.number})</span>`;
+                                    if (data.conductor.has_vehicle && data.conductor.current_vehicle) {
+                                        info +=
+                                            `<br><span class='text-yellow-600 text-xs'>Ya tiene vehículo: ${data.conductor.current_vehicle}</span>`;
+                                    }
+                                    document.getElementById('conductor-info').innerHTML = info;
+                                } else {
+                                    document.getElementById('conductor-info').innerHTML =
+                                        `<span class='text-red-600'>${data.message}</span>`;
+                                }
+                            })
+                            .catch(() => {
+                                document.getElementById('conductor-info').innerHTML =
+                                    `<span class='text-red-600'>Error al buscar conductor</span>`;
+                            });
+                    }
+                });
+            }
+        });
+
+        // Guardar cambio de conductor
+        window.addEventListener('DOMContentLoaded', function() {
+            const formCambiar = document.getElementById('form-cambiar-conductor');
+            if (formCambiar) {
+                formCambiar.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const vehiculoId = document.getElementById('vehiculo_id_modal').value;
+                    const dni = document.getElementById('dni_conductor').value.trim();
+                    fetch(`/taxis/propietario/buscar-conductor/${dni}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                fetch(`/taxis/propietario/cambiar-conductor`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector(
+                                                'meta[name="csrf-token"]').getAttribute(
+                                                'content')
+                                        },
+                                        body: JSON.stringify({
+                                            vehiculo_id: vehiculoId,
+                                            conductor_id: data.conductor.id
+                                        })
+                                    })
+                                    .then(res => res.json())
+                                    .then(resp => {
+                                        if (resp.success) {
+                                            Swal.fire('¡Actualizado!', resp.message, 'success')
+                                                .then(() => {
+                                                    closeConductorModal();
+                                                    window.location.reload();
+                                                });
+                                        } else {
+                                            Swal.fire('Error', resp.message, 'error');
+                                        }
+                                    })
+                                    .catch(err => {
+                                        Swal.fire('Error', 'Error al comunicarse con el servidor',
+                                            'error');
+                                    });
+                            } else {
+                                Swal.fire('No encontrado', data.message ||
+                                    'El conductor no existe. Solicite al administrador registrar el conductor.',
+                                    'warning');
+                            }
+                        })
+                        .catch(err => {
+                            Swal.fire('Error', 'Error al buscar el conductor', 'error');
+                        });
+                });
+            }
+        });
+    </script>
+@endpush

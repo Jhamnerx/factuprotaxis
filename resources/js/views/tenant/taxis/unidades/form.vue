@@ -12,16 +12,45 @@
     >
         <form autocomplete="off" @submit.prevent="submit">
             <div class="form-body">
+                <!-- Primera fila: N° Interno, Partida Registral, Placa -->
                 <div class="row">
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <div class="form-group">
-                            <label class="control-label">N° Interno</label>
-                            <el-input
-                                v-model="form.numero_interno"
-                                :maxlength="8"
-                                placeholder="Ingrese el N° Interno"
-                                uppercase
-                            ></el-input>
+                            <label class="control-label">
+                                N° Interno
+                                <small
+                                    v-if="!recordId && form.numero_interno"
+                                    class="text-muted"
+                                    >(Autogenerado)</small
+                                >
+                            </label>
+                            <div class="input-group">
+                                <el-input
+                                    v-model="form.numero_interno"
+                                    :maxlength="8"
+                                    :readonly="
+                                        !recordId &&
+                                            form.numero_interno &&
+                                            !editingNumeroInterno
+                                    "
+                                    placeholder="N° Interno"
+                                    uppercase
+                                    size="small"
+                                ></el-input>
+                                <div
+                                    class="input-group-append"
+                                    v-if="!recordId"
+                                >
+                                    <el-button
+                                        type="primary"
+                                        size="mini"
+                                        @click="regenerarNumeroInterno"
+                                        title="Regenerar número interno"
+                                        icon="el-icon-refresh"
+                                        circle
+                                    ></el-button>
+                                </div>
+                            </div>
                             <small
                                 v-if="errors.numero_interno"
                                 class="text-danger"
@@ -29,21 +58,25 @@
                             >
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-4">
                         <div class="form-group">
-                            <label class="control-label">N° Flota</label>
+                            <label class="control-label"
+                                >Partida Registral</label
+                            >
                             <el-input
-                                v-model="form.flota"
-                                :maxlength="8"
-                                placeholder="Ingrese el N° Flota"
+                                v-model="form.partida_registral"
+                                placeholder="Partida registral"
                                 uppercase
+                                size="small"
                             ></el-input>
-                            <small v-if="errors.flota" class="text-danger">{{
-                                errors.flota[0]
-                            }}</small>
+                            <small
+                                v-if="errors.partida_registral"
+                                class="text-danger"
+                                >{{ errors.partida_registral[0] }}</small
+                            >
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <div class="form-group">
                             <label class="control-label">Placa</label>
                             <div v-if="api_service_token != false">
@@ -55,19 +88,22 @@
                             <div v-else>
                                 <el-input
                                     v-model="form.placa"
-                                    :maxlength="8"
+                                    :maxlength="7"
                                     placeholder="Ingrese la placa"
                                     uppercase
+                                    size="small"
                                 ></el-input>
                             </div>
-
                             <small v-if="errors.placa" class="text-danger">{{
                                 errors.placa[0]
                             }}</small>
                         </div>
                     </div>
+                </div>
 
-                    <div class="col-md-4">
+                <!-- Segunda fila: Propietario, Categoría -->
+                <div class="row">
+                    <div class="col-md-7">
                         <div class="form-group">
                             <label
                                 class="control-label font-weight-bold text-info"
@@ -104,17 +140,44 @@
                             >
                         </div>
                     </div>
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label class="control-label">Categoría</label>
+                            <el-input
+                                v-model="form.categoria"
+                                placeholder="Ingrese la categoría"
+                                uppercase
+                                size="small"
+                            ></el-input>
+                            <small
+                                v-if="errors.categoria"
+                                class="text-danger"
+                                >{{ errors.categoria[0] }}</small
+                            >
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Tercera fila: Marca, Modelo, Color -->
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label class="control-label">Marca</label>
+                            <label
+                                class="control-label font-weight-bold text-info"
+                            >
+                                Marca
+                                <a
+                                    href="#"
+                                    @click.prevent="mostrarFormularioMarca"
+                                    >[+ Nuevo]</a
+                                >
+                            </label>
                             <el-select
                                 v-model="form.marca_id"
                                 filterable
-                                placeholder="Seleccione una marca"
+                                placeholder="Seleccione marca"
                                 @change="loadModelos"
+                                size="small"
                                 style="width: 100%"
                             >
                                 <el-option
@@ -131,12 +194,22 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label class="control-label">Modelo</label>
+                            <label
+                                class="control-label font-weight-bold text-info"
+                            >
+                                Modelo
+                                <a
+                                    href="#"
+                                    @click.prevent="mostrarFormularioModelo"
+                                    >[+ Nuevo]</a
+                                >
+                            </label>
                             <el-select
                                 v-model="form.modelo_id"
                                 filterable
-                                placeholder="Seleccione un modelo"
+                                placeholder="Seleccione modelo"
                                 :disabled="!form.marca_id"
+                                size="small"
                                 style="width: 100%"
                             >
                                 <el-option
@@ -155,41 +228,29 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label class="control-label">Año</label>
-                            <el-date-picker
-                                v-model="form.year"
-                                type="year"
-                                format="yyyy"
-                                value-format="yyyy"
-                                placeholder="Seleccionar año"
-                                style="width: 100%"
-                            ></el-date-picker>
-                            <small v-if="errors.year" class="text-danger">{{
-                                errors.year[0]
-                            }}</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
                             <label class="control-label">Color</label>
                             <el-input
                                 v-model="form.color"
                                 placeholder="Ingrese el color"
+                                size="small"
                             ></el-input>
                             <small v-if="errors.color" class="text-danger">{{
                                 errors.color[0]
                             }}</small>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                </div>
+
+                <!-- Cuarta fila: Motor N°, Ejes, N° Flota -->
+                <div class="row">
+                    <div class="col-md-5">
                         <div class="form-group">
-                            <label class="control-label">Número de Motor</label>
+                            <label class="control-label">Motor N°</label>
                             <el-input
                                 v-model="form.numero_motor"
-                                placeholder="Ingrese el número de motor"
+                                placeholder="Número de motor"
+                                uppercase
+                                size="small"
                             ></el-input>
                             <small
                                 v-if="errors.numero_motor"
@@ -198,35 +259,191 @@
                             >
                         </div>
                     </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label">Ejes</label>
+                            <el-input-number
+                                v-model="form.ejes"
+                                :min="0"
+                                :max="10"
+                                size="small"
+                                style="width: 100%"
+                            ></el-input-number>
+                            <small v-if="errors.ejes" class="text-danger">{{
+                                errors.ejes[0]
+                            }}</small>
+                        </div>
+                    </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label class="control-label"
-                                >Fecha de Ingreso</label
-                            >
+                            <label class="control-label">N° Flota</label>
+                            <el-input
+                                v-model="form.flota"
+                                placeholder="N° Flota"
+                                uppercase
+                                size="small"
+                            ></el-input>
+                            <small v-if="errors.flota" class="text-danger">{{
+                                errors.flota[0]
+                            }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quinta fila: Año, Asientos -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">Año</label>
                             <el-date-picker
-                                v-model="form.fecha_ingreso"
-                                type="date"
-                                format="dd/MM/yyyy"
-                                value-format="yyyy-MM-dd"
-                                placeholder="Seleccionar fecha"
+                                v-model="form.year"
+                                type="year"
+                                format="yyyy"
+                                value-format="yyyy"
+                                placeholder="Año"
+                                size="small"
                                 style="width: 100%"
                             ></el-date-picker>
+                            <small v-if="errors.year" class="text-danger">{{
+                                errors.year[0]
+                            }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">Asientos</label>
+                            <el-input-number
+                                v-model="form.asientos"
+                                :min="0"
+                                :max="100"
+                                size="small"
+                                style="width: 100%"
+                            ></el-input-number>
+                            <small v-if="errors.asientos" class="text-danger">{{
+                                errors.asientos[0]
+                            }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">CCN</label>
+                            <el-input
+                                v-model="form.ccn"
+                                placeholder="CCN"
+                                uppercase
+                                size="small"
+                            ></el-input>
+                            <small v-if="errors.ccn" class="text-danger">{{
+                                errors.ccn[0]
+                            }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sexta fila: Largo, Ancho, Alto -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">Largo (m)</label>
+                            <el-input-number
+                                v-model="form.largo"
+                                :precision="2"
+                                :step="0.01"
+                                :min="0"
+                                :max="50"
+                                size="small"
+                                style="width: 100%"
+                            ></el-input-number>
+                            <small v-if="errors.largo" class="text-danger">{{
+                                errors.largo[0]
+                            }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">Ancho (m)</label>
+                            <el-input-number
+                                v-model="form.ancho"
+                                :precision="2"
+                                :step="0.01"
+                                :min="0"
+                                :max="10"
+                                size="small"
+                                style="width: 100%"
+                            ></el-input-number>
+                            <small v-if="errors.ancho" class="text-danger">{{
+                                errors.ancho[0]
+                            }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="control-label">Alto (m)</label>
+                            <el-input-number
+                                v-model="form.alto"
+                                :precision="2"
+                                :step="0.01"
+                                :min="0"
+                                :max="10"
+                                size="small"
+                                style="width: 100%"
+                            ></el-input-number>
+                            <small v-if="errors.alto" class="text-danger">{{
+                                errors.alto[0]
+                            }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Séptima fila: Peso Neto, Carga Útil -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label">Peso Neto (kg)</label>
+                            <el-input-number
+                                v-model="form.peso"
+                                :precision="2"
+                                :step="0.01"
+                                :min="0"
+                                :max="50000"
+                                size="small"
+                                style="width: 100%"
+                            ></el-input-number>
+                            <small v-if="errors.peso" class="text-danger">{{
+                                errors.peso[0]
+                            }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label">Carga Útil (kg)</label>
+                            <el-input-number
+                                v-model="form.carga_util"
+                                :precision="2"
+                                :step="0.01"
+                                :min="0"
+                                :max="50000"
+                                size="small"
+                                style="width: 100%"
+                            ></el-input-number>
                             <small
-                                v-if="errors.fecha_ingreso"
+                                v-if="errors.carga_util"
                                 class="text-danger"
-                                >{{ errors.fecha_ingreso[0] }}</small
+                                >{{ errors.carga_util[0] }}</small
                             >
                         </div>
                     </div>
                 </div>
 
+                <!-- Octava fila: Estado, Estado TUC, Fecha Ingreso -->
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label class="control-label">Estado</label>
                             <el-select
                                 v-model="form.estado"
                                 placeholder="Seleccione un estado"
+                                size="small"
                                 style="width: 100%"
                             >
                                 <el-option
@@ -241,12 +458,13 @@
                             }}</small>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label class="control-label">Estado TUC</label>
                             <el-select
                                 v-model="form.estado_tuc_id"
                                 placeholder="Seleccione un estado TUC"
+                                size="small"
                                 style="width: 100%"
                             >
                                 <el-option
@@ -263,141 +481,24 @@
                             >
                         </div>
                     </div>
-                </div>
-
-                <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label class="control-label">Largo (m)</label>
-                            <el-input-number
-                                v-model="form.largo"
-                                :precision="2"
-                                :step="0.01"
-                                :min="0"
-                                style="width: 100%"
-                            ></el-input-number>
-                            <small v-if="errors.largo" class="text-danger">{{
-                                errors.largo[0]
-                            }}</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="control-label">Ancho (m)</label>
-                            <el-input-number
-                                v-model="form.ancho"
-                                :precision="2"
-                                :step="0.01"
-                                :min="0"
-                                style="width: 100%"
-                            ></el-input-number>
-                            <small v-if="errors.ancho" class="text-danger">{{
-                                errors.ancho[0]
-                            }}</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="control-label">Alto (m)</label>
-                            <el-input-number
-                                v-model="form.alto"
-                                :precision="2"
-                                :step="0.01"
-                                :min="0"
-                                style="width: 100%"
-                            ></el-input-number>
-                            <small v-if="errors.alto" class="text-danger">{{
-                                errors.alto[0]
-                            }}</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="control-label">Peso (kg)</label>
-                            <el-input-number
-                                v-model="form.peso"
-                                :precision="2"
-                                :step="0.01"
-                                :min="0"
-                                style="width: 100%"
-                            ></el-input-number>
-                            <small v-if="errors.peso" class="text-danger">{{
-                                errors.peso[0]
-                            }}</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="control-label">Carga Útil (kg)</label>
-                            <el-input-number
-                                v-model="form.carga_util"
-                                :precision="2"
-                                :step="0.01"
-                                :min="0"
-                                style="width: 100%"
-                            ></el-input-number>
-                            <small
-                                v-if="errors.carga_util"
-                                class="text-danger"
-                                >{{ errors.carga_util[0] }}</small
+                            <label class="control-label"
+                                >Fecha de Ingreso</label
                             >
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="control-label">CCN</label>
-                            <el-input
-                                v-model="form.ccn"
-                                placeholder="Ingrese el CCN"
-                            ></el-input>
-                            <small v-if="errors.ccn" class="text-danger">{{
-                                errors.ccn[0]
-                            }}</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="control-label">Ejes</label>
-                            <el-input-number
-                                v-model="form.ejes"
-                                :min="0"
+                            <el-date-picker
+                                v-model="form.fecha_ingreso"
+                                type="date"
+                                format="dd/MM/yyyy"
+                                value-format="yyyy-MM-dd"
+                                placeholder="Seleccionar fecha"
+                                size="small"
                                 style="width: 100%"
-                            ></el-input-number>
-                            <small v-if="errors.ejes" class="text-danger">{{
-                                errors.ejes[0]
-                            }}</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="control-label">Asientos</label>
-                            <el-input-number
-                                v-model="form.asientos"
-                                :min="0"
-                                style="width: 100%"
-                            ></el-input-number>
-                            <small v-if="errors.asientos" class="text-danger">{{
-                                errors.asientos[0]
-                            }}</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="control-label">Categoría</label>
-                            <el-input
-                                v-model="form.categoria"
-                                placeholder="Ingrese la categoría"
-                            ></el-input>
+                            ></el-date-picker>
                             <small
-                                v-if="errors.categoria"
+                                v-if="errors.fecha_ingreso"
                                 class="text-danger"
-                                >{{ errors.categoria[0] }}</small
+                                >{{ errors.fecha_ingreso[0] }}</small
                             >
                         </div>
                     </div>
@@ -422,17 +523,38 @@
             :recordId="null"
             @close="closeDialogNewPropietario"
         />
+
+        <!-- Modal para crear nueva marca -->
+        <MarcasForm
+            v-if="showDialogNewMarca"
+            :showDialog.sync="showDialogNewMarca"
+            :recordId="null"
+            @close="closeDialogNewMarca"
+        />
+
+        <!-- Modal para crear nuevo modelo -->
+        <ModelosForm
+            v-if="showDialogNewModelo"
+            :showDialog.sync="showDialogNewModelo"
+            :recordId="null"
+            :marca_id="form.marca_id"
+            @close="closeDialogNewModelo"
+        />
     </el-dialog>
 </template>
 
 <script>
 import PropietariosForm from "../propietarios/form.vue";
+import MarcasForm from "../marcas/form.vue";
+import ModelosForm from "../modelos/form.vue";
 
 import XInputPlate from "../../../../components/InputPlate.vue";
 
 export default {
     components: {
         PropietariosForm,
+        MarcasForm,
+        ModelosForm,
         XInputPlate
     },
     props: ["showDialog", "recordId", "api_service_token"],
@@ -445,6 +567,7 @@ export default {
             form: {
                 id: null,
                 numero_interno: null,
+                partida_registral: null,
                 flota: null,
                 placa: null,
                 propietario_id: null,
@@ -483,6 +606,9 @@ export default {
                 "LIBRE"
             ],
             showDialogNewPropietario: false,
+            showDialogNewMarca: false,
+            showDialogNewModelo: false,
+            editingNumeroInterno: false,
             estados: [
                 "ACTIVO",
                 "DE BAJA",
@@ -511,11 +637,51 @@ export default {
                 this.$message.error("Error al cargar datos de referencia");
             }
         },
+
+        /**
+         * Obtiene el siguiente número interno disponible
+         */
+        async getNextNumeroInterno() {
+            try {
+                const response = await this.$http.get(
+                    `/${this.resource}/next-numero-interno`
+                );
+                return response.data.next_numero_interno || "";
+            } catch (error) {
+                console.error(
+                    "Error al obtener siguiente número interno:",
+                    error
+                );
+                // Si hay error, generar uno básico basado en timestamp
+                return (
+                    new Date()
+                        .getFullYear()
+                        .toString()
+                        .slice(-2) + String(Date.now()).slice(-4)
+                );
+            }
+        },
+
+        /**
+         * Regenera el número interno
+         */
+        async regenerarNumeroInterno() {
+            try {
+                this.form.numero_interno = await this.getNextNumeroInterno();
+                this.$message.success("Número interno regenerado");
+            } catch (error) {
+                console.error("Error al regenerar número interno:", error);
+                this.$message.error("Error al regenerar número interno");
+            }
+        },
+
         async create() {
             this.titleDialog = this.recordId
                 ? "Editar Vehículo"
                 : "Nuevo Vehículo";
             this.errors = {};
+
+            // Inicializar formulario
             this.form = {
                 id: null,
                 numero_interno: "",
@@ -541,6 +707,18 @@ export default {
                 categoria: null,
                 user_id: null
             };
+
+            // Si es un nuevo vehículo, autogenerar número interno
+            if (!this.recordId) {
+                try {
+                    this.form.numero_interno = await this.getNextNumeroInterno();
+                } catch (error) {
+                    console.error("Error al generar número interno:", error);
+                    this.$message.warning(
+                        "No se pudo autogenerar el número interno"
+                    );
+                }
+            }
 
             // Cargar los datos si estamos editando
             if (this.recordId) {
@@ -607,6 +785,7 @@ export default {
                         id: this.recordId,
                         // Asignar propiedades con valores predeterminados si no existen
                         numero_interno: data.numero_interno || "",
+                        partida_registral: data.partida_registral || "",
                         flota: data.flota || "",
                         placa: data.placa || "",
                         chasis: data.chasis || "",
@@ -876,6 +1055,58 @@ export default {
                     console.error("Error al recargar tablas:", error);
                     this.$message.error("Error al actualizar los datos");
                 });
+        },
+
+        /**
+         * Muestra el formulario de marcas
+         */
+        mostrarFormularioMarca() {
+            this.showDialogNewMarca = true;
+        },
+
+        /**
+         * Maneja el cierre del formulario de marcas y actualiza la lista
+         */
+        closeDialogNewMarca() {
+            this.showDialogNewMarca = false;
+
+            // Recargar las marcas
+            this.loadMarcas()
+                .then(() => {
+                    this.$message.success("Lista de marcas actualizada");
+                })
+                .catch(error => {
+                    console.error("Error al recargar marcas:", error);
+                    this.$message.error("Error al actualizar las marcas");
+                });
+        },
+
+        /**
+         * Muestra el formulario de modelos
+         */
+        mostrarFormularioModelo() {
+            if (!this.form.marca_id) {
+                this.$message.warning("Primero debe seleccionar una marca");
+                return;
+            }
+            this.showDialogNewModelo = true;
+        },
+
+        /**
+         * Maneja el cierre del formulario de modelos y actualiza la lista
+         */
+        closeDialogNewModelo() {
+            this.showDialogNewModelo = false;
+
+            // Recargar los modelos
+            this.loadModelos()
+                .then(() => {
+                    this.$message.success("Lista de modelos actualizada");
+                })
+                .catch(error => {
+                    console.error("Error al recargar modelos:", error);
+                    this.$message.error("Error al actualizar los modelos");
+                });
         }
     }
 };
@@ -914,5 +1145,25 @@ export default {
     font-size: 12px;
     margin-top: 4px;
     display: block;
+}
+
+.input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.input-group-append {
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.input-group-append .el-button {
+    height: 28px;
+    width: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>

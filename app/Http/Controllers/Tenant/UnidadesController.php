@@ -566,4 +566,42 @@ class UnidadesController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Obtiene el siguiente número interno disponible
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getNextNumeroInterno()
+    {
+        try {
+            // Obtener el último número interno usado
+            $lastVehiculo = Vehiculos::whereNotNull('numero_interno')
+                ->where('numero_interno', '!=', '')
+                ->orderByRaw('CAST(numero_interno AS UNSIGNED) DESC')
+                ->first();
+
+            if ($lastVehiculo && is_numeric($lastVehiculo->numero_interno)) {
+                $nextNumber = (int)$lastVehiculo->numero_interno + 1;
+            } else {
+                // Si no hay vehículos o no son numéricos, empezar desde 1
+                $nextNumber = 1;
+            }
+
+            // Formatear con padding de ceros (ejemplo: 001, 002, etc.)
+            $nextNumeroInterno = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
+            return response()->json([
+                'success' => true,
+                'next_numero_interno' => $nextNumeroInterno,
+                'message' => 'Número interno generado correctamente'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al generar número interno: ' . $e->getMessage(),
+                'next_numero_interno' => str_pad(1, 3, '0', STR_PAD_LEFT) // Fallback
+            ], 500);
+        }
+    }
 }

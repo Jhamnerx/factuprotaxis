@@ -1071,4 +1071,199 @@ class PropietarioController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Buscar conductor por DNI
+     */
+    public function buscarConductor($dni)
+    {
+        try {
+            // Validar DNI
+            if (strlen($dni) < 6) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El DNI debe tener al menos 6 caracteres'
+                ]);
+            }
+
+            // Buscar conductor por DNI exacto
+            $conductor = Conductor::where('number', $dni)
+                ->where('enabled', true)
+                ->first();
+
+            if (!$conductor) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conductor no encontrado con DNI: ' . $dni . '. Verifique el número o solicite al administrador registrar el conductor.'
+                ]);
+            }
+
+            // Verificar si el conductor ya tiene un vehículo asignado
+            $vehiculoActual = $conductor->vehiculo;
+
+            return response()->json([
+                'success' => true,
+                'conductor' => [
+                    'id' => $conductor->id,
+                    'name' => $conductor->name,
+                    'number' => $conductor->number,
+                    'email' => $conductor->email,
+                    'telephone_1' => $conductor->telephone_1,
+                    'enabled' => $conductor->enabled,
+                    'has_vehicle' => $vehiculoActual ? true : false,
+                    'current_vehicle' => $vehiculoActual ? $vehiculoActual->placa : null
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar conductor: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Cambiar conductor de un vehículo
+     */
+    public function cambiarConductor(Request $request)
+    {
+        try {
+            $propietario = session('taxis_user');
+
+            $request->validate([
+                'vehiculo_id' => 'required|integer',
+                'conductor_id' => 'required|integer'
+            ]);
+
+            // Verificar que el vehículo pertenece al propietario
+            $vehiculo = Vehiculos::where('id', $request->vehiculo_id)
+                ->where('propietario_id', $propietario['id'])
+                ->with(['conductor', 'marca', 'modelo'])
+                ->first();
+
+            if (!$vehiculo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vehículo no encontrado o no tiene permisos para modificarlo'
+                ]);
+            }
+
+            // Verificar que el conductor existe y está habilitado
+            $conductor = Conductor::where('id', $request->conductor_id)
+                ->where('enabled', true)
+                ->first();
+
+            if (!$conductor) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Conductor no encontrado o no está habilitado'
+                ]);
+            }
+
+            // Verificar si el conductor ya es el asignado al vehículo
+            if ($vehiculo->conductor_id == $conductor->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El conductor ya está asignado a este vehículo'
+                ]);
+            }
+
+            // Verificar si el conductor ya tiene un vehículo asignado
+            $conductorTieneVehiculo = Vehiculos::where('conductor_id', $conductor->id)
+                ->where('id', '!=', $vehiculo->id)
+                ->with(['marca', 'modelo'])
+                ->first();
+
+            if ($conductorTieneVehiculo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "El conductor ya tiene asignado el vehículo {$conductorTieneVehiculo->placa}. Un conductor solo puede tener un vehículo asignado."
+                ]);
+            }
+
+            // Guardar información del conductor anterior para el mensaje
+            $conductorAnterior = $vehiculo->conductor;
+
+            // Asignar el nuevo conductor al vehículo
+            $vehiculo->conductor_id = $conductor->id;
+            $vehiculo->save();
+
+            // Construir mensaje de éxito
+            $mensaje = "Conductor {$conductor->name} (DNI: {$conductor->number}) asignado correctamente al vehículo {$vehiculo->placa}";
+
+            if ($conductorAnterior) {
+                $mensaje .= ". El conductor anterior {$conductorAnterior->name} ha sido liberado del vehículo.";
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $mensaje
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Datos inválidos: ' . implode(', ', $e->validator->errors()->all())
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cambiar conductor: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Quitar conductor de un vehículo
+     */
+    public function quitarConductor(Request $request)
+    {
+        try {
+            $propietario = session('taxis_user');
+
+            $request->validate([
+                'vehiculo_id' => 'required|integer'
+            ]);
+
+            // Verificar que el vehículo pertenece al propietario
+            $vehiculo = Vehiculos::where('id', $request->vehiculo_id)
+                ->where('propietario_id', $propietario['id'])
+                ->with(['conductor'])
+                ->first();
+
+            if (!$vehiculo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vehículo no encontrado o no tiene permisos para modificarlo'
+                ]);
+            }
+
+            if (!$vehiculo->conductor_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El vehículo no tiene conductor asignado'
+                ]);
+            }
+
+            $conductorAnterior = $vehiculo->conductor;
+
+            // Quitar el conductor del vehículo
+            $vehiculo->conductor_id = null;
+            $vehiculo->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Conductor {$conductorAnterior->name} removido del vehículo {$vehiculo->placa}. El vehículo ahora está sin conductor asignado."
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Datos inválidos: ' . implode(', ', $e->validator->errors()->all())
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al quitar conductor: ' . $e->getMessage()
+            ]);
+        }
+    }
 }

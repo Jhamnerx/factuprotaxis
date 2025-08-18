@@ -193,7 +193,7 @@
                             <h2 id="modal-title" class="font-semibold text-gray-800 dark:text-gray-100">Pagar con Yape
                             </h2>
                             <button @click="cerrarModal"
-                                class="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400">
+                                class="cursor-pointer text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400">
                                 <span class="sr-only">Cerrar</span>
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
@@ -271,7 +271,7 @@
                         <!-- Botón para continuar -->
                         <div class="flex justify-center">
                             <button @click="siguientePaso"
-                                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                                class="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                                 ✓ YA PAGUÉ
                             </button>
                         </div>
@@ -306,7 +306,7 @@
                         <div class="flex justify-between items-center">
                             <h2 class="font-semibold text-gray-800 dark:text-gray-100">Verificar Pago</h2>
                             <button @click="pasoAnterior"
-                                class="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400">
+                                class="cursor-pointer text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400">
                                 <span class="sr-only">Volver</span>
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
@@ -404,14 +404,14 @@
 
                             <div class="flex space-x-3 mt-6">
                                 <button type="button" @click="pasoAnterior"
-                                    class="flex-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors">
+                                    class="cursor-pointer flex-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors">
                                     Volver
                                 </button>
                                 <button type="submit"
                                     :disabled="verificandoPago || !formVerificacion.titular_yape.trim() || (formVerificacion
                                         .desde_yape && !formVerificacion.codigo_seguridad.trim()) || (
                                         formVerificacion.pago_dias_anteriores && !formVerificacion.fecha_pago)"
-                                    class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                    class="cursor-pointer flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors">
                                     <span x-show="!verificandoPago">VERIFICAR YAPEO</span>
                                     <span x-show="verificandoPago">Verificando...</span>
                                 </button>
@@ -795,15 +795,44 @@
                                 });
                             }
 
+                            // Verificar si el mes está permitido para pago
+                            const isAllowed = this.isMonthAllowedForPayment(this.currentYear, mesNum);
+
                             const color = this.coloresPagos[this.currentYear]?.[mesNum] || '#dc2626';
 
+                            // Determinar clases CSS
+                            let cardClasses =
+                            'mes-card border-2 rounded-lg p-4 text-center transition-all duration-200';
+                            let clickHandler = '';
+                            let cursorClass = '';
+                            let disabledIndicator = '';
+
+                            if (!isAllowed) {
+                                // Mes no permitido (anterior a fecha de ingreso)
+                                cardClasses += ' border-gray-300 bg-gray-100 dark:bg-gray-700 opacity-50';
+                                cursorClass = 'cursor-not-allowed';
+                                disabledIndicator = '<div class="text-lg mb-1">🚫</div>';
+                            } else {
+                                // Mes permitido
+                                if (isPagado) {
+                                    cardClasses += ' border-green-500 bg-green-50 dark:bg-green-900/20';
+                                } else {
+                                    cardClasses += ' border-red-500 bg-red-50 dark:bg-red-900/20';
+                                }
+                                cursorClass = 'cursor-pointer hover:shadow-md';
+                                clickHandler =
+                                    `onclick="this.dispatchEvent(new CustomEvent('seleccionar-mes', { detail: ${mesNum}, bubbles: true }))"`;
+                            }
+
                             return `
-                            <div class="mes-card border-2 rounded-lg p-4 text-center cursor-pointer hover:shadow-md transition-all duration-200 ${isPagado ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-red-500 bg-red-50 dark:bg-red-900/20'}" 
-                                 onclick="this.dispatchEvent(new CustomEvent('seleccionar-mes', { detail: ${mesNum}, bubbles: true }))">
-                                <div class="w-8 h-8 mx-auto mb-2 rounded-full" style="background-color: ${color}"></div>
+                            <div class="${cardClasses} ${cursorClass}" ${clickHandler}>
+                                ${disabledIndicator}
+                                <div class="w-8 h-8 mx-auto mb-2 rounded-full" style="background-color: ${isAllowed ? color : '#9ca3af'}"></div>
                                 <h4 class="font-semibold text-gray-900 dark:text-white text-sm">${mes}</h4>
-                                <p class="text-xs text-gray-600 dark:text-gray-400">${isPagado ? 'Pagado' : 'Pendiente'}</p>
-                                ${montoMes ? `<p class="text-xs font-medium text-gray-800 dark:text-gray-200">S/ ${montoMes}</p>` : ''}
+                                <p class="text-xs text-gray-600 dark:text-gray-400">
+                                    ${!isAllowed ? 'No disponible' : (isPagado ? 'Pagado' : 'Pendiente')}
+                                </p>
+                                ${montoMes && isAllowed ? `<p class="text-xs font-medium text-gray-800 dark:text-gray-200">S/ ${montoMes}</p>` : ''}
                             </div>
                         `;
                         }).join('');
@@ -914,12 +943,53 @@
                         }
                     },
 
+                    // Función para verificar si un mes está permitido para pago (no anterior a la fecha de ingreso)
+                    isMonthAllowedForPayment(year, month) {
+                        // Si no hay vehículo seleccionado, no permitir
+                        if (!this.vehiculoSeleccionado) {
+                            return false;
+                        }
+
+                        // Si no hay fecha de ingreso, permitir cualquier mes
+                        if (!this.vehiculoSeleccionado.fecha_ingreso) {
+                            return true;
+                        }
+
+                        // Crear fecha del mes que se quiere pagar (primer día del mes)
+                        const paymentDate = new Date(year, month - 1, 1);
+
+                        // Crear fecha de ingreso del vehículo (primer día del mes de ingreso)
+                        const entryDate = new Date(this.vehiculoSeleccionado.fecha_ingreso);
+                        const entryFirstDay = new Date(entryDate.getFullYear(), entryDate.getMonth(), 1);
+
+                        // Permitir pago si la fecha del mes es mayor o igual a la fecha de ingreso
+                        return paymentDate >= entryFirstDay;
+                    },
+
                     // Seleccionar mes para pago (PASO 1 - mostrar QR)
                     seleccionarMes(mes) {
                         // Validar que haya un vehículo seleccionado con plan
                         if (!this.vehiculoSeleccionado || !this.vehiculoSeleccionado.subscription || !this.vehiculoSeleccionado
                             .subscription.plan) {
                             this.mostrarErrorSinPlan();
+                            return;
+                        }
+
+                        // Verificar si el mes está antes de la fecha de ingreso del vehículo
+                        if (!this.isMonthAllowedForPayment(this.currentYear, mes)) {
+                            const vehicleEntry = this.vehiculoSeleccionado && this.vehiculoSeleccionado.fecha_ingreso;
+                            const entryDate = vehicleEntry ? new Date(vehicleEntry) : null;
+                            const entryDateStr = entryDate ?
+                                `${String(entryDate.getMonth() + 1).padStart(2, '0')}/${entryDate.getFullYear()}` :
+                                'fecha de ingreso';
+
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Período no válido',
+                                text: `No se puede pagar un mes anterior a la fecha de ingreso del vehículo (${entryDateStr}).`,
+                                confirmButtonColor: '#3085d6',
+                                color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827'
+                            });
                             return;
                         }
 

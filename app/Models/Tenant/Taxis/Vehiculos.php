@@ -27,6 +27,7 @@ class Vehiculos extends ModelTenant
 
     protected $fillable = [
         'numero_interno',
+        'partida_registral',
         'flota',
         'placa',
         'largo',
@@ -222,6 +223,7 @@ class Vehiculos extends ModelTenant
         $data = [
             'id' => $this->id,
             'numero_interno' => $this->numero_interno,
+            'partida_registral' => $this->partida_registral,
             'flota' => $this->flota,
             'placa' => $this->placa,
             'largo' => $this->largo,

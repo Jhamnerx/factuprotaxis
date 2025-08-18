@@ -101,6 +101,11 @@ Route::middleware(['check.permission', 'locked.tenant'])->prefix('taxis')->group
             Route::post('verificar-yape', [PropietarioController::class, 'verificarYape'])->name('taxis.propietario.verificar.yape');
             Route::post('confirmar-pago-yape', [PropietarioController::class, 'confirmarPagoYape'])->name('taxis.propietario.confirmar.pago.yape');
 
+            // Rutas para cambiar conductor
+            Route::get('buscar-conductor/{dni}', [PropietarioController::class, 'buscarConductor'])->name('taxis.propietario.buscar.conductor');
+            Route::post('cambiar-conductor', [PropietarioController::class, 'cambiarConductor'])->name('taxis.propietario.cambiar.conductor');
+            Route::post('quitar-conductor', [PropietarioController::class, 'quitarConductor'])->name('taxis.propietario.quitar.conductor');
+
             // Ruta de prueba
             Route::get('test/vehiculos', [PropietarioController::class, 'testVehiculos'])->name('taxis.propietario.test.vehiculos');
 

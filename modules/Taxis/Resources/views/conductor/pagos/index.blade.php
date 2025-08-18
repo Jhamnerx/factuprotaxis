@@ -65,7 +65,7 @@
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Calendario de Pagos</h3>
                         <div class="flex items-center space-x-4">
                             <button @click="cambiarYear(-1)"
-                                class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                class="cursor-pointer p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 19l-7-7 7-7"></path>
@@ -73,7 +73,7 @@
                             </button>
                             <span class="text-lg font-semibold text-gray-900 dark:text-white" x-text="currentYear"></span>
                             <button @click="cambiarYear(1)"
-                                class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                class="cursor-pointer p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
                                     </path>
@@ -153,7 +153,7 @@
                             <h2 id="modal-title" class="font-semibold text-gray-800 dark:text-gray-100">Pagar con Yape
                             </h2>
                             <button @click="cerrarModal"
-                                class="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400">
+                                class="cursor-pointer text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400">
                                 <span class="sr-only">Cerrar</span>
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
@@ -231,7 +231,7 @@
                         <!-- Botón para continuar -->
                         <div class="flex justify-center">
                             <button @click="siguientePaso"
-                                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                                class="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                                 ✓ YA PAGUÉ
                             </button>
                         </div>
@@ -266,7 +266,7 @@
                         <div class="flex justify-between items-center">
                             <h2 class="font-semibold text-gray-800 dark:text-gray-100">Verificar Pago</h2>
                             <button @click="pasoAnterior"
-                                class="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400">
+                                class="cursor-pointer text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400">
                                 <span class="sr-only">Volver</span>
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
@@ -364,14 +364,14 @@
 
                             <div class="flex space-x-3 mt-6">
                                 <button type="button" @click="pasoAnterior"
-                                    class="flex-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors">
+                                    class="cursor-pointer flex-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors">
                                     Volver
                                 </button>
                                 <button type="submit"
                                     :disabled="verificandoPago || !formVerificacion.titular_yape.trim() || (formVerificacion
                                         .desde_yape && !formVerificacion.codigo_seguridad.trim()) || (
                                         formVerificacion.pago_dias_anteriores && !formVerificacion.fecha_pago)"
-                                    class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
+                                    class="cursor-pointer flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
                                     x-text="verificandoPago ? 'Verificando...' : (pagoVerificado ? 'Confirmar Pago' : 'Verificar')">
                                 </button>
                             </div>
@@ -592,501 +592,593 @@
                                 });
                             }
 
+                            // Verificar si el mes está permitido para pago
+                            const isAllowed = this.isMonthAllowedForPayment(this.currentYear, mesNum);
+
                             const color = isPagado ? '#10b981' : '#dc2626'; // Verde si pagado, rojo si pendiente
 
+                            // Determinar clases CSS
+                            let cardClasses =
+                            'mes-card border-2 rounded-lg p-4 text-center transition-all duration-200';
+                            let clickHandler = '';
+                            let cursorClass = '';
+                            let disabledIndicator = '';
+
+                            if (!isAllowed) {
+                                // Mes no permitido (anterior a fecha de ingreso)
+                                cardClasses += ' border-gray-300 bg-gray-100 dark:bg-gray-700 opacity-50';
+                                cursorClass = 'cursor-not-allowed';
+                                disabledIndicator = '<div class="text-lg mb-1">🚫</div>';
+                            } else {
+                                // Mes permitido
+                                if (isPagado) {
+                                    cardClasses += ' border-green-500 bg-green-50 dark:bg-green-900/20';
+                                } else {
+                                    cardClasses += ' border-red-500 bg-red-50 dark:bg-red-900/20';
+                                }
+                                cursorClass = 'cursor-pointer hover:shadow-md';
+                                clickHandler =
+                                    `onclick="this.dispatchEvent(new CustomEvent('seleccionar-mes', { detail: ${mesNum}, bubbles: true }))"`;
+                            }
+
                             return `
-                            <div class="mes-card border-2 rounded-lg p-4 text-center cursor-pointer hover:shadow-md transition-all duration-200 ${isPagado ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-red-500 bg-red-50 dark:bg-red-900/20'}" 
-                                 onclick="this.dispatchEvent(new CustomEvent('seleccionar-mes', { detail: ${mesNum}, bubbles: true }))">
-                                <div class="w-8 h-8 mx-auto mb-2 rounded-full" style="background-color: ${color}"></div>
+                            <div class="${cardClasses} ${cursorClass}" ${clickHandler}>
+                                ${disabledIndicator}
+                                <div class="w-8 h-8 mx-auto mb-2 rounded-full" style="background-color: ${isAllowed ? color : '#9ca3af'}"></div>
                                 <h4 class="font-semibold text-gray-900 dark:text-white text-sm">${mes}</h4>
-                                <p class="text-xs text-gray-600 dark:text-gray-400">${this.currentYear}</p>
-                                <p class="text-xs font-medium ${isPagado ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'} mt-1">
-                                    ${isPagado ? 'Pagado' : 'Pendiente'}
+                                <p class="text-xs text-gray-600 dark:text-gray-400">
+                                    ${!isAllowed ? 'No disponible' : (isPagado ? 'Pagado' : 'Pendiente')}
                                 </p>
-                                ${montoMes ? `<p class="text-xs font-medium text-gray-800 dark:text-gray-200">S/ ${montoMes}</p>` : `<p class="text-xs text-blue-600 dark:text-blue-400">Clic para pagar</p>`}
+                                ${montoMes && isAllowed ? `<p class="text-xs font-medium text-gray-800 dark:text-gray-200">S/ ${montoMes}</p>` : ''}
                             </div>
                         `;
                         }).join('');
                     },
-
-                    // Seleccionar mes para realizar pago
-                    seleccionarMes(mes) {
-                        // Verificar si ya está pagado
-                        const pagoExistente = this.pagosData.find(p => p.mes === mes && p.year === this.currentYear && p
-                            .estado === 'pagado');
-
-                        if (pagoExistente) {
-                            Swal.fire({
-                                title: 'Mes ya pagado',
-                                text: `El mes ${this.getMesNombre(mes)} ${this.currentYear} ya está pagado.`,
-                                icon: 'info',
-                                customClass: {
-                                    popup: 'swal2-popup-custom'
-                                }
-                            });
-                            return;
-                        }
-
-                        // Configurar datos del pago
-                        this.pagoData = {
-                            mes: mes,
-                            year: this.currentYear,
-                            vehiculo_id: this.vehiculoData.id
-                        };
-
-                        // Resetear formulario y abrir modal
-                        this.pasoActual = 1;
-                        this.pagoVerificado = false;
-                        this.notificacionId = null;
-                        this.errorVerificacion = null;
-                        this.formVerificacion = {
-                            titular_yape: '',
-                            codigo_seguridad: '',
-                            desde_yape: false,
-                            pago_dias_anteriores: false,
-                            fecha_pago: ''
-                        };
-
-                        this.modalOpen = true;
+                    <
+                    h4 class = "font-semibold text-gray-900 dark:text-white text-sm" > $ {
+                        mes
+                    } < /h4> <
+                    p class = "text-xs text-gray-600 dark:text-gray-400" > $ {
+                        this.currentYear
+                    } < /p> <
+                    p class =
+                    "text-xs font-medium ${isPagado ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'} mt-1" >
+                    $ {
+                        isPagado ? 'Pagado' : 'Pendiente'
+                    } <
+                    /p>
+                    $ {
+                        montoMes ? `<p class="text-xs font-medium text-gray-800 dark:text-gray-200">S/ ${montoMes}</p>` :
+                            `<p class="text-xs text-blue-600 dark:text-blue-400">Clic para pagar</p>`
+                    } <
+                    /div>
+                    `;
+                        }).join('');
                     },
 
-                    // Obtener nombre del mes
-                    getMesNombre(numeroMes) {
-                        const meses = [
-                            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-                        ];
-                        return meses[numeroMes - 1] || 'Mes desconocido';
-                    },
-
-                    // Renderizar historial
-                    renderizarHistorial() {
-                        const tbody = document.getElementById('historial-tbody');
-
-                        if (this.pagosData.length === 0) {
-                            tbody.innerHTML = `
-                            <tr>
-                                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                    No hay pagos registrados
-                                </td>
-                            </tr>
-                        `;
-                            return;
+                    // Función para verificar si un mes está permitido para pago (no anterior a la fecha de ingreso)
+                    isMonthAllowedForPayment(year, month) {
+                        // Si no hay vehículo seleccionado, no permitir
+                        if (!this.vehiculoData) {
+                            return false;
                         }
 
-                        // Procesar pagos para el historial
-                        let historialRows = [];
-
-                        this.pagosData.forEach(pago => {
-                            if (pago.es_pago_multiple && pago.payment_details) {
-                                // Es un pago múltiple, mostrar como un solo registro con detalles
-                                const mesesPagados = pago.payment_details
-                                    .filter(d => d.year === this.currentYear)
-                                    .map(d => this.getMesNombre(d.mes))
-                                    .join(', ');
-
-                                const montoTotal = pago.payment_details
-                                    .filter(d => d.year === this.currentYear)
-                                    .reduce((total, d) => total + (d.monto_por_mes || d.monto || 0), 0);
-
-                                historialRows.push(`
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
-                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                                        <div class="font-medium">Pago Múltiple (${pago.cantidad_meses || pago.payment_details.length} meses)</div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${mesesPagados}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                        S/ ${montoTotal.toFixed(2)}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                        ${pago.tipo || 'Múltiple'}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${this.getEstadoPagoClasses(pago.estado)}">
-                                            ${pago.estado}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                        ${pago.fecha_cobro ? new Date(pago.fecha_cobro).toLocaleDateString() : 'N/A'}
-                                    </td>
-                                </tr>
-                            `);
-                            } else if (pago.mes && pago.year) {
-                                // Es un pago individual
-                                historialRows.push(`
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                        ${this.getMesNombre(pago.mes)} ${pago.year}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                        S/ ${pago.monto || '0.00'}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                        ${pago.tipo || 'N/A'}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${this.getEstadoPagoClasses(pago.estado)}">
-                                            ${pago.estado}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                        ${pago.fecha_cobro ? new Date(pago.fecha_cobro).toLocaleDateString() : 'N/A'}
-                                    </td>
-                                </tr>
-                            `);
-                            }
-                        });
-
-                        tbody.innerHTML = historialRows.join('');
-                    },
-
-                    // Obtener clases para estado de pago
-                    getEstadoPagoClasses(estado) {
-                        switch (estado) {
-                            case 'pagado':
-                                return 'bg-green-100 text-green-800 dark:bg-green-400/10 dark:text-green-400';
-                            case 'pendiente':
-                                return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-400/10 dark:text-yellow-400';
-                            case 'vencido':
-                                return 'bg-red-100 text-red-800 dark:bg-red-400/10 dark:text-red-400';
-                            default:
-                                return 'bg-gray-100 text-gray-800 dark:bg-gray-400/10 dark:text-gray-400';
+                        // Si no hay fecha de ingreso, permitir cualquier mes
+                        if (!this.vehiculoData.fecha_ingreso) {
+                            return true;
                         }
+
+                        // Crear fecha del mes que se quiere pagar (primer día del mes)
+                        const paymentDate = new Date(year, month - 1, 1);
+                        
+                        // Crear fecha de ingreso del vehículo (primer día del mes de ingreso)
+                        const entryDate = new Date(this.vehiculoData.fecha_ingreso);
+                        const entryFirstDay = new Date(entryDate.getFullYear(), entryDate.getMonth(), 1);
+
+                        // Permitir pago si la fecha del mes es mayor o igual a la fecha de ingreso
+                        return paymentDate >= entryFirstDay;
                     },
 
                     // Seleccionar mes para realizar pago
                     seleccionarMes(mes) {
-                        // Verificar si el mes ya está pagado (individual o múltiple)
-                        let mesPagado = false;
+                        // Verificar si el mes está antes de la fecha de ingreso del vehículo
+                        if (!this.isMonthAllowedForPayment(this.currentYear, mes)) {
+                            const vehicleEntry = this.vehiculoData && this.vehiculoData.fecha_ingreso;
+                            const entryDate = vehicleEntry ? new Date(vehicleEntry) : null;
+                            const entryDateStr = entryDate ? 
+                                `
+                    $ {
+                        String(entryDate.getMonth() + 1).padStart(2, '0')
+                    }
+                    /${entryDate.getFullYear()}` : 
+            'fecha de ingreso';
 
-                        // Verificar en pagos individuales
-                        const pagoIndividual = this.pagosData.find(p => p.mes === mes && p.year === this.currentYear && p
-                            .estado === 'pagado');
-                        if (pagoIndividual) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Período no válido',
+                text: `No se puede pagar un mes anterior a la fecha de ingreso del vehículo (${entryDateStr}).`,
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        // Verificar si ya está pagado
+        const pagoExistente = this.pagosData.find(p => p.mes === mes && p.year === this.currentYear && p
+            .estado === 'pagado');
+
+        if (pagoExistente) {
+            Swal.fire({
+                title: 'Mes ya pagado',
+                text: `El mes ${this.getMesNombre(mes)} ${this.currentYear} ya está pagado.`,
+                icon: 'info',
+                customClass: {
+                    popup: 'swal2-popup-custom'
+                }
+            });
+            return;
+        }
+
+        // Configurar datos del pago
+        this.pagoData = {
+            mes: mes,
+            year: this.currentYear,
+            vehiculo_id: this.vehiculoData.id
+        };
+
+        // Resetear formulario y abrir modal
+        this.pasoActual = 1;
+        this.pagoVerificado = false;
+        this.notificacionId = null;
+        this.errorVerificacion = null;
+        this.formVerificacion = {
+            titular_yape: '',
+            codigo_seguridad: '',
+            desde_yape: false,
+            pago_dias_anteriores: false,
+            fecha_pago: ''
+        };
+
+        this.modalOpen = true;
+    },
+
+    // Obtener nombre del mes
+    getMesNombre(numeroMes) {
+            const meses = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            return meses[numeroMes - 1] || 'Mes desconocido';
+        },
+
+        // Renderizar historial
+        renderizarHistorial() {
+            const tbody = document.getElementById('historial-tbody');
+
+            if (this.pagosData.length === 0) {
+                tbody.innerHTML = `
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                            No hay pagos registrados
+                                        </td>
+                                    </tr>
+                                `;
+                return;
+            }
+
+            // Procesar pagos para el historial
+            let historialRows = [];
+
+            this.pagosData.forEach(pago => {
+                if (pago.es_pago_multiple && pago.payment_details) {
+                    // Es un pago múltiple, mostrar como un solo registro con detalles
+                    const mesesPagados = pago.payment_details
+                        .filter(d => d.year === this.currentYear)
+                        .map(d => this.getMesNombre(d.mes))
+                        .join(', ');
+
+                    const montoTotal = pago.payment_details
+                        .filter(d => d.year === this.currentYear)
+                        .reduce((total, d) => total + (d.monto_por_mes || d.monto || 0), 0);
+
+                    historialRows.push(`
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                                <div class="font-medium">Pago Múltiple (${pago.cantidad_meses || pago.payment_details.length} meses)</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${mesesPagados}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                S/ ${montoTotal.toFixed(2)}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                ${pago.tipo || 'Múltiple'}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${this.getEstadoPagoClasses(pago.estado)}">
+                                                    ${pago.estado}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                ${pago.fecha_cobro ? new Date(pago.fecha_cobro).toLocaleDateString() : 'N/A'}
+                                            </td>
+                                        </tr>
+                                    `);
+                } else if (pago.mes && pago.year) {
+                    // Es un pago individual
+                    historialRows.push(`
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                                ${this.getMesNombre(pago.mes)} ${pago.year}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                S/ ${pago.monto || '0.00'}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                ${pago.tipo || 'N/A'}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${this.getEstadoPagoClasses(pago.estado)}">
+                                                    ${pago.estado}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                ${pago.fecha_cobro ? new Date(pago.fecha_cobro).toLocaleDateString() : 'N/A'}
+                                            </td>
+                                        </tr>
+                                    `);
+                }
+            });
+
+            tbody.innerHTML = historialRows.join('');
+        },
+
+        // Obtener clases para estado de pago
+        getEstadoPagoClasses(estado) {
+            switch (estado) {
+                case 'pagado':
+                    return 'bg-green-100 text-green-800 dark:bg-green-400/10 dark:text-green-400';
+                case 'pendiente':
+                    return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-400/10 dark:text-yellow-400';
+                case 'vencido':
+                    return 'bg-red-100 text-red-800 dark:bg-red-400/10 dark:text-red-400';
+                default:
+                    return 'bg-gray-100 text-gray-800 dark:bg-gray-400/10 dark:text-gray-400';
+            }
+        },
+
+        // Seleccionar mes para realizar pago
+        seleccionarMes(mes) {
+            // Verificar si el mes ya está pagado (individual o múltiple)
+            let mesPagado = false;
+
+            // Verificar en pagos individuales
+            const pagoIndividual = this.pagosData.find(p => p.mes === mes && p.year === this.currentYear && p
+                .estado === 'pagado');
+            if (pagoIndividual) {
+                mesPagado = true;
+            }
+
+            // Verificar en pagos múltiples
+            if (!mesPagado) {
+                this.pagosData.forEach(pago => {
+                    if (pago.es_pago_multiple && pago.payment_details && pago.estado === 'pagado') {
+                        const detalleMes = pago.payment_details.find(d => d.mes === mes && d.year === this
+                            .currentYear);
+                        if (detalleMes) {
                             mesPagado = true;
                         }
+                    }
+                });
+            }
 
-                        // Verificar en pagos múltiples
-                        if (!mesPagado) {
-                            this.pagosData.forEach(pago => {
-                                if (pago.es_pago_multiple && pago.payment_details && pago.estado === 'pagado') {
-                                    const detalleMes = pago.payment_details.find(d => d.mes === mes && d.year === this
-                                        .currentYear);
-                                    if (detalleMes) {
-                                        mesPagado = true;
-                                    }
-                                }
-                            });
+            if (mesPagado) {
+                Swal.fire({
+                    title: 'Mes ya pagado',
+                    text: `El mes ${this.getMesNombre(mes)} ${this.currentYear} ya está pagado.`,
+                    icon: 'info',
+                    customClass: {
+                        popup: 'swal2-popup-custom'
+                    }
+                });
+                return;
+            }
+
+            // Configurar datos del pago
+            this.pagoData = {
+                mes: mes,
+                year: this.currentYear,
+                vehiculo_id: this.vehiculoData.id,
+                monto: this.yapeConfig ? this.yapeConfig.monto : 50.00
+            };
+
+            // Resetear formulario y abrir modal
+            this.pasoActual = 1;
+            this.pagoVerificado = false;
+            this.notificacionId = null;
+            this.errorVerificacion = null;
+            this.formVerificacion = {
+                titular_yape: '',
+                codigo_seguridad: '',
+                desde_yape: false,
+                pago_dias_anteriores: false,
+                fecha_pago: ''
+            };
+
+            this.modalOpen = true;
+        },
+
+        // Ir al siguiente paso (de QR a verificación)
+        siguientePaso() {
+            this.pasoActual = 2;
+            this.errorVerificacion = null;
+        },
+
+        // Ir al paso anterior (de verificación a QR)
+        pasoAnterior() {
+            this.pasoActual = 1;
+            this.errorVerificacion = null;
+        },
+
+        // Verificar el pago de Yape
+        async verificarPago() {
+                if (!this.formVerificacion.titular_yape.trim()) {
+                    this.mostrarError('Por favor ingrese el nombre completo del titular de Yape');
+                    return;
+                }
+
+                // Validar código de seguridad si está marcado "desde_yape"
+                if (this.formVerificacion.desde_yape && !this.formVerificacion.codigo_seguridad.trim()) {
+                    this.mostrarError(
+                        'El código de seguridad es requerido cuando se marca "Se hizo desde la aplicación Yape"'
+                    );
+                    return;
+                }
+
+                // Validar fecha si marcó pago en días anteriores
+                if (this.formVerificacion.pago_dias_anteriores && !this.formVerificacion.fecha_pago) {
+                    this.mostrarError('Por favor seleccione la fecha en que realizó el pago');
+                    return;
+                }
+
+                this.verificandoPago = true;
+                this.errorVerificacion = null;
+
+                try {
+                    // Determinar la fecha del pago
+                    const fechaPago = this.formVerificacion.pago_dias_anteriores ?
+                        this.formVerificacion.fecha_pago :
+                        new Date().toISOString().split('T')[0];
+
+                    const response = await fetch(this.API_URLS.VERIFICAR_YAPE, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            titular_yape: this.formVerificacion.titular_yape,
+                            codigo_seguridad: this.formVerificacion.codigo_seguridad || null,
+                            vehiculo_id: this.pagoData.vehiculo_id,
+                            mes: this.pagoData.mes,
+                            year: this.pagoData.year,
+                            monto: this.pagoData.monto,
+                            desde_yape: this.formVerificacion.desde_yape,
+                            fecha_pago: fechaPago,
+                            busqueda_flexible: true
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        this.pagoVerificado = true;
+                        this.notificacionId = data.data.notification_id;
+                        this.errorVerificacion = null;
+                    } else {
+                        if (data.errors) {
+                            const firstError = Object.values(data.errors)[0];
+                            this.errorVerificacion = Array.isArray(firstError) ? firstError[0] : firstError;
+                        } else {
+                            this.errorVerificacion = data.message || 'No se pudo verificar el pago';
                         }
+                        this.pagoVerificado = false;
+                        this.mostrarAvisoWhatsApp();
+                    }
+                } catch (error) {
+                    console.error('Error al verificar pago:', error);
+                    this.errorVerificacion = 'Error de conexión al verificar el pago';
+                    this.pagoVerificado = false;
+                    this.mostrarAvisoWhatsApp();
+                } finally {
+                    this.verificandoPago = false;
+                }
+            },
 
-                        if (mesPagado) {
+            // Confirmar el pago
+            async confirmarPago() {
+                    this.confirmandoPago = true;
+                    this.errorVerificacion = null;
+
+                    try {
+                        const pagoData = {
+                            vehiculoId: this.pagoData.vehiculo_id,
+                            mes: this.pagoData.mes,
+                            year: this.pagoData.year,
+                            monto: this.pagoData.monto,
+                            fecha: new Date().toISOString().split('T')[0],
+                            descuento: 0,
+                            moneda: 'PEN',
+                            tipo: 'yape',
+                            color: '#10b981',
+                            metodo_pago: 'yape',
+                            notification_id: this.notificacionId,
+                            titular_yape: this.formVerificacion.titular_yape
+                        };
+
+                        const response = await fetch(this.API_URLS.CONFIRMAR_YAPE, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify(pagoData)
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok && data.success) {
+                            this.modalOpen = false;
+
+                            // Recargar los datos del vehículo para actualizar el calendario
+                            await this.cargarPagosVehiculo();
+
+                            // Regenerar los colores de pagos
+                            this.generarColoresPagos();
+
+                            // Renderizar el calendario actualizado
+                            this.renderizarCalendario();
+
+                            // Mostrar éxito con SweetAlert2
                             Swal.fire({
-                                title: 'Mes ya pagado',
-                                text: `El mes ${this.getMesNombre(mes)} ${this.currentYear} ya está pagado.`,
-                                icon: 'info',
+                                icon: 'success',
+                                title: '¡Pago Confirmado!',
+                                html: `
+                                                <div class="text-center">
+                                                    <p class="text-lg font-semibold mb-2">Su pago ha sido procesado exitosamente</p>
+                                                    <p class="text-sm text-gray-600">El calendario se ha actualizado automáticamente</p>
+                                                </div>
+                                            `,
+                                confirmButtonText: 'Excelente',
+                                confirmButtonColor: '#059669',
+                                timer: 4000,
+                                timerProgressBar: true,
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                background: document.documentElement.classList.contains('dark') ? '#1f2937' :
+                                    '#ffffff',
+                                color: document.documentElement.classList.contains('dark') ? '#f9fafb' :
+                                    '#111827'
+                            });
+                        } else {
+                            if (data.errors) {
+                                const firstError = Object.values(data.errors)[0];
+                                this.errorVerificacion = Array.isArray(firstError) ? firstError[0] : firstError;
+                            } else {
+                                this.errorVerificacion = data.message || 'Error al confirmar el pago';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error al confirmar pago:', error);
+                        this.errorVerificacion = 'Error de conexión al confirmar el pago';
+                    } finally {
+                        this.confirmandoPago = false;
+                    }
+                },
+
+                // Cerrar modal
+                cerrarModal() {
+                    this.modalOpen = false;
+                    this.pasoActual = 1;
+                    this.pagoVerificado = false;
+                    this.verificandoPago = false;
+                    this.confirmandoPago = false;
+                    this.notificacionId = null;
+                    this.errorVerificacion = null;
+                    this.formVerificacion = {
+                        titular_yape: '',
+                        codigo_seguridad: '',
+                        desde_yape: false,
+                        pago_dias_anteriores: false,
+                        fecha_pago: ''
+                    };
+                },
+
+                // Mostrar aviso de contacto por WhatsApp
+                mostrarAvisoWhatsApp() {
+                    Swal.fire({
+                        icon: 'info',
+                        title: '¿Realizaste el pago?',
+                        html: `
+                                        <div class="text-center">
+                                            <p class="mb-4">Si realizaste el pago pero no pudimos verificarlo automáticamente, puedes contactar al propietario para confirmar tu pago manualmente.</p>
+                                            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 mb-4">
+                                                <p class="text-sm text-blue-800 dark:text-blue-200">
+                                                    <strong>Vehículo:</strong> {{ $vehiculo->placa }}<br>
+                                                    <strong>Mes:</strong> <span class="mes-info"></span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Contactar por WhatsApp',
+                        cancelButtonText: 'Cerrar',
+                        confirmButtonColor: '#25D366',
+                        customClass: {
+                            popup: 'swal2-popup-custom'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.abrirWhatsApp();
+                        }
+                    });
+
+                    // Actualizar el mes en el modal
+                    setTimeout(() => {
+                        const mesInfo = document.querySelector('.mes-info');
+                        if (mesInfo && this.pagoData) {
+                            mesInfo.textContent =
+                                `${this.getMesNombre(this.pagoData.mes)} ${this.pagoData.year}`;
+                        }
+                    }, 100);
+                },
+
+                // Abrir WhatsApp con mensaje predefinido
+                abrirWhatsApp() {
+                    const mensaje = encodeURIComponent(
+                        `Hola, soy conductor del vehículo ${this.vehiculoData.placa}. ` +
+                        `Necesito información sobre cómo activar el plan de suscripción para poder realizar los pagos mensuales.`
+                    );
+                    const urlWhatsApp = `https://wa.me/51999999999?text=${mensaje}`;
+                            window.open(urlWhatsApp, '_blank');
+                        },
+
+                        // Mostrar error cuando no hay plan
+                        mostrarErrorSinPlan() {
+                            setTimeout(() => {
+                                this.mostrarAvisoWhatsApp();
+                            }, 100);
+                        },
+
+                        // Mostrar error
+                        mostrarError(mensaje) {
+                            this.errorVerificacion = mensaje;
+                        },
+
+                        // Mostrar éxito
+                        mostrarExito(mensaje) {
+                            Swal.fire({
+                                title: '¡Éxito!',
+                                text: mensaje,
+                                icon: 'success',
+                                timer: 3000,
+                                timerProgressBar: true,
+                                position: 'top-end',
+                                toast: true,
+                                showConfirmButton: false,
                                 customClass: {
                                     popup: 'swal2-popup-custom'
                                 }
                             });
-                            return;
+                        },
+
+                        // Obtener nombre del mes
+                        getMesNombre(mes) {
+                            const meses = [
+                                '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                            ];
+                            return meses[mes] || '';
                         }
-
-                        // Configurar datos del pago
-                        this.pagoData = {
-                            mes: mes,
-                            year: this.currentYear,
-                            vehiculo_id: this.vehiculoData.id,
-                            monto: this.yapeConfig ? this.yapeConfig.monto : 50.00
-                        };
-
-                        // Resetear formulario y abrir modal
-                        this.pasoActual = 1;
-                        this.pagoVerificado = false;
-                        this.notificacionId = null;
-                        this.errorVerificacion = null;
-                        this.formVerificacion = {
-                            titular_yape: '',
-                            codigo_seguridad: '',
-                            desde_yape: false,
-                            pago_dias_anteriores: false,
-                            fecha_pago: ''
-                        };
-
-                        this.modalOpen = true;
-                    },
-
-                    // Ir al siguiente paso (de QR a verificación)
-                    siguientePaso() {
-                        this.pasoActual = 2;
-                        this.errorVerificacion = null;
-                    },
-
-                    // Ir al paso anterior (de verificación a QR)
-                    pasoAnterior() {
-                        this.pasoActual = 1;
-                        this.errorVerificacion = null;
-                    },
-
-                    // Verificar el pago de Yape
-                    async verificarPago() {
-                        if (!this.formVerificacion.titular_yape.trim()) {
-                            this.mostrarError('Por favor ingrese el nombre completo del titular de Yape');
-                            return;
-                        }
-
-                        // Validar código de seguridad si está marcado "desde_yape"
-                        if (this.formVerificacion.desde_yape && !this.formVerificacion.codigo_seguridad.trim()) {
-                            this.mostrarError(
-                                'El código de seguridad es requerido cuando se marca "Se hizo desde la aplicación Yape"'
-                            );
-                            return;
-                        }
-
-                        // Validar fecha si marcó pago en días anteriores
-                        if (this.formVerificacion.pago_dias_anteriores && !this.formVerificacion.fecha_pago) {
-                            this.mostrarError('Por favor seleccione la fecha en que realizó el pago');
-                            return;
-                        }
-
-                        this.verificandoPago = true;
-                        this.errorVerificacion = null;
-
-                        try {
-                            // Determinar la fecha del pago
-                            const fechaPago = this.formVerificacion.pago_dias_anteriores ?
-                                this.formVerificacion.fecha_pago :
-                                new Date().toISOString().split('T')[0];
-
-                            const response = await fetch(this.API_URLS.VERIFICAR_YAPE, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                },
-                                body: JSON.stringify({
-                                    titular_yape: this.formVerificacion.titular_yape,
-                                    codigo_seguridad: this.formVerificacion.codigo_seguridad || null,
-                                    vehiculo_id: this.pagoData.vehiculo_id,
-                                    mes: this.pagoData.mes,
-                                    year: this.pagoData.year,
-                                    monto: this.pagoData.monto,
-                                    desde_yape: this.formVerificacion.desde_yape,
-                                    fecha_pago: fechaPago,
-                                    busqueda_flexible: true
-                                })
-                            });
-
-                            const data = await response.json();
-
-                            if (response.ok && data.success) {
-                                this.pagoVerificado = true;
-                                this.notificacionId = data.data.notification_id;
-                                this.errorVerificacion = null;
-                            } else {
-                                if (data.errors) {
-                                    const firstError = Object.values(data.errors)[0];
-                                    this.errorVerificacion = Array.isArray(firstError) ? firstError[0] : firstError;
-                                } else {
-                                    this.errorVerificacion = data.message || 'No se pudo verificar el pago';
-                                }
-                                this.pagoVerificado = false;
-                                this.mostrarAvisoWhatsApp();
-                            }
-                        } catch (error) {
-                            console.error('Error al verificar pago:', error);
-                            this.errorVerificacion = 'Error de conexión al verificar el pago';
-                            this.pagoVerificado = false;
-                            this.mostrarAvisoWhatsApp();
-                        } finally {
-                            this.verificandoPago = false;
-                        }
-                    },
-
-                    // Confirmar el pago
-                    async confirmarPago() {
-                        this.confirmandoPago = true;
-                        this.errorVerificacion = null;
-
-                        try {
-                            const pagoData = {
-                                vehiculoId: this.pagoData.vehiculo_id,
-                                mes: this.pagoData.mes,
-                                year: this.pagoData.year,
-                                monto: this.pagoData.monto,
-                                fecha: new Date().toISOString().split('T')[0],
-                                descuento: 0,
-                                moneda: 'PEN',
-                                tipo: 'yape',
-                                color: '#10b981',
-                                metodo_pago: 'yape',
-                                notification_id: this.notificacionId,
-                                titular_yape: this.formVerificacion.titular_yape
-                            };
-
-                            const response = await fetch(this.API_URLS.CONFIRMAR_YAPE, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                },
-                                body: JSON.stringify(pagoData)
-                            });
-
-                            const data = await response.json();
-
-                            if (response.ok && data.success) {
-                                this.modalOpen = false;
-
-                                // Recargar los datos del vehículo para actualizar el calendario
-                                await this.cargarPagosVehiculo();
-
-                                // Regenerar los colores de pagos
-                                this.generarColoresPagos();
-
-                                // Renderizar el calendario actualizado
-                                this.renderizarCalendario();
-
-                                // Mostrar éxito con SweetAlert2
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '¡Pago Confirmado!',
-                                    html: `
-                                        <div class="text-center">
-                                            <p class="text-lg font-semibold mb-2">Su pago ha sido procesado exitosamente</p>
-                                            <p class="text-sm text-gray-600">El calendario se ha actualizado automáticamente</p>
-                                        </div>
-                                    `,
-                                    confirmButtonText: 'Excelente',
-                                    confirmButtonColor: '#059669',
-                                    timer: 4000,
-                                    timerProgressBar: true,
-                                    allowOutsideClick: false,
-                                    allowEscapeKey: false,
-                                    background: document.documentElement.classList.contains('dark') ? '#1f2937' :
-                                        '#ffffff',
-                                    color: document.documentElement.classList.contains('dark') ? '#f9fafb' :
-                                        '#111827'
-                                });
-                            } else {
-                                if (data.errors) {
-                                    const firstError = Object.values(data.errors)[0];
-                                    this.errorVerificacion = Array.isArray(firstError) ? firstError[0] : firstError;
-                                } else {
-                                    this.errorVerificacion = data.message || 'Error al confirmar el pago';
-                                }
-                            }
-                        } catch (error) {
-                            console.error('Error al confirmar pago:', error);
-                            this.errorVerificacion = 'Error de conexión al confirmar el pago';
-                        } finally {
-                            this.confirmandoPago = false;
-                        }
-                    },
-
-                    // Cerrar modal
-                    cerrarModal() {
-                        this.modalOpen = false;
-                        this.pasoActual = 1;
-                        this.pagoVerificado = false;
-                        this.verificandoPago = false;
-                        this.confirmandoPago = false;
-                        this.notificacionId = null;
-                        this.errorVerificacion = null;
-                        this.formVerificacion = {
-                            titular_yape: '',
-                            codigo_seguridad: '',
-                            desde_yape: false,
-                            pago_dias_anteriores: false,
-                            fecha_pago: ''
-                        };
-                    },
-
-                    // Mostrar aviso de contacto por WhatsApp
-                    mostrarAvisoWhatsApp() {
-                        Swal.fire({
-                            icon: 'info',
-                            title: '¿Realizaste el pago?',
-                            html: `
-                                <div class="text-center">
-                                    <p class="mb-4">Si realizaste el pago pero no pudimos verificarlo automáticamente, puedes contactar al propietario para confirmar tu pago manualmente.</p>
-                                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 mb-4">
-                                        <p class="text-sm text-blue-800 dark:text-blue-200">
-                                            <strong>Vehículo:</strong> {{ $vehiculo->placa }}<br>
-                                            <strong>Mes:</strong> <span class="mes-info"></span>
-                                        </p>
-                                    </div>
-                                </div>
-                            `,
-                            showCancelButton: true,
-                            confirmButtonText: 'Contactar por WhatsApp',
-                            cancelButtonText: 'Cerrar',
-                            confirmButtonColor: '#25D366',
-                            customClass: {
-                                popup: 'swal2-popup-custom'
-                            }
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                this.abrirWhatsApp();
-                            }
-                        });
-
-                        // Actualizar el mes en el modal
-                        setTimeout(() => {
-                            const mesInfo = document.querySelector('.mes-info');
-                            if (mesInfo && this.pagoData) {
-                                mesInfo.textContent = `${this.getMesNombre(this.pagoData.mes)} ${this.pagoData.year}`;
-                            }
-                        }, 100);
-                    },
-
-                    // Abrir WhatsApp con mensaje predefinido
-                    abrirWhatsApp() {
-                        const mensaje = encodeURIComponent(
-                            `Hola, soy conductor del vehículo ${this.vehiculoData.placa}. ` +
-                            `Necesito información sobre cómo activar el plan de suscripción para poder realizar los pagos mensuales.`
-                        );
-                        const urlWhatsApp = `https://wa.me/51999999999?text=${mensaje}`;
-                        window.open(urlWhatsApp, '_blank');
-                    },
-
-                    // Mostrar error cuando no hay plan
-                    mostrarErrorSinPlan() {
-                        setTimeout(() => {
-                            this.mostrarAvisoWhatsApp();
-                        }, 100);
-                    },
-
-                    // Mostrar error
-                    mostrarError(mensaje) {
-                        this.errorVerificacion = mensaje;
-                    },
-
-                    // Mostrar éxito
-                    mostrarExito(mensaje) {
-                        Swal.fire({
-                            title: '¡Éxito!',
-                            text: mensaje,
-                            icon: 'success',
-                            timer: 3000,
-                            timerProgressBar: true,
-                            position: 'top-end',
-                            toast: true,
-                            showConfirmButton: false,
-                            customClass: {
-                                popup: 'swal2-popup-custom'
-                            }
-                        });
-                    },
-
-                    // Obtener nombre del mes
-                    getMesNombre(mes) {
-                        const meses = [
-                            '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-                        ];
-                        return meses[mes] || '';
-                    }
-                }; // Cerrar correctamente el objeto retornado por pagosManager
+            }; // Cerrar correctamente el objeto retornado por pagosManager
             }
         </script>
     </div>

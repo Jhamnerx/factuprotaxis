@@ -2,11 +2,11 @@
 
 $current_hostname = app(Hyn\Tenancy\Contracts\CurrentHostname::class);
 
-if($current_hostname) {
+if ($current_hostname) {
     Route::domain($current_hostname->fqdn)->group(function () {
         Route::middleware(['auth', 'locked.tenant'])->group(function () {
 
-            Route::redirect('/', '/dashboard');
+            //Route::redirect('/', '/dashboard');
 
             Route::prefix('dashboard')->group(function () {
                 Route::get('/', 'DashboardController@index')->name('tenant.dashboard.index');
@@ -24,7 +24,6 @@ if($current_hostname) {
 
             //Commands
             Route::get('command/df', 'DashboardController@df')->name('command.df');
-
         });
     });
 }

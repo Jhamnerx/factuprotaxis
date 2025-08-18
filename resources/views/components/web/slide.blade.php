@@ -1,78 +1,150 @@
-<section class=" slider_section ">
+<section class="slider_section">
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-7 ">
+        <div class="row align-items-center">
+            <div class="col-lg-7 col-md-6">
                 <div class="box">
                     <div class="detail-box">
                         <h4>
-                            Welcome to
+                            Bienvenido a
                         </h4>
                         <h1>
-                            TAXI
+                            {{ $company->name }}
                         </h1>
+                        <p class="description">
+                            Sistema integral de gestión para empresas de taxis. Administra vehículos, conductores,
+                            propietarios y facturación de manera eficiente y profesional.
+                        </p>
                     </div>
-                    <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
-                        <ol class="carousel-indicators">
-                            <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-                            <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-                            <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-                            <li data-target="#carouselExampleIndicators" data-slide-to="3"></li>
-                            <li data-target="#carouselExampleIndicators" data-slide-to="4"></li>
-                        </ol>
-                        <div class="carousel-inner">
-                            <div class="carousel-item active">
 
-                                <div class="img-box">
-                                    <img src="{{ asset('tenant/images/slider-img.png') }}" alt="">
-                                </div>
-                            </div>
-                            <div class="carousel-item">
-                                <div class="img-box">
-                                    <img src="{{ asset('tenant/images/slider-img.png') }}" alt="">
-                                </div>
-                            </div>
-                            <div class="carousel-item">
-                                <div class="img-box">
-                                    <img src="{{ asset('tenant/images/slider-img.png') }}" alt="">
-                                </div>
-                            </div>
-                            <div class="carousel-item">
-                                <div class="img-box">
-                                    <img src="{{ asset('tenant/images/slider-img.png') }}" alt="">
-                                </div>
-                            </div>
-                            <div class="carousel-item">
-                                <div class="img-box">
-                                    <img src="{{ asset('tenant/images/slider-img.png') }}" alt="">
-                                </div>
+                    @if (isset($web_page) && $web_page->services && count($web_page->services) > 0)
+                        <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+                            <ol class="carousel-indicators">
+                                @foreach ($web_page->services as $index => $service)
+                                    <li data-target="#carouselExampleIndicators" data-slide-to="{{ $index }}"
+                                        class="{{ $index === 0 ? 'active' : '' }}"></li>
+                                @endforeach
+                            </ol>
+                            <div class="carousel-inner">
+                                @foreach ($web_page->services as $index => $service)
+                                    <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                        <div class="img-box">
+                                            <img src="{{ $service['image'] ? asset('storage/uploads/services/' . $service['image']) : asset('tenant/images/delivery-man.png') }}"
+                                                alt="{{ $service['name'] }}">
+                                        </div>
+                                        <div class="service-info">
+                                            <h5>{{ $service['name'] }}</h5>
+                                            <p>{{ $service['description'] ?? 'Servicio profesional de calidad' }}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
-                    </div>
+                    @else
+                        <div class="default-services">
+                            <div class="service-highlight">
+                                <div class="icon-box">
+                                    <i class="fas fa-taxi"></i>
+                                </div>
+                                <h5>Gestión de Flota</h5>
+                                <p>Control completo de vehículos y operaciones</p>
+                            </div>
+                        </div>
+                    @endif
 
                     <div class="btn-box">
                         <a href="{{ route('tenant.web.servicios') }}" class="btn-1">
-                            Servicios
+                            <i class="fas fa-arrow-right me-2"></i>
+                            Conocer Servicios
                         </a>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-5 ">
+            <div class="col-lg-5 col-md-6">
                 <div class="slider_form">
-                    <h4>
-                        Get A Taxi Now
-                    </h4>
-                    <form action="">
-                        <input type="text" placeholder="Car Type">
-                        <input type="text" placeholder="Pick Up Location">
-                        <input type="text" placeholder="Drop Location">
-                        <div class="btm_input">
-                            <input type="text" placeholder="Your Phone Number">
-                            <button>Book Now</button>
+                    <div class="form-header">
+                        <i class="fas fa-shield-alt"></i>
+                        <h4>Acceso al Sistema</h4>
+                        <p>Plataforma de gestión empresarial</p>
+                    </div>
+
+                    <div class="access-options">
+                        <div class="access-card">
+                            <div class="icon-box">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="card-content">
+                                <h5>Administrador</h5>
+                                <p>Control total del sistema, gestión de usuarios y configuraciones avanzadas</p>
+                                <span class="features">
+                                    <i class="fas fa-check"></i> Panel de control
+                                    <i class="fas fa-check"></i> Reportes ejecutivos
+                                </span>
+                            </div>
+                            <a href="{{ route('login') }}" class="access-btn">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Acceder
+                            </a>
                         </div>
-                    </form>
+
+                        <div class="access-card">
+                            <div class="icon-box">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="card-content">
+                                <h5>Propietario</h5>
+                                <p>Administra tus vehículos, pagos y reportes financieros de manera eficiente</p>
+                                <span class="features">
+                                    <i class="fas fa-check"></i> Gestión de vehículos
+                                    <i class="fas fa-check"></i> Control de pagos
+                                </span>
+                            </div>
+                            <a href="{{ route('login') }}" class="access-btn">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Acceder
+                            </a>
+                        </div>
+
+                        <div class="access-card">
+                            <div class="icon-box">
+                                <i class="fas fa-steering-wheel"></i>
+                            </div>
+                            <div class="card-content">
+                                <h5>Conductor</h5>
+                                <p>Consulta tus datos, pagos realizados y documentación personal</p>
+                                <span class="features">
+                                    <i class="fas fa-check"></i> Historial de pagos
+                                    <i class="fas fa-check"></i> Documentos
+                                </span>
+                            </div>
+                            <a href="{{ route('login') }}" class="access-btn">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Acceder
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="system-info">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Plataforma segura y confiable</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Reportes en tiempo real</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>Acceso multiplataforma</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Soporte 24/7</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
 </section>

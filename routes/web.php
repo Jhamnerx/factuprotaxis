@@ -33,11 +33,12 @@ if ($hostname) {
 
         Route::middleware('web')->group(function () {
 
-            Route::get('/home', [WebController::class, 'home'])->name('tenant.web.home');
+            Route::get('/', [WebController::class, 'home'])->name('tenant.web.home');
             Route::get('/nosotros', [WebController::class, 'nosotros'])->name('tenant.web.nosotros');
             Route::get('/contacto', [WebController::class, 'contacto'])->name('tenant.web.contacto');
             Route::get('/servicios', [WebController::class, 'servicios'])->name('tenant.web.servicios');
         });
+
         Route::middleware(['auth', 'redirect.module', 'locked.tenant'])->group(function () {
             // Route::get('catalogs', 'Tenant\CatalogController@index')->name('tenant.catalogs.index');
             Route::get('list-reports', 'Tenant\SettingController@listReports');
@@ -427,6 +428,7 @@ if ($hostname) {
             Route::get('unidades/records', 'Tenant\UnidadesController@records');
             Route::get('unidades/record/{id}', 'Tenant\UnidadesController@record');
             Route::get('unidades/search', 'Tenant\UnidadesController@searchUnidades');
+            Route::get('unidades/next-numero-interno', 'Tenant\UnidadesController@getNextNumeroInterno');
             Route::get('unidades/tables', 'Tenant\UnidadesController@tables');
             Route::post('unidades', 'Tenant\UnidadesController@store');
             Route::delete('unidades/{unidad}', 'Tenant\UnidadesController@destroy');

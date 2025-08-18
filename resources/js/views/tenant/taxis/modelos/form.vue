@@ -90,7 +90,7 @@
 import { mapActions, mapState } from "vuex/dist/vuex.mjs";
 
 export default {
-    props: ["showDialog", "recordId"],
+    props: ["showDialog", "recordId", "marca_id"],
     data() {
         return {
             titleDialog: "Modelo",
@@ -109,6 +109,13 @@ export default {
     computed: {
         ...mapState(["config"])
     },
+    watch: {
+        marca_id(newVal) {
+            if (newVal && !this.recordId) {
+                this.form.marca_id = newVal;
+            }
+        }
+    },
     methods: {
         ...mapActions(["loadConfiguration"]),
         initForm() {
@@ -116,7 +123,7 @@ export default {
             this.form = {
                 id: null,
                 nombre: null,
-                marca_id: null,
+                marca_id: this.marca_id || null,
                 enabled: true
             };
         },
