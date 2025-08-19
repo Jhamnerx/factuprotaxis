@@ -36,6 +36,7 @@ if ($hostname) {
             Route::get('/', [WebController::class, 'home'])->name('tenant.web.home');
             Route::get('/nosotros', [WebController::class, 'nosotros'])->name('tenant.web.nosotros');
             Route::get('/contacto', [WebController::class, 'contacto'])->name('tenant.web.contacto');
+            Route::post('/contacto', [WebController::class, 'storeContacto'])->name('tenant.web.contacto.store');
             Route::get('/servicios', [WebController::class, 'servicios'])->name('tenant.web.servicios');
         });
 
@@ -197,6 +198,16 @@ if ($hostname) {
             Route::get('users/records', 'Tenant\UserController@records');
             Route::delete('users/{user}', 'Tenant\UserController@destroy');
             Route::post('users/change-active', 'Tenant\UserController@changeActive');
+
+            //Contact Messages
+            Route::get('contactMessages', 'Tenant\ContactMessageController@index')->name('tenant.contact_messages.index');
+            Route::get('contactMessages/columns', 'Tenant\ContactMessageController@columns');
+            Route::get('contactMessages/records', 'Tenant\ContactMessageController@records');
+            Route::get('contactMessages/record/{id}', 'Tenant\ContactMessageController@record');
+            Route::put('contactMessages/{id}/status', 'Tenant\ContactMessageController@updateStatus');
+            Route::delete('contactMessages/{id}', 'Tenant\ContactMessageController@destroy');
+            Route::post('contactMessages/bulk-action', 'Tenant\ContactMessageController@bulkAction');
+            Route::get('contactMessages/stats', 'Tenant\ContactMessageController@stats');
 
             //ChargeDiscounts
             Route::get('charge_discounts', 'Tenant\ChargeDiscountController@index')->name('tenant.charge_discounts.index');

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Tenant\Taxis\WebPageTaxis;
 use App\Http\Resources\Tenant\WebPageTaxisResource;
+use App\Models\Tenant\ContactMessage;
 
 class WebController extends Controller
 {
@@ -15,6 +16,7 @@ class WebController extends Controller
     {
         $web = WebPageTaxis::first();
         $web_page = new WebPageTaxisResource($web);
+
         return view('tenant.web.index', compact('web_page'));
     }
     public function nosotros()
@@ -36,6 +38,26 @@ class WebController extends Controller
         $web_page = new WebPageTaxisResource($web);
 
         return view('tenant.web.servicios', compact('web_page'));
+    }
+
+    public function storeContacto(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'required|email|max:255',
+            'message' => 'required|string|max:2000'
+        ]);
+
+        ContactMessage::create([
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'email' => $request->email,
+            'message' => $request->message,
+            'status' => 'pending'
+        ]);
+
+        return back()->with('success', '¡Mensaje enviado correctamente! Te responderemos pronto.');
     }
 
     public function config()

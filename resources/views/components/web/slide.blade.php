@@ -11,8 +11,12 @@
                             {{ $company->name }}
                         </h1>
                         <p class="description">
-                            Sistema integral de gestión para empresas de taxis. Administra vehículos, conductores,
-                            propietarios y facturación de manera eficiente y profesional.
+                            @if ($web_page->title_services)
+                                {{ $web_page->title_services }}
+                            @else
+                                Sistema integral de gestión para empresas de taxis. Administra vehículos, conductores,
+                                propietarios y facturación de manera eficiente y profesional.
+                            @endif
                         </p>
                     </div>
 
@@ -61,68 +65,11 @@
             </div>
             <div class="col-lg-5 col-md-6">
                 <div class="slider_form">
-                    <div class="form-header">
+                    {{-- <div class="form-header">
                         <i class="fas fa-shield-alt"></i>
                         <h4>Acceso al Sistema</h4>
                         <p>Plataforma de gestión empresarial</p>
-                    </div>
-
-                    <div class="access-options">
-                        <div class="access-card">
-                            <div class="icon-box">
-                                <i class="fas fa-user-tie"></i>
-                            </div>
-                            <div class="card-content">
-                                <h5>Administrador</h5>
-                                <p>Control total del sistema, gestión de usuarios y configuraciones avanzadas</p>
-                                <span class="features">
-                                    <i class="fas fa-check"></i> Panel de control
-                                    <i class="fas fa-check"></i> Reportes ejecutivos
-                                </span>
-                            </div>
-                            <a href="{{ route('login') }}" class="access-btn">
-                                <i class="fas fa-sign-in-alt"></i>
-                                Acceder
-                            </a>
-                        </div>
-
-                        <div class="access-card">
-                            <div class="icon-box">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div class="card-content">
-                                <h5>Propietario</h5>
-                                <p>Administra tus vehículos, pagos y reportes financieros de manera eficiente</p>
-                                <span class="features">
-                                    <i class="fas fa-check"></i> Gestión de vehículos
-                                    <i class="fas fa-check"></i> Control de pagos
-                                </span>
-                            </div>
-                            <a href="{{ route('login') }}" class="access-btn">
-                                <i class="fas fa-sign-in-alt"></i>
-                                Acceder
-                            </a>
-                        </div>
-
-                        <div class="access-card">
-                            <div class="icon-box">
-                                <i class="fas fa-steering-wheel"></i>
-                            </div>
-                            <div class="card-content">
-                                <h5>Conductor</h5>
-                                <p>Consulta tus datos, pagos realizados y documentación personal</p>
-                                <span class="features">
-                                    <i class="fas fa-check"></i> Historial de pagos
-                                    <i class="fas fa-check"></i> Documentos
-                                </span>
-                            </div>
-                            <a href="{{ route('login') }}" class="access-btn">
-                                <i class="fas fa-sign-in-alt"></i>
-                                Acceder
-                            </a>
-                        </div>
-                    </div>
-
+                    </div> --}}
                     <div class="system-info">
                         <div class="info-grid">
                             <div class="info-item">

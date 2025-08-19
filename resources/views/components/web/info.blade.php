@@ -127,10 +127,7 @@
                                     <i class="fas fa-bell"></i>
                                     <span>Notificaciones Yape</span>
                                 </div>
-                                <div class="feature-item">
-                                    <i class="fas fa-route"></i>
-                                    <span>Hoja de Ruta y Manifiestos</span>
-                                </div>
+
                                 <div class="feature-item">
                                     <i class="fas fa-file-pdf"></i>
                                     <span>Generación de PDF</span>

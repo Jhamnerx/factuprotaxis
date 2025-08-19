@@ -80,23 +80,40 @@
 
     <!-- owl carousel script -->
     <script type="text/javascript">
-        $(".owl-carousel").owlCarousel({
-            loop: true,
-            margin: 20,
-            navText: [],
-            autoplay: true,
-            autoplayHoverPause: true,
-            responsive: {
-                0: {
-                    items: 1
-                },
-                768: {
-                    items: 2
-                },
-                1000: {
-                    items: 2
+        $(document).ready(function() {
+            var $carousel = $(".owl-carousel");
+            var itemCount = $carousel.find('.item').length;
+
+            // Configuración del carousel basada en el número de elementos
+            var carouselOptions = {
+                margin: 20,
+                navText: [],
+                autoplay: itemCount > 1, // Solo auto-play si hay más de un elemento
+                autoplayHoverPause: true,
+                loop: itemCount > 1, // Solo loop si hay más de un elemento
+                responsive: {
+                    0: {
+                        items: 1
+                    },
+                    768: {
+                        items: itemCount > 1 ? 2 : 1 // Mostrar máximo el número de elementos disponibles
+                    },
+                    1000: {
+                        items: itemCount > 1 ? 2 : 1 // Mostrar máximo el número de elementos disponibles
+                    }
                 }
+            };
+
+            // Solo agregar navegación si hay más de un elemento
+            if (itemCount > 1) {
+                carouselOptions.nav = true;
+                carouselOptions.dots = true;
+            } else {
+                carouselOptions.nav = false;
+                carouselOptions.dots = false;
             }
+
+            $carousel.owlCarousel(carouselOptions);
         });
     </script>
     <!-- end owl carousel script -->

@@ -19,6 +19,18 @@
                     <div class="card-body">
                         <form autocomplete="off" @submit.prevent="submit">
                             <div class="form-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label"
+                                                >Titulo Servicio</label
+                                            >
+                                            <el-input
+                                                v-model="form.title_services"
+                                            ></el-input>
+                                        </div>
+                                    </div>
+                                </div>
                                 <!-- Sección de Servicios -->
                                 <div class="row">
                                     <div class="col-md-12">
@@ -165,6 +177,42 @@
                                             <h4>Acerca de Nosotros</h4>
                                             <div class="card">
                                                 <div class="card-body">
+                                                    <div class="form-group">
+                                                        <label
+                                                            class="control-label"
+                                                            >Título
+                                                            Principal</label
+                                                        >
+                                                        <el-input
+                                                            v-model="
+                                                                form.about.title
+                                                            "
+                                                            placeholder="Ej: Líderes en Gestión de Empresas de Taxis"
+                                                        ></el-input>
+                                                        <small
+                                                            class="text-muted"
+                                                            >Puedes usar HTML
+                                                            como &lt;br&gt; para
+                                                            saltos de línea y
+                                                            &lt;span
+                                                            class="text-primary"&gt;
+                                                            para texto
+                                                            destacado</small
+                                                        >
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label
+                                                            class="control-label"
+                                                            >Subtítulo/Badge</label
+                                                        >
+                                                        <el-input
+                                                            v-model="
+                                                                form.about
+                                                                    .subtitle
+                                                            "
+                                                            placeholder="Ej: Nuestra Historia"
+                                                        ></el-input>
+                                                    </div>
                                                     <div class="form-group">
                                                         <label
                                                             class="control-label"
@@ -524,8 +572,11 @@ export default {
             errors: {},
             form: {
                 id: null,
+                title_services: "",
                 services: [],
                 about: {
+                    title: "",
+                    subtitle: "",
                     text: "",
                     image: null
                 },
@@ -548,8 +599,11 @@ export default {
             this.errors = {};
             this.form = {
                 id: null,
+                title_services: "",
                 services: [],
                 about: {
+                    title: "",
+                    subtitle: "",
                     text: "",
                     image: null,
                     image_url: null

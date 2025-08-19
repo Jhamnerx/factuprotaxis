@@ -195,6 +195,10 @@ Vue.component(
 );
 Vue.component("tenant-users-index", require("./views/tenant/users/index.vue"));
 Vue.component(
+    "contact-message-list",
+    require("./views/tenant/contact_messages/ContactMessageList.vue")
+);
+Vue.component(
     "tenant-establishments-index",
     require("./views/tenant/establishments/index.vue")
 );

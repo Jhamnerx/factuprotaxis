@@ -1801,6 +1801,20 @@ $inventory_configuration = InventoryConfiguration::getSidebarPermissions();
                             Usuarios</a>
                     </li>
                 @endif
+
+                <!-- Contact Messages -->
+                <li>
+                    <a class="nav-link" href="{{ route('tenant.contact_messages.index') }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z" />
+                            <path d="M3 7l9 6l9 -6" />
+                        </svg>
+                        Mensajes de Contacto</a>
+                </li>
+
                 @if (in_array('users_establishments', $vc_module_levels))
                     <li>
                         <a class="nav-link" href="{{ route('tenant.establishments.index') }}">

@@ -14,6 +14,7 @@ class WebPageTaxis extends ModelTenant
 
     protected $table = 'web_page_taxis';
     protected $fillable = [
+        'title_services',
         'services',
         'about',
         'contact_image',
@@ -32,6 +33,7 @@ class WebPageTaxis extends ModelTenant
 
         return [
             'id'  => $this->id,
+            'title_services' => $this->title_services,
             'services' => is_array($this->services) ? array_map(function ($service) {
                 return [
                     'name' => $service['name'],

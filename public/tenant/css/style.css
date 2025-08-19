@@ -51,7 +51,7 @@ body {
     width: 3px;
     height: 100%;
     top: 50%;
-    right: -45px;
+    right: -3px;
     -webkit-transform: translateY(-50%);
     transform: translateY(-50%);
     z-index: 1;
@@ -250,7 +250,7 @@ a:focus {
 .slider_section .slider_form {
     width: 400px;
     padding: 25px;
-    background-color: #282828;
+
     border-radius: 10px;
     margin: auto;
 }

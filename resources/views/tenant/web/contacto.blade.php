@@ -21,38 +21,45 @@
                             <h4>Contáctanos</h4>
                             <p>Envíanos tu consulta y te responderemos pronto</p>
                         </div>
-                        <form action="" class="contact-form-content">
+                        <form action="{{ route('tenant.web.contacto.store') }}" method="POST" class="contact-form-content">
+                            @csrf
                             <div class="form-group">
-                                <div class="input-group">
-                                    <div class="input-icon">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <input type="text" placeholder="Nombre completo" required>
-                                </div>
+                                <input type="text" name="name" placeholder="Nombre completo"
+                                    value="{{ old('name') }}" class="form-input @error('name') is-invalid @enderror"
+                                    required>
+                                @if ($errors->has('name'))
+                                    <p class="mt-1 text-sm text-red-600 error-message">
+                                        {{ $errors->first('name') }}
+                                    </p>
+                                @endif
                             </div>
                             <div class="form-group">
-                                <div class="input-group">
-                                    <div class="input-icon">
-                                        <i class="fas fa-phone"></i>
-                                    </div>
-                                    <input type="tel" placeholder="Número de teléfono" required>
-                                </div>
+                                <input type="tel" name="phone" placeholder="Número de teléfono"
+                                    value="{{ old('phone') }}" class="form-input @error('phone') is-invalid @enderror">
+                                @if ($errors->has('phone'))
+                                    <p class="mt-1 text-sm text-red-600 error-message">
+                                        {{ $errors->first('phone') }}
+                                    </p>
+                                @endif
                             </div>
                             <div class="form-group">
-                                <div class="input-group">
-                                    <div class="input-icon">
-                                        <i class="fas fa-envelope"></i>
-                                    </div>
-                                    <input type="email" placeholder="Correo electrónico" required>
-                                </div>
+                                <input type="email" name="email" placeholder="Correo electrónico"
+                                    value="{{ old('email') }}" class="form-input @error('email') is-invalid @enderror"
+                                    required>
+                                @if ($errors->has('email'))
+                                    <p class="mt-1 text-sm text-red-600 error-message">
+                                        {{ $errors->first('email') }}
+                                    </p>
+                                @endif
                             </div>
                             <div class="form-group">
-                                <div class="input-group">
-                                    <div class="input-icon message-icon">
-                                        <i class="fas fa-comment-alt"></i>
-                                    </div>
-                                    <textarea placeholder="Describe tu consulta o problema..." class="message_input" rows="4" required></textarea>
-                                </div>
+                                <textarea name="message" placeholder="Describe tu consulta o problema..."
+                                    class="form-input message-input @error('message') is-invalid @enderror" rows="4" required>{{ old('message') }}</textarea>
+                                @if ($errors->has('message'))
+                                    <p class="mt-1 text-sm text-red-600 error-message">
+                                        {{ $errors->first('message') }}
+                                    </p>
+                                @endif
                             </div>
                             <div class="form-actions">
                                 <button type="submit" class="submit-btn">
@@ -60,6 +67,13 @@
                                     Enviar Mensaje
                                 </button>
                             </div>
+
+                            @if (session('success'))
+                                <div class="success-message">
+                                    <i class="fas fa-check-circle"></i>
+                                    {{ session('success') }}
+                                </div>
+                            @endif
                         </form>
 
                         <div class="contact-info">
