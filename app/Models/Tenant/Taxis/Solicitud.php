@@ -73,6 +73,7 @@ class Solicitud extends ModelTenant
             'id' => $this->id,
             'tipo' => $this->tipo,
             'tipo_baja' => $this->tipo_baja,
+            'constancia_id' => $this->constancia_id,
             'tipo_texto' => $this->getTipoTexto($this->tipo),
             'descripcion' => $this->descripcion,
             'motivo' => $this->motivo,

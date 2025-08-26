@@ -139,7 +139,6 @@ class PdfController extends Controller
             // Generar constancia de baja
             $company = Company::active();
             $establishment = User::firstOrFail()->establishment;
-            ent;
             $path_css = resource_path('views/pdf/style.css');
             $stylesheet = file_get_contents($path_css);
 
