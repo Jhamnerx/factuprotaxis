@@ -39,7 +39,7 @@ class VehiculoRequest extends FormRequest
             'alto' => 'required|numeric',
             'peso' => 'required|numeric',
             'carga_util' => 'required|numeric',
-            'ccn' => 'required|string|max:50',
+            'ccn' => 'nullable|string|max:50',
             'numero_motor' => 'required|string|max:50',
             'ejes' => 'required|integer',
             'asientos' => 'required|integer',

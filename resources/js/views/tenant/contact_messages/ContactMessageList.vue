@@ -79,7 +79,7 @@
             </div>
         </div>
 
-        <!-- Filters 
+        <!-- Filters -->
         <div class="card tab-content-default row-new mb-4">
             <div class="card-body">
                 <div class="row">
@@ -130,7 +130,7 @@
                 </div>
             </div>
         </div>
--->
+
         <!-- Messages Table -->
         <div class="card tab-content-default row-new mb-0">
             <div class="card-body">
@@ -138,59 +138,52 @@
                     :resource="resource"
                     :columns="columns"
                     ref="dataTable"
-                    @click-edit="viewMessage"
+                    @click-view="viewMessage"
                     @click-delete="clickDelete"
                 >
-                    <tr slot="heading">
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Teléfono</th>
-                        <th>Estado</th>
-                        <th>Fecha</th>
-                        <th class="text-right">Acciones</th>
-                    </tr>
-                    <tr slot-scope="{ row }">
-                        <td>
-                            <div>
-                                <strong>{{ row.name }}</strong>
-                                <br />
-                                <small class="text-muted">{{
-                                    truncateMessage(row.message, 50)
-                                }}</small>
-                            </div>
-                        </td>
-                        <td>{{ row.email }}</td>
-                        <td>{{ row.phone }}</td>
-                        <td>
-                            <span
-                                :class="
-                                    'contact-badge contact-badge-' +
-                                        row.status_color
-                                "
+                    <template slot="name" slot-scope="{ row }">
+                        <div>
+                            <strong>{{ row.name }}</strong>
+                            <br />
+                            <small class="text-muted">{{
+                                truncateMessage(row.message, 50)
+                            }}</small>
+                        </div>
+                    </template>
+
+                    <template slot="status" slot-scope="{ row }">
+                        <span
+                            :class="
+                                'contact-badge contact-badge-' +
+                                    row.status_color
+                            "
+                        >
+                            {{ row.status_text }}
+                        </span>
+                    </template>
+
+                    <template slot="created_at" slot-scope="{ row }">
+                        {{ formatDate(row.created_at) }}
+                    </template>
+
+                    <template slot="actions" slot-scope="{ row }">
+                        <div class="btn-group">
+                            <button
+                                @click="viewMessage(row)"
+                                class="btn btn-primary btn-xs"
+                                title="Ver mensaje"
                             >
-                                {{ row.status_text }}
-                            </span>
-                        </td>
-                        <td>{{ formatDate(row.created_at) }}</td>
-                        <td class="text-right">
-                            <div class="btn-group">
-                                <button
-                                    @click="viewMessage(row)"
-                                    class="btn btn-primary btn-xs"
-                                    title="Ver mensaje"
-                                >
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button
-                                    @click="clickDelete(row.id)"
-                                    class="btn btn-danger btn-xs"
-                                    title="Eliminar"
-                                >
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button
+                                @click="clickDelete(row.id)"
+                                class="btn btn-danger btn-xs"
+                                title="Eliminar"
+                            >
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </template>
                 </data-table>
             </div>
         </div>
@@ -297,6 +290,7 @@ export default {
     data() {
         return {
             resource: "contactMessages",
+            resource: "contactMessages",
             showModal: false,
             selectedMessage: {},
             adminNotes: "",
@@ -354,12 +348,22 @@ export default {
         },
 
         applyFilters() {
-            // Recargar datos con filtros
-            this.$refs.dataTable.fetchData(1, {
-                search: this.filters.search,
-                status: this.filters.status,
-                date: this.filters.date
-            });
+            // Aplicar filtros mediante la resource
+            let resource = "/contactMessages/records?";
+            const params = new URLSearchParams();
+
+            if (this.filters.search) {
+                params.append("search", this.filters.search);
+            }
+            if (this.filters.status) {
+                params.append("status", this.filters.status);
+            }
+            if (this.filters.date) {
+                params.append("date", this.filters.date);
+            }
+
+            this.resource = resource + params.toString();
+            this.$refs.dataTable.fetchData();
         },
 
         clearFilters() {
@@ -368,7 +372,8 @@ export default {
                 status: "",
                 date: ""
             };
-            this.$eventHub.$emit("reloadData");
+            this.resource = "/contactMessages/records";
+            this.$refs.dataTable.fetchData();
         },
 
         viewMessage(row) {
@@ -393,7 +398,7 @@ export default {
                 );
 
                 this.$message.success("Estado actualizado correctamente");
-                this.$eventHub.$emit("reloadData");
+                this.$refs.dataTable.fetchData();
                 this.loadStats();
 
                 if (closeModal) {
@@ -406,8 +411,8 @@ export default {
         },
 
         clickDelete(id) {
-            this.destroy(`/contactMessages/${id}`).then(() => {
-                this.$eventHub.$emit("reloadData");
+            this.destroy(`/${this.resource}/${id}`).then(() => {
+                this.$refs.dataTable.fetchData();
                 this.loadStats();
             });
         },

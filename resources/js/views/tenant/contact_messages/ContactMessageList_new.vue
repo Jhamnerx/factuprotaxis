@@ -340,7 +340,9 @@ export default {
     methods: {
         async loadStats() {
             try {
-                const response = await this.$http.get("/contactMessages/stats");
+                const response = await this.$http.get(
+                    "/contactMessages/stats"
+                );
                 this.stats = response.data;
             } catch (error) {
                 console.error("Error loading stats:", error);
