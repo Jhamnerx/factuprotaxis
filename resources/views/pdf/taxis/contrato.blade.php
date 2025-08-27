@@ -315,7 +315,10 @@
         </h3>
         <p><strong>QUINTO.</strong> - <b>EL PROPIETARIO</b> deberá cumplir con las siguientes obligaciones:</p>
         <ol>
-            <li>Pagos de tributo Mensual de TREINTA SOLES 30.00, en caso de no cumplir <b>la empresa</b> realizara el
+            <li>Pagos de tributo Mensual de
+                {{ strtoupper(\App\CoreFacturalo\Helpers\Number\NumberLetter::convertToLetter($contrato->monto_tributo ?? 30, 'SOLES')) }}
+                (S/ {{ number_format($contrato->monto_tributo ?? 30, 2) }}), en caso de no cumplir <b>la empresa</b>
+                realizara el
                 retiro de
                 la
                 unidad por falta de pago de tributo y Resolución de Contrato; pudiendo aplicarse las misma en forma

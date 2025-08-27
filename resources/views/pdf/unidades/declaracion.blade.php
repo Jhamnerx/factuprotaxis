@@ -300,7 +300,6 @@
         <div class="signature-section uppercase">
             <div style="text-align: center; margin: 40px auto 15px auto;">
                 <div class="company-signature">{{ $company->name }}</div>
-                <div class="company-signature" style="margin-bottom: 30px;">{{ $company->trade_name }}</div>
 
                 <div style="margin-bottom: 5px;">
                     <div style="width: 7cm; border-top: 1px solid #000; margin: 0 auto;"></div>

@@ -242,6 +242,7 @@
                                         ></label
                                     >
                                     <el-input
+                                        autocomplete="off"
                                         v-model="form.email"
                                         dusk="email"
                                         type="email"
@@ -561,7 +562,7 @@ export default {
                     .then(response => {
                         this.form = response.data.data;
                         // Limpiar la contraseña para no mostrarla en modo edición
-                        this.form.password = "";
+                        this.$set(this.form, "password", "");
                         this.filterProvinces();
                         this.filterDistricts();
                     });

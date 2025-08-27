@@ -90,8 +90,13 @@
                             </div>
                         </div>
                     </div>
+                    <div class="btn-login-box" style="margin-top: 15px; text-align: center;">
+                        <a href="{{ route('taxis.login') }}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Ingresar al Sistema
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 </section>

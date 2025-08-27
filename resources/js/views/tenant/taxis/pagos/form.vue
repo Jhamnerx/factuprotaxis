@@ -603,10 +603,10 @@
                                     <thead>
                                         <tr>
                                             <th
-                                                class="px-3 py-1.5 border border-gray-300 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                                                class="px-2 py-1 border border-gray-300 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                                             >
                                                 <div
-                                                    class="flex items-center justify-between"
+                                                    class="flex items-center justify-between text-xs"
                                                 >
                                                     <div>Año</div>
                                                     <div>Mes</div>
@@ -615,9 +615,9 @@
                                             <th
                                                 v-for="(mes, index) in meses"
                                                 :key="index"
-                                                class="px-3 py-1.5 border border-gray-300 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-center"
+                                                class="px-2 py-1 border border-gray-300 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-center"
                                             >
-                                                <div class="text-sm">
+                                                <div class="text-xs">
                                                     {{ mes }}
                                                 </div>
                                             </th>
@@ -629,13 +629,13 @@
                                             :key="year"
                                         >
                                             <td
-                                                class="border border-gray-300 p-1.5 font-medium text-center text-gray-800 dark:text-gray-100"
+                                                class="border border-gray-300 p-1 font-medium text-center text-gray-800 dark:text-gray-100"
                                             >
                                                 <div
-                                                    class="flex items-center justify-center"
+                                                    class="flex items-center justify-center text-xs"
                                                 >
                                                     <div
-                                                        style="width: 4px; height: 12px; background-color: #3b82f6; display: inline-block; margin-right: 0.25rem;"
+                                                        style="width: 3px; height: 10px; background-color: #3b82f6; display: inline-block; margin-right: 0.25rem;"
                                                     ></div>
                                                     <span>{{ year }}</span>
                                                 </div>
@@ -644,7 +644,7 @@
                                                 v-for="m in 12"
                                                 :key="`${year}-${m}`"
                                                 :id="getCellId(year, m)"
-                                                class="calendar-cell border border-gray-300 p-1.5 text-center transition text-gray-800 dark:text-gray-100 whitespace-nowrap"
+                                                class="calendar-cell border border-gray-300 p-1 text-center transition text-gray-800 dark:text-gray-100 whitespace-nowrap"
                                                 :class="{
                                                     'selected-cell':
                                                         is_multiple &&
@@ -683,7 +683,7 @@
                                                 "
                                             >
                                                 <div
-                                                    class="text-sm cell-content-wrapper"
+                                                    class="text-xs cell-content-wrapper"
                                                     :id="
                                                         `cell-content-${year}-${m}`
                                                     "
@@ -1219,10 +1219,11 @@
 <style scoped>
 /* Estilos para las celdas del calendario */
 .calendar-cell {
-    min-width: 100px;
-    height: 55px; /* Dar suficiente altura para el contenido y la divisa */
+    min-width: 80px;
+    height: 45px; /* Reducir altura para hacer más compacto */
     vertical-align: top;
-    padding: 4px !important;
+    padding: 2px !important;
+    font-size: 0.75rem;
 }
 
 .selected-cell {
@@ -1271,17 +1272,19 @@
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
+    font-size: 0.7rem;
 }
 
 .cell-content-wrapper .currency-info {
-    margin-top: 2px;
+    margin-top: 1px;
     opacity: 0.8;
+    font-size: 0.6rem;
 }
 
 .cell-content-wrapper .total-badge {
-    font-size: 0.65rem;
+    font-size: 0.55rem;
     color: #10b981;
-    margin-left: 3px;
+    margin-left: 2px;
 }
 
 /* Asegurando que todas las celdas del calendario tengan cursor pointer */
@@ -1326,21 +1329,23 @@
 
 /* Hacer que el calendario se vea más profesional */
 table {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     border-collapse: separate;
     border-spacing: 0;
 }
 
 table th {
     font-weight: 500;
-    padding: 6px;
+    padding: 4px;
     border-bottom: 1px solid #dee2e6;
+    font-size: 0.7rem;
 }
 
 table td {
-    padding: 6px;
+    padding: 3px;
     border: 1px solid #e9ecef;
     transition: all 0.2s;
+    font-size: 0.7rem;
 }
 
 table td:hover {
