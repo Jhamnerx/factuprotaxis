@@ -11,10 +11,10 @@
     <title>Contrato de Sesión de Uso - {{ $vehiculo['placa'] }}</title>
     <style>
         {{ $stylesheet }} @page {
-            margin-top: 0.5cm;
-            margin-bottom: 1.5cm;
-            margin-left: 2cm;
-            margin-right: 2cm;
+            margin-top: 0.92cm;
+            margin-bottom: 0.49cm;
+            margin-left: 1.75cm;
+            margin-right: 1.25cm;
         }
 
         * {
@@ -39,20 +39,21 @@
             right: 0cm;
             height: 1cm;
             text-align: center;
-            font-size: 8px;
+            font-family: 'Century Gothic', 'DejaVu Sans', sans-serif;
+            font-size: 6px;
             padding-top: 5px;
             border-top: 1px solid #ccc;
         }
 
         body {
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 10px;
-            line-height: 1.4;
+            font-family: 'Century Gothic', 'DejaVu Sans', sans-serif;
+            font-size: 6px;
+            line-height: 1.1;
             position: relative;
-            margin-top: 1.7cm;
-            /* Espacio reducido para el encabezado */
-            margin-bottom: 1.2cm;
-            /* Espacio reducido para el footer */
+            margin-top: 1.12cm;
+            /* Espacio para el encabezado ajustado */
+            margin-bottom: 0.69cm;
+            /* Espacio para el footer ajustado */
             text-align: justify;
             orphans: 2;
             /* Evita que queden menos de 2 líneas al final de una página */
@@ -73,7 +74,7 @@
 
         /* Estilos para párrafos */
         p {
-            margin-bottom: 0.3cm;
+            margin-bottom: 0.1cm;
             text-align: justify;
             page-break-inside: auto;
             /* Permite que los párrafos se dividan entre páginas */
@@ -83,18 +84,19 @@
         h2,
         h3 {
             text-align: center;
-            font-size: 11px;
+            font-family: 'Century Gothic', 'DejaVu Sans', sans-serif;
+            font-size: 6px;
             font-weight: bold;
-            margin-top: 0.4cm;
-            margin-bottom: 0.3cm;
+            margin-top: 0.2cm;
+            margin-bottom: 0.1cm;
         }
 
         /* Estilos para listas */
         ol,
         ul {
             padding-left: 0.8cm;
-            margin-top: 0.1cm;
-            margin-bottom: 0.2cm;
+            margin-top: 0.05cm;
+            margin-bottom: 0.1cm;
             page-break-inside: auto;
             /* Permite que las listas se dividan entre páginas */
         }
@@ -104,6 +106,7 @@
             page-break-inside: auto;
             page-break-before: avoid;
             /* Evita un salto de página justo antes del elemento */
+            margin-bottom: 0.05cm;
         }
 
         /* Estilos específicos para listas largas que necesitan dividirse correctamente */
@@ -115,7 +118,7 @@
         #obligaciones li,
         #compromisos li {
             page-break-inside: auto !important;
-            margin-bottom: 0.2cm;
+            margin-bottom: 0.05cm;
         }
 
         /* Espacio para asegurar que el contenido empiece después del header en cada página */
@@ -149,8 +152,9 @@
 
         .company-name {
             text-align: center;
+            font-family: 'Century Gothic', 'DejaVu Sans', sans-serif;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 6px;
             margin-top: 2px;
         }
 
@@ -209,7 +213,9 @@
     <!-- Este div mantiene el espacio adecuado entre el header y el contenido en todas las páginas -->
     <div class="header-space"></div>
     <main>
-        <h2 style="text-align: center; margin-top: 0; font-size: 11px;">CONTRATO DE SESIÓN DE USO</h2>
+        <h2
+            style="text-align: center; margin-top: 0; font-family: 'Century Gothic', 'DejaVu Sans', sans-serif; font-size: 6px;">
+            CONTRATO DE SESIÓN DE USO</h2>
 
         <p>Conste por el presente documento <b>CONTRATO DE SESIÓN DE USO, PARA LA PRESTACIÓN DEL SERVICIO DE TRANSPORTE
                 REGULAR DE PERSONAS (TAXI)</b> que celebran de una parte <b>LA EMPRESA</b> DE TRANSPORTES,
@@ -230,7 +236,9 @@
             denominará <b>EL PROPIETARIO</b>, quienes acuerdan en los términos y condiciones siguientes:
         </p>
 
-        <h3 style="margin-top: 0.3cm; margin-bottom: 0.2cm; font-size: 11px;">ANTECEDENTES</h3>
+        <h3
+            style="margin-top: 0.2cm; margin-bottom: 0.1cm; font-family: 'Century Gothic', 'DejaVu Sans', sans-serif; font-size: 6px;">
+            ANTECEDENTES</h3>
         <p><strong>PRIMERO.</strong> - <b>LA EMPRESA</b> se dedica a prestar el Servicio Público de Transporte Regular
             de
             Personas
@@ -260,7 +268,9 @@
             efecto conviene con <b>EL PROPIETARIO</b> con el objeto de que su unidad vehicular sirva en este cometido en
             calidad de comisionista. </p>
 
-        <h3 style="margin-top: 0.3cm; margin-bottom: 0.2cm; font-size: 11px;">DE LAS OBLIGACIONES DE <b> EL
+        <h3
+            style="margin-top: 0.2cm; margin-bottom: 0.1cm; font-family: 'Century Gothic', 'DejaVu Sans', sans-serif; font-size: 6px;">
+            DE LAS OBLIGACIONES DE <b> EL
                 PROPIETARIO</b>
         </h3>
         <p><strong>CUARTO.</strong> - <b>EL PROPIETARIO</b> deberá cumplir con las siguientes obligaciones:</p>
@@ -310,7 +320,9 @@
                 personas que operen su unidad vehicular. </li>
         </ol>
 
-        <h3 style="margin-top: 0.3cm; margin-bottom: 0.2cm; font-size: 11px;">DE LOS PAGOS POR TRIBUTOS A <b>LA
+        <h3
+            style="margin-top: 0.2cm; margin-bottom: 0.1cm; font-family: 'Century Gothic', 'DejaVu Sans', sans-serif; font-size: 6px;">
+            DE LOS PAGOS POR TRIBUTOS A <b>LA
                 EMPRESA</b>
         </h3>
         <p><strong>QUINTO.</strong> - <b>EL PROPIETARIO</b> deberá cumplir con las siguientes obligaciones:</p>
@@ -325,7 +337,9 @@
                 indistinta.</li>
         </ol>
 
-        <h3 style="margin-top: 0.3cm; margin-bottom: 0.2cm; font-size: 11px;">DEL COMPROMISO D<b>EL PROPIETARIO</b></h3>
+        <h3
+            style="margin-top: 0.2cm; margin-bottom: 0.1cm; font-family: 'Century Gothic', 'DejaVu Sans', sans-serif; font-size: 6px;">
+            DEL COMPROMISO D<b>EL PROPIETARIO</b></h3>
         <p><strong>SEXTO.</strong> - El compromiso expreso d<b>el PROPIETARIO</b> radica en:</p>
         <ol id="compromisos">
             <li>Se compromete a prestar el servicio regular de personas (taxi) bajo su responsabilidad directa y en
@@ -373,11 +387,15 @@
                 trabajar el vehículo que figura en el padrón, de lo contrario perderá su línea. </li>
         </ol>
 
-        <h3 style="margin-top: 0.3cm; margin-bottom: 0.2cm; font-size: 11px;">VIGENCIA DEL CONTRATO</h3>
+        <h3
+            style="margin-top: 0.2cm; margin-bottom: 0.1cm; font-family: 'Century Gothic', 'DejaVu Sans', sans-serif; font-size: 6px;">
+            VIGENCIA DEL CONTRATO</h3>
         <p><strong>SÉPTIMO.</strong> - La vigencia del presente contrato rige a partir de la fecha de su celebración por
             TIEMPO INDETERMINADO, pudiendo ser renovado únicamente mediante la suscripción de un nuevo contrato.</p>
 
-        <h3 style="margin-top: 0.3cm; margin-bottom: 0.2cm; font-size: 11px;">DE LAS SANCIONES</h3>
+        <h3
+            style="margin-top: 0.2cm; margin-bottom: 0.1cm; font-family: 'Century Gothic', 'DejaVu Sans', sans-serif; font-size: 6px;">
+            DE LAS SANCIONES</h3>
         <p><strong>OCTAVO.</strong> - <b>LA EMPRESA</b> podrá imponer a <b>EL PROPIETARIO</b> las siguientes sanciones
             por el
             incumplimiento del presente contrato e independientemente de lo establecido por el Reglamento Interno de la
